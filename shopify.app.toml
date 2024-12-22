@@ -1,0 +1,37 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "00faac2857e848f0ba9220b14cd6a470"
+name = "DropEasy"
+handle = "dropeasy-2"
+application_url = "https://for-toilet-incomplete-carey.trycloudflare.com"
+embedded = true
+
+[build]
+automatically_update_urls_on_dev = true
+dev_store_url = "longphppreviewdrop.myshopify.com"
+include_config_on_deploy = true
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_files,read_locales,read_markets,read_products,read_themes,write_files,write_products,write_themes,write_images"
+
+[auth]
+redirect_urls = [
+  "https://for-toilet-incomplete-carey.trycloudflare.com/auth/callback",
+  "https://for-toilet-incomplete-carey.trycloudflare.com/auth/shopify/callback",
+  "https://for-toilet-incomplete-carey.trycloudflare.com/api/auth/callback"
+]
+
+[webhooks]
+api_version = "2024-10"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/scopes_update" ]
+  uri = "/webhooks/app/scopes_update"
+
+  [[webhooks.subscriptions]]
+  topics = [ "app/uninstalled" ]
+  uri = "/webhooks/app/uninstalled"
+
+[pos]
+embedded = false
