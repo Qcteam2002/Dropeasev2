@@ -1,9 +1,9 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "00faac2857e848f0ba9220b14cd6a470"
-name = "DropEasy"
+name = "Test App"
 handle = "dropeasy-2"
-application_url = "https://for-toilet-incomplete-carey.trycloudflare.com"
+application_url = "https://months-unemployment-emails-sitemap.trycloudflare.com"
 embedded = true
 
 [build]
@@ -13,13 +13,13 @@ include_config_on_deploy = true
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "read_files,read_locales,read_markets,read_products,read_themes,write_files,write_products,write_themes,write_images"
+scopes = "read_files,read_locales,read_markets,read_products,read_themes,write_files,write_products,write_themes"
 
 [auth]
 redirect_urls = [
-  "https://for-toilet-incomplete-carey.trycloudflare.com/auth/callback",
-  "https://for-toilet-incomplete-carey.trycloudflare.com/auth/shopify/callback",
-  "https://for-toilet-incomplete-carey.trycloudflare.com/api/auth/callback"
+  "https://months-unemployment-emails-sitemap.trycloudflare.com/auth/callback",
+  "https://months-unemployment-emails-sitemap.trycloudflare.com/auth/shopify/callback",
+  "https://months-unemployment-emails-sitemap.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]

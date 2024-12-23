@@ -10,7 +10,7 @@ services:
       - MYSQL_USER=main
       - MYSQL_PASSWORD=mainpass
     ports:
-      - 33062:3306    
+      - 33063:3306    
     networks:
       - easywork   
     volumes:
