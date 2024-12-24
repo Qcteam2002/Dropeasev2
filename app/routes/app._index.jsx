@@ -14,9 +14,15 @@ import {
 } from "@shopify/polaris";
 import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
+import { ShopifyInit } from "../shopifyInit";
+import { abc } from "../test";
 
 export const loader = async ({ request }) => {
   const { admin } = await authenticate.admin(request);
+
+  // const shopifyInit = new ShopifyInit(admin);
+  const testClass = new abc(admin)
+  console.log(testClass);
 
   const response = await admin.graphql(
     `#graphql
