@@ -3,7 +3,7 @@
 client_id = "00faac2857e848f0ba9220b14cd6a470"
 name = "Test App"
 handle = "dropeasy-2"
-application_url = "https://ericsson-gender-means-apartments.trycloudflare.com"
+application_url = "https://advertising-counties-compiled-affects.trycloudflare.com"
 embedded = true
 
 [build]
@@ -17,9 +17,9 @@ scopes = "read_files,read_locales,read_markets,read_products,read_themes,write_f
 
 [auth]
 redirect_urls = [
-  "https://ericsson-gender-means-apartments.trycloudflare.com/auth/callback",
-  "https://ericsson-gender-means-apartments.trycloudflare.com/auth/shopify/callback",
-  "https://ericsson-gender-means-apartments.trycloudflare.com/api/auth/callback"
+  "https://advertising-counties-compiled-affects.trycloudflare.com/auth/callback",
+  "https://advertising-counties-compiled-affects.trycloudflare.com/auth/shopify/callback",
+  "https://advertising-counties-compiled-affects.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]

@@ -14,61 +14,15 @@ import {
 } from "@shopify/polaris";
 import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
-import { ShopifyInit } from "../shopifyInit";
-import { abc } from "../test";
+import ShopifyInit from "../shopifyInit";
+
 
 export const loader = async ({ request }) => {
   const { admin } = await authenticate.admin(request);
 
-  // const shopifyInit = new ShopifyInit(admin);
-  const testClass = new abc(admin)
-  console.log(testClass);
+  const shopifyInit = new ShopifyInit(admin);
 
-  const response = await admin.graphql(
-    `#graphql
-    query WebhookSubscriptionList {
-      webhookSubscriptions( first: 10) {
-        edges {
-          node {
-            id
-            topic
-            endpoint {
-              __typename
-              ... on WebhookHttpEndpoint {
-                callbackUrl
-              }
-              ... on WebhookEventBridgeEndpoint {
-                arn
-              }
-              ... on WebhookPubSubEndpoint {
-                pubSubProject
-                pubSubTopic
-              }
-            }
-            createdAt
-            updatedAt
-            apiVersion {
-              handle
-            }
-            format
-            includeFields
-            metafieldNamespaces
-            privateMetafieldNamespaces
-          }
-        }
-      }
-    }`,
-  );
-
-  // const data = await response.json();
-
-  const {
-    data: {
-      webhookSubscriptions: { edges },
-    },
-  } = await response.json();
-
-  console.log(edges);
+  await shopifyInit.init();
 
   return null;
 };

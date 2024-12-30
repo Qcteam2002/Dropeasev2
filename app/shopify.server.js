@@ -20,10 +20,6 @@ const shopify = shopifyApp({
   isEmbeddedApp: true,
   hooks: {
     afterAuth: async ({ session, admin }) => {
-      console.log('Authentication successful for shop:', session.shop);
-      
-      shopify.registerWebhooks({ session })
-
       await installAppQueue.add({
         shop: session.shop,
         accessToken: session.accessToken,
