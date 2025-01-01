@@ -1,5 +1,5 @@
 {
-  "include": ["env.d.ts", "**/*.ts", "**/*.tsx", "app/shopifyInit.js"],
+  "include": ["env.d.ts", "**/*.ts", "**/*.tsx", "app/shopify_theme/shopifyInit.js"],
   "compilerOptions": {
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
     "strict": true,

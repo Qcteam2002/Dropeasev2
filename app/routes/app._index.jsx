@@ -14,7 +14,7 @@ import {
 } from "@shopify/polaris";
 import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
-import ShopifyInit from "../shopifyInit";
+import ShopifyInit from "../shopify_theme/shopifyInit";
 
 
 export const loader = async ({ request }) => {
