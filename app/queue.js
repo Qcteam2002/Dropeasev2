@@ -1,17 +1,20 @@
-import Queue from 'bull';
+import { Worker, Queue } from 'bullmq';
+import IORedis from 'ioredis';
 
-// Create a new queue
-const installAppQueue = new Queue('installAppQueue', {
-  redis: {
-    host: process.env.REDIS_HOST,
-    port: process.env.REDIS_PORT,
-  },
+console.log(process.env.REDIS_HOST, process.env.REDIS_PORT);
+
+const connection = new IORedis({ 
+  port: process.env.REDIS_PORT,
+  host: process.env.REDIS_HOST, 
+  maxRetriesPerRequest: null 
 });
 
-// Define a job processor
-installAppQueue.process(async (job) => {
-  console.log('Hello Processing job:', job.id);
-  // Add your job processing logic here
+const myFirstWorker = new Worker('installedQueue', async job => {
+  console.log('job.data', job.data);
+}, {
+  connection,
 });
 
-export default installAppQueue;
+const installedQueue = new Queue('installedQueue', { connection: IORedis });
+
+export default installedQueue;

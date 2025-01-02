@@ -6,7 +6,7 @@ import {
 } from "@shopify/shopify-app-remix/server";
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import prisma from "./db.server";
-import installAppQueue from './queue'; // Import the queue
+import installedQueue from './queue'; // Import the queue
 
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
@@ -20,7 +20,8 @@ const shopify = shopifyApp({
   isEmbeddedApp: true,
   hooks: {
     afterAuth: async ({ session, admin }) => {
-      await installAppQueue.add({
+      // Add the job to the queue
+      installedQueue.add('installed',{
         shop: session.shop,
         accessToken: session.accessToken,
       });
