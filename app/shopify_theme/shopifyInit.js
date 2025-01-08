@@ -1,5 +1,6 @@
 import fs from "fs";
 import themeFiles from "./init_config.js";
+import metafields from "./metafield_config.js";
 import { join } from "path";
 
 export default class ShopifyInit {
@@ -22,6 +23,7 @@ export default class ShopifyInit {
     this.mainTheme = mainTheme;
     this.createAsset();
     this.customProductTemplate();
+    this.defineMetafield();
   }
 
   async getMainTheme() {
@@ -108,8 +110,8 @@ export default class ShopifyInit {
   }
 
   processThemeFileContent(fileContent) {
-    const jsonContent = fileContent.replace(/\/\*[\s\S]*?\*\//, '');
-    console.log(jsonContent)
+    const jsonContent = fileContent.replace(/\/\*[\s\S]*?\*\//, "");
+    console.log(jsonContent);
 
     const jsonObject = JSON.parse(jsonContent);
     return jsonObject;
@@ -118,13 +120,17 @@ export default class ShopifyInit {
   async customProductTemplate() {
     const filename = "templates/product.json";
     const productTemplate = await this.getFile(filename);
-    const productObj = this.processThemeFileContent(productTemplate.body.content); 
-    const sections = themeFiles.filter((file) => file.type === "section").map((file) =>  {
-      return {
-        type: file.name,
-        settings: {},
-      };
-    });
+    const productObj = this.processThemeFileContent(
+      productTemplate.body.content
+    );
+    const sections = themeFiles
+      .filter((file) => file.type === "section")
+      .map((file) => {
+        return {
+          type: file.name,
+          settings: {},
+        };
+      });
 
     for (const sec of sections) {
       productObj.sections[`${sec.type}`] = sec;
@@ -132,7 +138,7 @@ export default class ShopifyInit {
     }
 
     const jsonString = JSON.stringify(productObj);
-    
+
     console.log(jsonString);
     const files = [
       {
@@ -165,18 +171,67 @@ export default class ShopifyInit {
     }
   }`;
 
-  console.log(queryTheme);
+    console.log(queryTheme);
 
     const response = await this.admin.graphql(queryTheme);
 
     const {
       data: {
         theme: {
-          files: { nodes: [firstNode] },
+          files: {
+            nodes: [firstNode],
+          },
         },
       },
     } = await response.json();
 
     return firstNode;
+  }
+
+  async createMetafield(metafield) {
+    const query = `#graphql
+  mutation CreateMetafieldDefinition($definition: MetafieldDefinitionInput!) {
+    metafieldDefinitionCreate(definition: $definition) {
+      createdDefinition {
+        id
+        name
+      }
+      userErrors {
+        field
+        message
+        code
+      }
+    }
+  }`;
+
+    const variables = {
+      variables: {
+        definition: {
+          name: metafield.name,
+          namespace: metafield.namespace,
+          key: metafield.key,
+          description: metafield.description,
+          type: metafield.type,
+          ownerType: metafield.ownerType,
+          access: {
+            storefront: metafield.access.storefront 
+          },
+        },
+      },
+    };
+
+    const response = await this.admin.graphql(query, variables);
+
+    const {
+      data: {
+        metafieldDefinitionCreate: { createdDefinition },
+      },
+    } = await response.json();
+  }
+
+  async defineMetafield() {
+    metafields.forEach(async (metafield) => {
+      await this.createMetafield(metafield);
+    });
   }
 }

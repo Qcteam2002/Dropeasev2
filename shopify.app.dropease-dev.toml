@@ -1,25 +1,10 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "2aa417f555d85d9f0d7532d9c04cfae9"
+application_url = "https://secretariat-tip-structural-detection.trycloudflare.com"
+embedded = true
 name = "dropease_dev"
 handle = "dropease_dev"
-application_url = "https://killing-petition-sequences-cyprus.trycloudflare.com"
-embedded = true
-
-[build]
-automatically_update_urls_on_dev = true
-dev_store_url = "quanletest1.myshopify.com"
-
-[access_scopes]
-# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "read_themes,write_products,write_themes"
-
-[auth]
-redirect_urls = [
-  "https://killing-petition-sequences-cyprus.trycloudflare.com/auth/callback",
-  "https://killing-petition-sequences-cyprus.trycloudflare.com/auth/shopify/callback",
-  "https://killing-petition-sequences-cyprus.trycloudflare.com/api/auth/callback"
-]
 
 [webhooks]
 api_version = "2024-10"
@@ -28,5 +13,20 @@ api_version = "2024-10"
   topics = [ "app/uninstalled" ]
   uri = "/webhooks/app/uninstalled"
 
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "read_themes,write_products,write_themes"
+
+[auth]
+redirect_urls = [
+  "https://secretariat-tip-structural-detection.trycloudflare.com/auth/callback",
+  "https://secretariat-tip-structural-detection.trycloudflare.com/auth/shopify/callback",
+  "https://secretariat-tip-structural-detection.trycloudflare.com/api/auth/callback"
+]
+
 [pos]
 embedded = false
+
+[build]
+dev_store_url = "quanletest1.myshopify.com"
+automatically_update_urls_on_dev = true
