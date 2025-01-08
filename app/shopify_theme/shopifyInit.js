@@ -111,7 +111,7 @@ export default class ShopifyInit {
 
   processThemeFileContent(fileContent) {
     const jsonContent = fileContent.replace(/\/\*[\s\S]*?\*\//, "");
-    console.log(jsonContent);
+    // console.log(jsonContent);
 
     const jsonObject = JSON.parse(jsonContent);
     return jsonObject;
@@ -139,7 +139,7 @@ export default class ShopifyInit {
 
     const jsonString = JSON.stringify(productObj);
 
-    console.log(jsonString);
+    // console.log(jsonString);
     const files = [
       {
         filename: filename,
@@ -171,7 +171,7 @@ export default class ShopifyInit {
     }
   }`;
 
-    console.log(queryTheme);
+    // console.log(queryTheme);
 
     const response = await this.admin.graphql(queryTheme);
 
@@ -193,8 +193,9 @@ export default class ShopifyInit {
   mutation CreateMetafieldDefinition($definition: MetafieldDefinitionInput!) {
     metafieldDefinitionCreate(definition: $definition) {
       createdDefinition {
-        id
         name
+        namespace
+        key
       }
       userErrors {
         field
@@ -214,7 +215,8 @@ export default class ShopifyInit {
           type: metafield.type,
           ownerType: metafield.ownerType,
           access: {
-            storefront: metafield.access.storefront 
+            admin: "PUBLIC_READ_WRITE",
+            storefront: metafield.access.storefront,
           },
         },
       },
@@ -224,14 +226,15 @@ export default class ShopifyInit {
 
     const {
       data: {
-        metafieldDefinitionCreate: { createdDefinition },
+        metafieldDefinitionCreate
       },
     } = await response.json();
+    console.log("metafieldDefinitionCreate", metafieldDefinitionCreate);
   }
 
   async defineMetafield() {
-    metafields.forEach(async (metafield) => {
+    for (const metafield of metafields) { 
       await this.createMetafield(metafield);
-    });
+    }
   }
 }
