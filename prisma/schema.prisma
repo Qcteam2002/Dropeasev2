@@ -21,7 +21,7 @@ model Session {
   scope         String?
   expires       DateTime?
   accessToken   String
-  userId        BigInt?
+  userId        BigInt?   @unique @default(autoincrement())
   firstName     String?
   lastName      String?
   email         String?
@@ -31,19 +31,73 @@ model Session {
   emailVerified Boolean?  @default(false)
 }
 
-model TabTitle {
-  id            Int      @id @default(autoincrement())
-  title         String     
-  content       String
-  shop          String?
-  pages         Json
-  status        StatusTab   @default(PENDING)
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+model PricingModule {
+  id         Int      @id @default(autoincrement())
+  name       String
+  key        String
+  price      Float
+  is_default Boolean? @default(true)
+  available  Boolean? @default(false)
+  features   PricingFeature[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
-enum StatusTab {
-  PENDING
-  APPROVED
-  REJECTED
-} 
+model PricingFeature {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  cycle       Int
+  is_active   Boolean? @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Subscription {
+  id                       String    @id @default(cuid())
+  userId                   BigInt
+  start_time               DateTime? @default(now())
+  next_billing_time        DateTime?
+  external_subscription_id String
+  status                   String
+  amount                   Float
+  moduleId                 Int
+  is_trial                 Boolean?  @default(false)
+  is_test                  Boolean?  @default(false)
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+}
+
+model SubscriptionQuota {
+  id             BigInt    @id @default(autoincrement())
+  userId         BigInt
+  feature_id     String
+  limit_quantity Int
+  used_quantity  Int
+  type           QuotaType
+  createdAt      DateTime  @default(now())
+}
+
+enum QuotaType {
+  SUBSCRIPTION
+  EXTRA
+}
+
+model UsageLog {
+  id            BigInt   @id @default(autoincrement())
+  userId        BigInt
+  feature_id    String
+  used_quantity Int
+  createdAt     DateTime @default(now())
+}
+
+model PaymentLog {
+  id                      BigInt   @id @default(autoincrement())
+  userId                  BigInt
+  action                  String
+  status                  String
+  external_transaction_id String?
+  details                 Json
+  amount                  Float
+  createdAt               DateTime @default(now())
+}
