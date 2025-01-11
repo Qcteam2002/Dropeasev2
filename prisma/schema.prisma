@@ -15,14 +15,14 @@ datasource db {
 }
 
 model Session {
-  id                String              @id
+  id                String              @unique
   shop              String
   state             String
   isOnline          Boolean             @default(false)
   scope             String?
   expires           DateTime?
   accessToken       String
-  userId            BigInt?             @unique @default(autoincrement())
+  userId            BigInt             @id @default(autoincrement())
   firstName         String?
   lastName          String?
   email             String?
@@ -34,6 +34,7 @@ model Session {
   SubscriptionQuota SubscriptionQuota[]
   UsageLog          UsageLog[]
   PaymentLog        PaymentLog[]
+  PlatformProduct   PlatformProduct[]
 }
 
 model PricingModule {
@@ -90,6 +91,8 @@ model Subscription {
 
   module PricingModule? @relation(fields: [moduleId], references: [id])
   user   Session?       @relation(fields: [userId], references: [userId])
+
+  @@index([userId, status])
 }
 
 model SubscriptionQuota {
@@ -102,6 +105,8 @@ model SubscriptionQuota {
   createdAt      DateTime        @default(now())
   user           Session?        @relation(fields: [userId], references: [userId])
   feature        PricingFeature? @relation(fields: [feature_id], references: [id])
+
+  @@index([userId, feature_id])
 }
 
 enum QuotaType {
@@ -117,6 +122,8 @@ model UsageLog {
   createdAt     DateTime        @default(now())
   user          Session?        @relation(fields: [userId], references: [userId])
   feature       PricingFeature? @relation(fields: [feature_id], references: [id])
+
+  @@index([userId, feature_id])
 }
 
 model PaymentLog {
@@ -129,6 +136,8 @@ model PaymentLog {
   amount                  Float
   createdAt               DateTime         @default(now())
   user                    Session?         @relation(fields: [userId], references: [userId])
+
+  @@index([userId])
 }
 
 enum PaymentLogStatus {
@@ -138,26 +147,27 @@ enum PaymentLogStatus {
 }
 
 model SourceProduct {
-  id           BigInt       @id @default(autoincrement())
-  title        String
-  description  String?
-  image        String?
-  video        String?
-  price        Float
-  source       Source
-  sourceUrl    String
-  sourceId     String?
-  comparePrice Float?
-  estProfit    Float?
-  rating       Float?
-  totalRating  Int?
-  like         Int?
-  share        Int?
-  comment      Int?
-  tiktokUrl    String?
-  status       SourceStatus @default(ACTIVE)
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  id              BigInt            @id @default(autoincrement())
+  title           String
+  description     String?
+  image           String?
+  video           String?
+  price           Float
+  source          Source
+  sourceUrl       String
+  sourceId        String?
+  comparePrice    Float?
+  estProfit       Float?
+  rating          Float?
+  totalRating     Int?
+  like            Int?
+  share           Int?
+  comment         Int?
+  tiktokUrl       String?
+  status          SourceStatus      @default(ACTIVE)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  PlatformProduct PlatformProduct[]
 }
 
 enum Source {
@@ -179,4 +189,15 @@ model SourceCategory {
   source    Source
   sourceId  String?
   createdAt DateTime @default(now())
+}
+
+model PlatformProduct {
+  id              BigInt         @id @default(autoincrement())
+  platformId      String
+  sourceProductId BigInt
+  userId          BigInt
+  metafields      Json?
+  createdAt       DateTime       @default(now())
+  user            Session?       @relation(fields: [userId], references: [userId])
+  sourceProduct   SourceProduct? @relation(fields: [sourceProductId], references: [id])
 }
