@@ -3,6 +3,7 @@
 
 generator client {
   provider = "prisma-client-js"
+  output   = "./generated/prisma-client-js"
 }
 
 // Note that some adapters may set a maximum length for the String type by default, please ensure your strings are long
@@ -14,36 +15,189 @@ datasource db {
 }
 
 model Session {
-  id            String    @id
-  shop          String
-  state         String
-  isOnline      Boolean   @default(false)
-  scope         String?
-  expires       DateTime?
-  accessToken   String
-  userId        BigInt?
-  firstName     String?
-  lastName      String?
-  email         String?
-  accountOwner  Boolean   @default(false)
-  locale        String?
-  collaborator  Boolean?  @default(false)
-  emailVerified Boolean?  @default(false)
+  id                String              @unique
+  shop              String
+  state             String
+  isOnline          Boolean             @default(false)
+  scope             String?
+  expires           DateTime?
+  accessToken       String
+  userId            BigInt             @id @default(autoincrement())
+  firstName         String?
+  lastName          String?
+  email             String?
+  accountOwner      Boolean             @default(false)
+  locale            String?
+  collaborator      Boolean?            @default(false)
+  emailVerified     Boolean?            @default(false)
+  Subscription      Subscription[]
+  SubscriptionQuota SubscriptionQuota[]
+  UsageLog          UsageLog[]
+  PaymentLog        PaymentLog[]
+  PlatformProduct   PlatformProduct[]
 }
 
-model TabTitle {
-  id            Int      @id @default(autoincrement())
-  title         String     
-  content       String
-  shop          String?
-  pages         Json
-  status        StatusTab   @default(PENDING)
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
+model PricingModule {
+  id           Int                    @id @default(autoincrement())
+  name         String
+  key          String
+  price        Float
+  is_default   Boolean?               @default(true)
+  available    Boolean?               @default(false)
+  features     PricingModuleFeature[]
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+  Subscription Subscription[]
 }
 
-enum StatusTab {
-  PENDING
-  APPROVED
-  REJECTED
-} 
+model PricingFeature {
+  id                String                 @id @default(cuid())
+  name              String
+  description       String
+  cycle             Int
+  is_active         Boolean?               @default(true)
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+  modules           PricingModuleFeature[]
+  SubscriptionQuota SubscriptionQuota[]
+  UsageLog          UsageLog[]
+}
+
+model PricingModuleFeature {
+  moduleId       Int
+  featureId      String
+  limit_quantity Int
+  cycle          Int
+  createdAt      DateTime        @default(now())
+  module         PricingModule?  @relation(fields: [moduleId], references: [id])
+  feature        PricingFeature? @relation(fields: [featureId], references: [id])
+
+  @@id([moduleId, featureId])
+}
+
+model Subscription {
+  id                       String    @id @default(cuid())
+  userId                   BigInt
+  start_time               DateTime? @default(now())
+  next_billing_time        DateTime?
+  external_subscription_id String
+  status                   String
+  amount                   Float
+  moduleId                 Int
+  is_trial                 Boolean?  @default(false)
+  is_test                  Boolean?  @default(false)
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+
+  module PricingModule? @relation(fields: [moduleId], references: [id])
+  user   Session?       @relation(fields: [userId], references: [userId])
+
+  @@index([userId, status])
+}
+
+model SubscriptionQuota {
+  id             BigInt          @id @default(autoincrement())
+  userId         BigInt
+  feature_id     String
+  limit_quantity Int
+  used_quantity  Int
+  type           QuotaType
+  createdAt      DateTime        @default(now())
+  user           Session?        @relation(fields: [userId], references: [userId])
+  feature        PricingFeature? @relation(fields: [feature_id], references: [id])
+
+  @@index([userId, feature_id])
+}
+
+enum QuotaType {
+  SUBSCRIPTION
+  EXTRA
+}
+
+model UsageLog {
+  id            BigInt          @id @default(autoincrement())
+  userId        BigInt
+  feature_id    String
+  used_quantity Int
+  createdAt     DateTime        @default(now())
+  user          Session?        @relation(fields: [userId], references: [userId])
+  feature       PricingFeature? @relation(fields: [feature_id], references: [id])
+
+  @@index([userId, feature_id])
+}
+
+model PaymentLog {
+  id                      BigInt           @id @default(autoincrement())
+  userId                  BigInt
+  action                  String
+  status                  PaymentLogStatus @default(CREATED)
+  external_transaction_id String?
+  details                 Json?
+  amount                  Float
+  createdAt               DateTime         @default(now())
+  user                    Session?         @relation(fields: [userId], references: [userId])
+
+  @@index([userId])
+}
+
+enum PaymentLogStatus {
+  CREATED
+  COMPLETED
+  FAILED
+}
+
+model SourceProduct {
+  id              BigInt            @id @default(autoincrement())
+  title           String
+  description     String?
+  image           String?
+  video           String?
+  price           Float
+  source          Source
+  sourceUrl       String
+  sourceId        String?
+  comparePrice    Float?
+  estProfit       Float?
+  rating          Float?
+  totalRating     Int?
+  like            Int?
+  share           Int?
+  comment         Int?
+  tiktokUrl       String?
+  status          SourceStatus      @default(ACTIVE)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  PlatformProduct PlatformProduct[]
+}
+
+enum Source {
+  ALIEXPRESS
+  SHOPIFY
+  EBAY
+  AMAZON
+  WISH
+}
+
+enum SourceStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model SourceCategory {
+  id        BigInt   @id @default(autoincrement())
+  name      String
+  source    Source
+  sourceId  String?
+  createdAt DateTime @default(now())
+}
+
+model PlatformProduct {
+  id              BigInt         @id @default(autoincrement())
+  platformId      String
+  sourceProductId BigInt
+  userId          BigInt
+  metafields      Json?
+  createdAt       DateTime       @default(now())
+  user            Session?       @relation(fields: [userId], references: [userId])
+  sourceProduct   SourceProduct? @relation(fields: [sourceProductId], references: [id])
+}
