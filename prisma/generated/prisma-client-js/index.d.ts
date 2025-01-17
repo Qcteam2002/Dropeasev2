@@ -418,7 +418,7 @@ export namespace Prisma {
 
   /**
    * Prisma Client JS version: 5.22.0
-   * Query Engine version: 605197351a3c8bdd595af2d2a9bc3025bca48ea2
+   * Query Engine version: 11f085a2012c0f4778414c8db2651556ee0ef959
    */
   export type PrismaVersion = {
     client: string
@@ -13094,6 +13094,68 @@ export namespace Prisma {
   export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 
 
+  export const SessionOrderByRelevanceFieldEnum: {
+    id: 'id',
+    shop: 'shop',
+    state: 'state',
+    scope: 'scope',
+    accessToken: 'accessToken',
+    firstName: 'firstName',
+    lastName: 'lastName',
+    email: 'email',
+    locale: 'locale'
+  };
+
+  export type SessionOrderByRelevanceFieldEnum = (typeof SessionOrderByRelevanceFieldEnum)[keyof typeof SessionOrderByRelevanceFieldEnum]
+
+
+  export const PricingModuleOrderByRelevanceFieldEnum: {
+    name: 'name',
+    key: 'key'
+  };
+
+  export type PricingModuleOrderByRelevanceFieldEnum = (typeof PricingModuleOrderByRelevanceFieldEnum)[keyof typeof PricingModuleOrderByRelevanceFieldEnum]
+
+
+  export const PricingFeatureOrderByRelevanceFieldEnum: {
+    id: 'id',
+    name: 'name',
+    description: 'description'
+  };
+
+  export type PricingFeatureOrderByRelevanceFieldEnum = (typeof PricingFeatureOrderByRelevanceFieldEnum)[keyof typeof PricingFeatureOrderByRelevanceFieldEnum]
+
+
+  export const PricingModuleFeatureOrderByRelevanceFieldEnum: {
+    featureId: 'featureId'
+  };
+
+  export type PricingModuleFeatureOrderByRelevanceFieldEnum = (typeof PricingModuleFeatureOrderByRelevanceFieldEnum)[keyof typeof PricingModuleFeatureOrderByRelevanceFieldEnum]
+
+
+  export const SubscriptionOrderByRelevanceFieldEnum: {
+    id: 'id',
+    external_subscription_id: 'external_subscription_id',
+    status: 'status'
+  };
+
+  export type SubscriptionOrderByRelevanceFieldEnum = (typeof SubscriptionOrderByRelevanceFieldEnum)[keyof typeof SubscriptionOrderByRelevanceFieldEnum]
+
+
+  export const SubscriptionQuotaOrderByRelevanceFieldEnum: {
+    feature_id: 'feature_id'
+  };
+
+  export type SubscriptionQuotaOrderByRelevanceFieldEnum = (typeof SubscriptionQuotaOrderByRelevanceFieldEnum)[keyof typeof SubscriptionQuotaOrderByRelevanceFieldEnum]
+
+
+  export const UsageLogOrderByRelevanceFieldEnum: {
+    feature_id: 'feature_id'
+  };
+
+  export type UsageLogOrderByRelevanceFieldEnum = (typeof UsageLogOrderByRelevanceFieldEnum)[keyof typeof UsageLogOrderByRelevanceFieldEnum]
+
+
   export const JsonNullValueFilter: {
     DbNull: typeof DbNull,
     JsonNull: typeof JsonNull,
@@ -13101,6 +13163,42 @@ export namespace Prisma {
   };
 
   export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
+
+
+  export const PaymentLogOrderByRelevanceFieldEnum: {
+    action: 'action',
+    external_transaction_id: 'external_transaction_id'
+  };
+
+  export type PaymentLogOrderByRelevanceFieldEnum = (typeof PaymentLogOrderByRelevanceFieldEnum)[keyof typeof PaymentLogOrderByRelevanceFieldEnum]
+
+
+  export const SourceProductOrderByRelevanceFieldEnum: {
+    title: 'title',
+    description: 'description',
+    image: 'image',
+    video: 'video',
+    sourceUrl: 'sourceUrl',
+    sourceId: 'sourceId',
+    tiktokUrl: 'tiktokUrl'
+  };
+
+  export type SourceProductOrderByRelevanceFieldEnum = (typeof SourceProductOrderByRelevanceFieldEnum)[keyof typeof SourceProductOrderByRelevanceFieldEnum]
+
+
+  export const SourceCategoryOrderByRelevanceFieldEnum: {
+    name: 'name',
+    sourceId: 'sourceId'
+  };
+
+  export type SourceCategoryOrderByRelevanceFieldEnum = (typeof SourceCategoryOrderByRelevanceFieldEnum)[keyof typeof SourceCategoryOrderByRelevanceFieldEnum]
+
+
+  export const PlatformProductOrderByRelevanceFieldEnum: {
+    platformId: 'platformId'
+  };
+
+  export type PlatformProductOrderByRelevanceFieldEnum = (typeof PlatformProductOrderByRelevanceFieldEnum)[keyof typeof PlatformProductOrderByRelevanceFieldEnum]
 
 
   /**
@@ -13235,6 +13333,7 @@ export namespace Prisma {
     UsageLog?: UsageLogOrderByRelationAggregateInput
     PaymentLog?: PaymentLogOrderByRelationAggregateInput
     PlatformProduct?: PlatformProductOrderByRelationAggregateInput
+    _relevance?: SessionOrderByRelevanceInput
   }
 
   export type SessionWhereUniqueInput = Prisma.AtLeast<{
@@ -13334,6 +13433,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     features?: PricingModuleFeatureOrderByRelationAggregateInput
     Subscription?: SubscriptionOrderByRelationAggregateInput
+    _relevance?: PricingModuleOrderByRelevanceInput
   }
 
   export type PricingModuleWhereUniqueInput = Prisma.AtLeast<{
@@ -13409,6 +13509,7 @@ export namespace Prisma {
     modules?: PricingModuleFeatureOrderByRelationAggregateInput
     SubscriptionQuota?: SubscriptionQuotaOrderByRelationAggregateInput
     UsageLog?: UsageLogOrderByRelationAggregateInput
+    _relevance?: PricingFeatureOrderByRelevanceInput
   }
 
   export type PricingFeatureWhereUniqueInput = Prisma.AtLeast<{
@@ -13464,8 +13565,8 @@ export namespace Prisma {
     limit_quantity?: IntFilter<"PricingModuleFeature"> | number
     cycle?: IntFilter<"PricingModuleFeature"> | number
     createdAt?: DateTimeFilter<"PricingModuleFeature"> | Date | string
-    module?: XOR<PricingModuleNullableRelationFilter, PricingModuleWhereInput> | null
-    feature?: XOR<PricingFeatureNullableRelationFilter, PricingFeatureWhereInput> | null
+    module?: XOR<PricingModuleNullableScalarRelationFilter, PricingModuleWhereInput> | null
+    feature?: XOR<PricingFeatureNullableScalarRelationFilter, PricingFeatureWhereInput> | null
   }
 
   export type PricingModuleFeatureOrderByWithRelationInput = {
@@ -13476,6 +13577,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     module?: PricingModuleOrderByWithRelationInput
     feature?: PricingFeatureOrderByWithRelationInput
+    _relevance?: PricingModuleFeatureOrderByRelevanceInput
   }
 
   export type PricingModuleFeatureWhereUniqueInput = Prisma.AtLeast<{
@@ -13488,8 +13590,8 @@ export namespace Prisma {
     limit_quantity?: IntFilter<"PricingModuleFeature"> | number
     cycle?: IntFilter<"PricingModuleFeature"> | number
     createdAt?: DateTimeFilter<"PricingModuleFeature"> | Date | string
-    module?: XOR<PricingModuleNullableRelationFilter, PricingModuleWhereInput> | null
-    feature?: XOR<PricingFeatureNullableRelationFilter, PricingFeatureWhereInput> | null
+    module?: XOR<PricingModuleNullableScalarRelationFilter, PricingModuleWhereInput> | null
+    feature?: XOR<PricingFeatureNullableScalarRelationFilter, PricingFeatureWhereInput> | null
   }, "moduleId_featureId">
 
   export type PricingModuleFeatureOrderByWithAggregationInput = {
@@ -13532,8 +13634,8 @@ export namespace Prisma {
     is_test?: BoolNullableFilter<"Subscription"> | boolean | null
     createdAt?: DateTimeFilter<"Subscription"> | Date | string
     updatedAt?: DateTimeFilter<"Subscription"> | Date | string
-    module?: XOR<PricingModuleNullableRelationFilter, PricingModuleWhereInput> | null
-    user?: XOR<SessionNullableRelationFilter, SessionWhereInput> | null
+    module?: XOR<PricingModuleNullableScalarRelationFilter, PricingModuleWhereInput> | null
+    user?: XOR<SessionNullableScalarRelationFilter, SessionWhereInput> | null
   }
 
   export type SubscriptionOrderByWithRelationInput = {
@@ -13551,6 +13653,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     module?: PricingModuleOrderByWithRelationInput
     user?: SessionOrderByWithRelationInput
+    _relevance?: SubscriptionOrderByRelevanceInput
   }
 
   export type SubscriptionWhereUniqueInput = Prisma.AtLeast<{
@@ -13569,8 +13672,8 @@ export namespace Prisma {
     is_test?: BoolNullableFilter<"Subscription"> | boolean | null
     createdAt?: DateTimeFilter<"Subscription"> | Date | string
     updatedAt?: DateTimeFilter<"Subscription"> | Date | string
-    module?: XOR<PricingModuleNullableRelationFilter, PricingModuleWhereInput> | null
-    user?: XOR<SessionNullableRelationFilter, SessionWhereInput> | null
+    module?: XOR<PricingModuleNullableScalarRelationFilter, PricingModuleWhereInput> | null
+    user?: XOR<SessionNullableScalarRelationFilter, SessionWhereInput> | null
   }, "id">
 
   export type SubscriptionOrderByWithAggregationInput = {
@@ -13622,8 +13725,8 @@ export namespace Prisma {
     used_quantity?: IntFilter<"SubscriptionQuota"> | number
     type?: EnumQuotaTypeFilter<"SubscriptionQuota"> | $Enums.QuotaType
     createdAt?: DateTimeFilter<"SubscriptionQuota"> | Date | string
-    user?: XOR<SessionNullableRelationFilter, SessionWhereInput> | null
-    feature?: XOR<PricingFeatureNullableRelationFilter, PricingFeatureWhereInput> | null
+    user?: XOR<SessionNullableScalarRelationFilter, SessionWhereInput> | null
+    feature?: XOR<PricingFeatureNullableScalarRelationFilter, PricingFeatureWhereInput> | null
   }
 
   export type SubscriptionQuotaOrderByWithRelationInput = {
@@ -13636,6 +13739,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     user?: SessionOrderByWithRelationInput
     feature?: PricingFeatureOrderByWithRelationInput
+    _relevance?: SubscriptionQuotaOrderByRelevanceInput
   }
 
   export type SubscriptionQuotaWhereUniqueInput = Prisma.AtLeast<{
@@ -13649,8 +13753,8 @@ export namespace Prisma {
     used_quantity?: IntFilter<"SubscriptionQuota"> | number
     type?: EnumQuotaTypeFilter<"SubscriptionQuota"> | $Enums.QuotaType
     createdAt?: DateTimeFilter<"SubscriptionQuota"> | Date | string
-    user?: XOR<SessionNullableRelationFilter, SessionWhereInput> | null
-    feature?: XOR<PricingFeatureNullableRelationFilter, PricingFeatureWhereInput> | null
+    user?: XOR<SessionNullableScalarRelationFilter, SessionWhereInput> | null
+    feature?: XOR<PricingFeatureNullableScalarRelationFilter, PricingFeatureWhereInput> | null
   }, "id">
 
   export type SubscriptionQuotaOrderByWithAggregationInput = {
@@ -13690,8 +13794,8 @@ export namespace Prisma {
     feature_id?: StringFilter<"UsageLog"> | string
     used_quantity?: IntFilter<"UsageLog"> | number
     createdAt?: DateTimeFilter<"UsageLog"> | Date | string
-    user?: XOR<SessionNullableRelationFilter, SessionWhereInput> | null
-    feature?: XOR<PricingFeatureNullableRelationFilter, PricingFeatureWhereInput> | null
+    user?: XOR<SessionNullableScalarRelationFilter, SessionWhereInput> | null
+    feature?: XOR<PricingFeatureNullableScalarRelationFilter, PricingFeatureWhereInput> | null
   }
 
   export type UsageLogOrderByWithRelationInput = {
@@ -13702,6 +13806,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     user?: SessionOrderByWithRelationInput
     feature?: PricingFeatureOrderByWithRelationInput
+    _relevance?: UsageLogOrderByRelevanceInput
   }
 
   export type UsageLogWhereUniqueInput = Prisma.AtLeast<{
@@ -13713,8 +13818,8 @@ export namespace Prisma {
     feature_id?: StringFilter<"UsageLog"> | string
     used_quantity?: IntFilter<"UsageLog"> | number
     createdAt?: DateTimeFilter<"UsageLog"> | Date | string
-    user?: XOR<SessionNullableRelationFilter, SessionWhereInput> | null
-    feature?: XOR<PricingFeatureNullableRelationFilter, PricingFeatureWhereInput> | null
+    user?: XOR<SessionNullableScalarRelationFilter, SessionWhereInput> | null
+    feature?: XOR<PricingFeatureNullableScalarRelationFilter, PricingFeatureWhereInput> | null
   }, "id">
 
   export type UsageLogOrderByWithAggregationInput = {
@@ -13753,7 +13858,7 @@ export namespace Prisma {
     details?: JsonNullableFilter<"PaymentLog">
     amount?: FloatFilter<"PaymentLog"> | number
     createdAt?: DateTimeFilter<"PaymentLog"> | Date | string
-    user?: XOR<SessionNullableRelationFilter, SessionWhereInput> | null
+    user?: XOR<SessionNullableScalarRelationFilter, SessionWhereInput> | null
   }
 
   export type PaymentLogOrderByWithRelationInput = {
@@ -13766,6 +13871,7 @@ export namespace Prisma {
     amount?: SortOrder
     createdAt?: SortOrder
     user?: SessionOrderByWithRelationInput
+    _relevance?: PaymentLogOrderByRelevanceInput
   }
 
   export type PaymentLogWhereUniqueInput = Prisma.AtLeast<{
@@ -13780,7 +13886,7 @@ export namespace Prisma {
     details?: JsonNullableFilter<"PaymentLog">
     amount?: FloatFilter<"PaymentLog"> | number
     createdAt?: DateTimeFilter<"PaymentLog"> | Date | string
-    user?: XOR<SessionNullableRelationFilter, SessionWhereInput> | null
+    user?: XOR<SessionNullableScalarRelationFilter, SessionWhereInput> | null
   }, "id">
 
   export type PaymentLogOrderByWithAggregationInput = {
@@ -13862,6 +13968,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     PlatformProduct?: PlatformProductOrderByRelationAggregateInput
+    _relevance?: SourceProductOrderByRelevanceInput
   }
 
   export type SourceProductWhereUniqueInput = Prisma.AtLeast<{
@@ -13962,6 +14069,7 @@ export namespace Prisma {
     source?: SortOrder
     sourceId?: SortOrderInput | SortOrder
     createdAt?: SortOrder
+    _relevance?: SourceCategoryOrderByRelevanceInput
   }
 
   export type SourceCategoryWhereUniqueInput = Prisma.AtLeast<{
@@ -14009,8 +14117,8 @@ export namespace Prisma {
     userId?: BigIntFilter<"PlatformProduct"> | bigint | number
     metafields?: JsonNullableFilter<"PlatformProduct">
     createdAt?: DateTimeFilter<"PlatformProduct"> | Date | string
-    user?: XOR<SessionNullableRelationFilter, SessionWhereInput> | null
-    sourceProduct?: XOR<SourceProductNullableRelationFilter, SourceProductWhereInput> | null
+    user?: XOR<SessionNullableScalarRelationFilter, SessionWhereInput> | null
+    sourceProduct?: XOR<SourceProductNullableScalarRelationFilter, SourceProductWhereInput> | null
   }
 
   export type PlatformProductOrderByWithRelationInput = {
@@ -14022,6 +14130,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     user?: SessionOrderByWithRelationInput
     sourceProduct?: SourceProductOrderByWithRelationInput
+    _relevance?: PlatformProductOrderByRelevanceInput
   }
 
   export type PlatformProductWhereUniqueInput = Prisma.AtLeast<{
@@ -14034,8 +14143,8 @@ export namespace Prisma {
     userId?: BigIntFilter<"PlatformProduct"> | bigint | number
     metafields?: JsonNullableFilter<"PlatformProduct">
     createdAt?: DateTimeFilter<"PlatformProduct"> | Date | string
-    user?: XOR<SessionNullableRelationFilter, SessionWhereInput> | null
-    sourceProduct?: XOR<SourceProductNullableRelationFilter, SourceProductWhereInput> | null
+    user?: XOR<SessionNullableScalarRelationFilter, SessionWhereInput> | null
+    sourceProduct?: XOR<SourceProductNullableScalarRelationFilter, SourceProductWhereInput> | null
   }, "id">
 
   export type PlatformProductOrderByWithAggregationInput = {
@@ -15022,6 +15131,7 @@ export namespace Prisma {
     contains?: string | StringFieldRefInput<$PrismaModel>
     startsWith?: string | StringFieldRefInput<$PrismaModel>
     endsWith?: string | StringFieldRefInput<$PrismaModel>
+    search?: string
     not?: NestedStringFilter<$PrismaModel> | string
   }
 
@@ -15041,6 +15151,7 @@ export namespace Prisma {
     contains?: string | StringFieldRefInput<$PrismaModel>
     startsWith?: string | StringFieldRefInput<$PrismaModel>
     endsWith?: string | StringFieldRefInput<$PrismaModel>
+    search?: string
     not?: NestedStringNullableFilter<$PrismaModel> | string | null
   }
 
@@ -15126,6 +15237,12 @@ export namespace Prisma {
     _count?: SortOrder
   }
 
+  export type SessionOrderByRelevanceInput = {
+    fields: SessionOrderByRelevanceFieldEnum | SessionOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
   export type SessionCountOrderByAggregateInput = {
     id?: SortOrder
     shop?: SortOrder
@@ -15199,6 +15316,7 @@ export namespace Prisma {
     contains?: string | StringFieldRefInput<$PrismaModel>
     startsWith?: string | StringFieldRefInput<$PrismaModel>
     endsWith?: string | StringFieldRefInput<$PrismaModel>
+    search?: string
     not?: NestedStringWithAggregatesFilter<$PrismaModel> | string
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedStringFilter<$PrismaModel>
@@ -15224,6 +15342,7 @@ export namespace Prisma {
     contains?: string | StringFieldRefInput<$PrismaModel>
     startsWith?: string | StringFieldRefInput<$PrismaModel>
     endsWith?: string | StringFieldRefInput<$PrismaModel>
+    search?: string
     not?: NestedStringNullableWithAggregatesFilter<$PrismaModel> | string | null
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedStringNullableFilter<$PrismaModel>
@@ -15309,6 +15428,12 @@ export namespace Prisma {
 
   export type PricingModuleFeatureOrderByRelationAggregateInput = {
     _count?: SortOrder
+  }
+
+  export type PricingModuleOrderByRelevanceInput = {
+    fields: PricingModuleOrderByRelevanceFieldEnum | PricingModuleOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
   }
 
   export type PricingModuleCountOrderByAggregateInput = {
@@ -15400,6 +15525,12 @@ export namespace Prisma {
     _max?: NestedDateTimeFilter<$PrismaModel>
   }
 
+  export type PricingFeatureOrderByRelevanceInput = {
+    fields: PricingFeatureOrderByRelevanceFieldEnum | PricingFeatureOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
   export type PricingFeatureCountOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
@@ -15438,14 +15569,20 @@ export namespace Prisma {
     cycle?: SortOrder
   }
 
-  export type PricingModuleNullableRelationFilter = {
+  export type PricingModuleNullableScalarRelationFilter = {
     is?: PricingModuleWhereInput | null
     isNot?: PricingModuleWhereInput | null
   }
 
-  export type PricingFeatureNullableRelationFilter = {
+  export type PricingFeatureNullableScalarRelationFilter = {
     is?: PricingFeatureWhereInput | null
     isNot?: PricingFeatureWhereInput | null
+  }
+
+  export type PricingModuleFeatureOrderByRelevanceInput = {
+    fields: PricingModuleFeatureOrderByRelevanceFieldEnum | PricingModuleFeatureOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
   }
 
   export type PricingModuleFeatureModuleIdFeatureIdCompoundUniqueInput = {
@@ -15489,9 +15626,15 @@ export namespace Prisma {
     cycle?: SortOrder
   }
 
-  export type SessionNullableRelationFilter = {
+  export type SessionNullableScalarRelationFilter = {
     is?: SessionWhereInput | null
     isNot?: SessionWhereInput | null
+  }
+
+  export type SubscriptionOrderByRelevanceInput = {
+    fields: SubscriptionOrderByRelevanceFieldEnum | SubscriptionOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
   }
 
   export type SubscriptionCountOrderByAggregateInput = {
@@ -15558,6 +15701,12 @@ export namespace Prisma {
     not?: NestedEnumQuotaTypeFilter<$PrismaModel> | $Enums.QuotaType
   }
 
+  export type SubscriptionQuotaOrderByRelevanceInput = {
+    fields: SubscriptionQuotaOrderByRelevanceFieldEnum | SubscriptionQuotaOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
   export type SubscriptionQuotaCountOrderByAggregateInput = {
     id?: SortOrder
     userId?: SortOrder
@@ -15610,6 +15759,12 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumQuotaTypeFilter<$PrismaModel>
     _max?: NestedEnumQuotaTypeFilter<$PrismaModel>
+  }
+
+  export type UsageLogOrderByRelevanceInput = {
+    fields: UsageLogOrderByRelevanceFieldEnum | UsageLogOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
   }
 
   export type UsageLogCountOrderByAggregateInput = {
@@ -15675,6 +15830,12 @@ export namespace Prisma {
     gt?: InputJsonValue
     gte?: InputJsonValue
     not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
+  export type PaymentLogOrderByRelevanceInput = {
+    fields: PaymentLogOrderByRelevanceFieldEnum | PaymentLogOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
   }
 
   export type PaymentLogCountOrderByAggregateInput = {
@@ -15789,6 +15950,12 @@ export namespace Prisma {
     in?: $Enums.SourceStatus[]
     notIn?: $Enums.SourceStatus[]
     not?: NestedEnumSourceStatusFilter<$PrismaModel> | $Enums.SourceStatus
+  }
+
+  export type SourceProductOrderByRelevanceInput = {
+    fields: SourceProductOrderByRelevanceFieldEnum | SourceProductOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
   }
 
   export type SourceProductCountOrderByAggregateInput = {
@@ -15936,6 +16103,12 @@ export namespace Prisma {
     _max?: NestedEnumSourceStatusFilter<$PrismaModel>
   }
 
+  export type SourceCategoryOrderByRelevanceInput = {
+    fields: SourceCategoryOrderByRelevanceFieldEnum | SourceCategoryOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
+  }
+
   export type SourceCategoryCountOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
@@ -15968,9 +16141,15 @@ export namespace Prisma {
     id?: SortOrder
   }
 
-  export type SourceProductNullableRelationFilter = {
+  export type SourceProductNullableScalarRelationFilter = {
     is?: SourceProductWhereInput | null
     isNot?: SourceProductWhereInput | null
+  }
+
+  export type PlatformProductOrderByRelevanceInput = {
+    fields: PlatformProductOrderByRelevanceFieldEnum | PlatformProductOrderByRelevanceFieldEnum[]
+    sort: SortOrder
+    search: string
   }
 
   export type PlatformProductCountOrderByAggregateInput = {
@@ -16739,6 +16918,7 @@ export namespace Prisma {
     contains?: string | StringFieldRefInput<$PrismaModel>
     startsWith?: string | StringFieldRefInput<$PrismaModel>
     endsWith?: string | StringFieldRefInput<$PrismaModel>
+    search?: string
     not?: NestedStringFilter<$PrismaModel> | string
   }
 
@@ -16758,6 +16938,7 @@ export namespace Prisma {
     contains?: string | StringFieldRefInput<$PrismaModel>
     startsWith?: string | StringFieldRefInput<$PrismaModel>
     endsWith?: string | StringFieldRefInput<$PrismaModel>
+    search?: string
     not?: NestedStringNullableFilter<$PrismaModel> | string | null
   }
 
@@ -16799,6 +16980,7 @@ export namespace Prisma {
     contains?: string | StringFieldRefInput<$PrismaModel>
     startsWith?: string | StringFieldRefInput<$PrismaModel>
     endsWith?: string | StringFieldRefInput<$PrismaModel>
+    search?: string
     not?: NestedStringWithAggregatesFilter<$PrismaModel> | string
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedStringFilter<$PrismaModel>
@@ -16835,6 +17017,7 @@ export namespace Prisma {
     contains?: string | StringFieldRefInput<$PrismaModel>
     startsWith?: string | StringFieldRefInput<$PrismaModel>
     endsWith?: string | StringFieldRefInput<$PrismaModel>
+    search?: string
     not?: NestedStringNullableWithAggregatesFilter<$PrismaModel> | string | null
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedStringNullableFilter<$PrismaModel>

@@ -7,6 +7,7 @@ import {
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import prisma from "./db.server";
 // import installedQueue from './queue'; // Import the queue
+import { firstInitQueue } from "./queues/first_init";
 
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
@@ -20,6 +21,8 @@ const shopify = shopifyApp({
   isEmbeddedApp: true,
   hooks: {
     afterAuth: async ({ session, admin }) => {
+      console.log('entry afterAuth');
+      await firstInitQueue.add('first_init', { admin });
       // Add the job to the queue
       // installedQueue.add('installed',{
       //   shop: session.shop,

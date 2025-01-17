@@ -18,11 +18,11 @@ exports.$Enums = {}
 
 /**
  * Prisma Client JS version: 5.22.0
- * Query Engine version: 605197351a3c8bdd595af2d2a9bc3025bca48ea2
+ * Query Engine version: 11f085a2012c0f4778414c8db2651556ee0ef959
  */
 Prisma.prismaVersion = {
   client: "5.22.0",
-  engine: "605197351a3c8bdd595af2d2a9bc3025bca48ea2"
+  engine: "11f085a2012c0f4778414c8db2651556ee0ef959"
 }
 
 Prisma.PrismaClientKnownRequestError = () => {
@@ -268,10 +268,75 @@ exports.Prisma.NullsOrder = {
   last: 'last'
 };
 
+exports.Prisma.SessionOrderByRelevanceFieldEnum = {
+  id: 'id',
+  shop: 'shop',
+  state: 'state',
+  scope: 'scope',
+  accessToken: 'accessToken',
+  firstName: 'firstName',
+  lastName: 'lastName',
+  email: 'email',
+  locale: 'locale'
+};
+
+exports.Prisma.PricingModuleOrderByRelevanceFieldEnum = {
+  name: 'name',
+  key: 'key'
+};
+
+exports.Prisma.PricingFeatureOrderByRelevanceFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description'
+};
+
+exports.Prisma.PricingModuleFeatureOrderByRelevanceFieldEnum = {
+  featureId: 'featureId'
+};
+
+exports.Prisma.SubscriptionOrderByRelevanceFieldEnum = {
+  id: 'id',
+  external_subscription_id: 'external_subscription_id',
+  status: 'status'
+};
+
+exports.Prisma.SubscriptionQuotaOrderByRelevanceFieldEnum = {
+  feature_id: 'feature_id'
+};
+
+exports.Prisma.UsageLogOrderByRelevanceFieldEnum = {
+  feature_id: 'feature_id'
+};
+
 exports.Prisma.JsonNullValueFilter = {
   DbNull: Prisma.DbNull,
   JsonNull: Prisma.JsonNull,
   AnyNull: Prisma.AnyNull
+};
+
+exports.Prisma.PaymentLogOrderByRelevanceFieldEnum = {
+  action: 'action',
+  external_transaction_id: 'external_transaction_id'
+};
+
+exports.Prisma.SourceProductOrderByRelevanceFieldEnum = {
+  title: 'title',
+  description: 'description',
+  image: 'image',
+  video: 'video',
+  sourceUrl: 'sourceUrl',
+  sourceId: 'sourceId',
+  tiktokUrl: 'tiktokUrl'
+};
+
+exports.Prisma.SourceCategoryOrderByRelevanceFieldEnum = {
+  name: 'name',
+  sourceId: 'sourceId'
+};
+
+exports.Prisma.PlatformProductOrderByRelevanceFieldEnum = {
+  platformId: 'platformId'
 };
 exports.QuotaType = exports.$Enums.QuotaType = {
   SUBSCRIPTION: 'SUBSCRIPTION',

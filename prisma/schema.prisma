@@ -15,14 +15,14 @@ datasource db {
 }
 
 model Session {
-  id                String              @unique
+  id                String              @id
   shop              String
   state             String
   isOnline          Boolean             @default(false)
   scope             String?
   expires           DateTime?
   accessToken       String
-  userId            BigInt             @id @default(autoincrement())
+  userId            BigInt             @unique @default(autoincrement())
   firstName         String?
   lastName          String?
   email             String?

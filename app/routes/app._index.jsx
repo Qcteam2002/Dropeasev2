@@ -14,15 +14,11 @@ import {
 } from "@shopify/polaris";
 import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
-import ShopifyInit from "../shopify_theme/shopifyInit";
+import { firstInitQueue } from "../queues/first_init";
 
 
 export const loader = async ({ request }) => {
   const { admin } = await authenticate.admin(request);
-
-  const shopifyInit = new ShopifyInit(admin);
-
-  await shopifyInit.init();
 
   return null;
 };

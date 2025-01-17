@@ -3,7 +3,7 @@
 client_id = "00faac2857e848f0ba9220b14cd6a470"
 name = "Test App"
 handle = "dropeasy-2"
-application_url = "https://develop-demonstrate-discretion-locator.trycloudflare.com"
+application_url = "https://mil-tony-folding-qualify.trycloudflare.com"
 embedded = true
 
 [build]
@@ -16,9 +16,9 @@ scopes = "read_files,read_locales,read_markets,read_products,read_themes,write_f
 
 [auth]
 redirect_urls = [
-  "https://develop-demonstrate-discretion-locator.trycloudflare.com/auth/callback",
-  "https://develop-demonstrate-discretion-locator.trycloudflare.com/auth/shopify/callback",
-  "https://develop-demonstrate-discretion-locator.trycloudflare.com/api/auth/callback"
+  "https://mil-tony-folding-qualify.trycloudflare.com/auth/callback",
+  "https://mil-tony-folding-qualify.trycloudflare.com/auth/shopify/callback",
+  "https://mil-tony-folding-qualify.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]
