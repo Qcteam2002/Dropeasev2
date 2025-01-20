@@ -6,7 +6,7 @@ export default class ShopifyProduct {
     this.admin = admin;
   }
 
-  async getProducts() {
+  async getProducts(limit, cursor) {
     const query = `#graphql
         query ($numProducts: Int!, $cursor: String) {
             products(first: $numProducts, after: $cursor) {
@@ -108,7 +108,21 @@ export default class ShopifyProduct {
         }
                 `;
 
-        
+    const variables = {
+      variables: {
+        numProducts: limit,
+        cursor: cursor,
+      },
+    };
 
+    const response = await this.admin.graphql(query, variables);
+
+    const {
+      data: {
+        products
+      },
+    } = await response.json();
+
+    return products;
   }
 }

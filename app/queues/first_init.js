@@ -1,5 +1,6 @@
 import { Queue, Worker, Job } from "bullmq";
 import ShopifyInit from "../shopify_theme/shopifyInit";
+import ShopifyProduct from "../services/product";
 
 const connection = {
   host: process.env.REDIS_HOST, 
@@ -37,9 +38,59 @@ firstInitWorker.on("failed", (job, err) => {
 const syncProductWorker = new Worker(
   "sync_product",
   async (job) => {
-    const { admin } = job.data;
+    const { admin, cursor } = job.data;
+    const limitPage = 25;
+    const ShopifyProduct = new ShopifyProduct(admin);
 
-    console.log(`entry syncProductWorker`);
+    let currentCursor = cursor;
+
+
+      const products = await ShopifyProductInstance.getProducts(limitPage, currentCursor);
+
+      if (products.length > 0) {
+        // Store products in the database
+        for (const edge of products.edges) {
+          const product = edge.node;
+          
+          await prisma.product.upsert({
+            where: { id: product.id },
+            update: {
+              title: product.title,
+              description: product.body_html,
+              price: product.variants[0].price,
+              // Add other fields as needed
+            },
+            create: {
+              id: product.id,
+              title: product.title,
+              description: product.body_html,
+              price: product.variants[0].price,
+              // Add other fields as needed
+            },
+          });
+        }
+
+        // Update cursor for the next batch
+        currentCursor = products[products.length - 1].cursor;
+
+        // Add a new job to the queue to process the next batch
+        await syncProductQueue.add("sync_product", {
+          admin,
+          cursor: currentCursor,
+        });
+      } 
+
+
+    if(products.length > 0) {
+
+      // const lastProduct = products[products.length - 1];
+      // await syncProductQueue.add("sync_product", {
+      //   admin,
+      //   cursor: lastProduct.cursor,
+      // });
+    }
+
+
   },
   { connection }
 );
