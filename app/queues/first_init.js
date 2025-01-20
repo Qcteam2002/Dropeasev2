@@ -47,27 +47,12 @@ const syncProductWorker = new Worker(
 
       const products = await ShopifyProductInstance.getProducts(limitPage, currentCursor);
 
-      if (products.length > 0) {
+      if (products.edges.length > 0) {
         // Store products in the database
         for (const edge of products.edges) {
           const product = edge.node;
           
-          await prisma.product.upsert({
-            where: { id: product.id },
-            update: {
-              title: product.title,
-              description: product.body_html,
-              price: product.variants[0].price,
-              // Add other fields as needed
-            },
-            create: {
-              id: product.id,
-              title: product.title,
-              description: product.body_html,
-              price: product.variants[0].price,
-              // Add other fields as needed
-            },
-          });
+          
         }
 
         // Update cursor for the next batch
