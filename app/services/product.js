@@ -1,9 +1,51 @@
 import fs from "fs";
 import { join } from "path";
+import db from "../db.server";
+import metafields from "../shopify_theme/metafield_config";
 
 export default class ShopifyProduct {
   constructor(admin) {
     this.admin = admin;
+    this.session = admin.session;
+    this.limit = 25;
+  }
+
+  async syncProducts(currentCursor) {
+    const products = await this.getProducts(this.limit, cursor);
+
+    if (products.edges.length > 0) {
+      // Store products in the database
+      let lastCursor = null;
+      for (const edge of products.edges) {
+        const product = edge.node;
+        lastCursor = edge.cursor;
+        const insertData = {
+            sourceProductId: product.id,
+            userId: this.session.userId,
+            metafields: product.metafields.edges,
+            title: product.title,
+            handle: product.handle,
+            description: product.descriptionHtml,
+            featuredMedia: product.featuredMedia.preview.image.url,
+        }
+
+        await db.PlatformProduct.upsert({
+          where: { userId: this.session.userId, sourceProductId: product.id },
+          update: insertData,
+          create: insertData,
+        });
+        
+      }
+
+      // Update cursor for the next batch
+      currentCursor = products[products.length - 1].cursor;
+
+      // Add a new job to the queue to process the next batch
+      await syncProductQueue.add("sync_product", {
+        admin,
+        cursor: currentCursor,
+      });
+    }
   }
 
   async getProducts(limit, cursor) {
@@ -98,6 +140,15 @@ export default class ShopifyProduct {
                                 inventoryPolicy
                             }
                         }
+                        metafields(first: 25) {
+                            edges {
+                                node {
+                                    namespace
+                                    key
+                                    value
+                                }
+                            }
+                        }
                     }
                     cursor
                 }
@@ -118,9 +169,7 @@ export default class ShopifyProduct {
     const response = await this.admin.graphql(query, variables);
 
     const {
-      data: {
-        products
-      },
+      data: { products },
     } = await response.json();
 
     return products;

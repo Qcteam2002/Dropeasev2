@@ -193,10 +193,14 @@ model SourceCategory {
 
 model PlatformProduct {
   id              BigInt         @id @default(autoincrement())
-  platformId      String
+  platformId      String?
   sourceProductId BigInt
   userId          BigInt
   metafields      Json?
+  title           String
+  handle          String
+  descriptionHtml String?
+  featuredMedia   String?
   createdAt       DateTime       @default(now())
   user            Session?       @relation(fields: [userId], references: [userId])
   sourceProduct   SourceProduct? @relation(fields: [sourceProductId], references: [id])
