@@ -8,7 +8,7 @@ export async function upsert(product,session) {
   await db.PlatformProduct.upsert({
     where: { userId: session.userId,sourceProductId: product.id },
     update: {
-      title: product.title,
+      platformId: product.title,
       description: product.body_html,
       price: product.variants[0].price,
       // Add other fields as needed

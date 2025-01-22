@@ -11,7 +11,7 @@ export default class ShopifyProduct {
   }
 
   async syncProducts(currentCursor) {
-    const products = await this.getProducts(this.limit, cursor);
+    const products = await this.getProducts(this.limit, currentCursor);
 
     if (products.edges.length > 0) {
       // Store products in the database
@@ -20,25 +20,21 @@ export default class ShopifyProduct {
         const product = edge.node;
         lastCursor = edge.cursor;
         const insertData = {
-            sourceProductId: product.id,
-            userId: this.session.userId,
-            metafields: product.metafields.edges,
-            title: product.title,
-            handle: product.handle,
-            description: product.descriptionHtml,
-            featuredMedia: product.featuredMedia.preview.image.url,
-        }
+          sourceProductId: product.id,
+          userId: this.session.userId,
+          metafields: product.metafields.edges,
+          title: product.title,
+          handle: product.handle,
+          description: product.descriptionHtml,
+          featuredMedia: product.featuredMedia.preview.image.url,
+        };
 
         await db.PlatformProduct.upsert({
           where: { userId: this.session.userId, sourceProductId: product.id },
           update: insertData,
           create: insertData,
         });
-        
       }
-
-      // Update cursor for the next batch
-      currentCursor = products[products.length - 1].cursor;
 
       // Add a new job to the queue to process the next batch
       await syncProductQueue.add("sync_product", {
@@ -48,7 +44,7 @@ export default class ShopifyProduct {
     }
   }
 
-  async getProducts(limit, cursor) {
+  async getProducts(limit, cursor = null) {
     const query = `#graphql
         query ($numProducts: Int!, $cursor: String) {
             products(first: $numProducts, after: $cursor) {
