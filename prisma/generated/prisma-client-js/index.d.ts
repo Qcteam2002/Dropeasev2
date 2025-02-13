@@ -418,7 +418,7 @@ export namespace Prisma {
 
   /**
    * Prisma Client JS version: 5.22.0
-   * Query Engine version: 11f085a2012c0f4778414c8db2651556ee0ef959
+   * Query Engine version: acc0b9dd43eb689cbd20c9470515d719db10d0b0
    */
   export type PrismaVersion = {
     client: string
@@ -2872,6 +2872,7 @@ export namespace Prisma {
      * Filter which Sessions to update
      */
     where?: SessionWhereInput
+    limit?: number
   }
 
   /**
@@ -2926,6 +2927,7 @@ export namespace Prisma {
      * Filter which Sessions to delete
      */
     where?: SessionWhereInput
+    limit?: number
   }
 
   /**
@@ -3928,6 +3930,7 @@ export namespace Prisma {
      * Filter which PricingModules to update
      */
     where?: PricingModuleWhereInput
+    limit?: number
   }
 
   /**
@@ -3982,6 +3985,7 @@ export namespace Prisma {
      * Filter which PricingModules to delete
      */
     where?: PricingModuleWhereInput
+    limit?: number
   }
 
   /**
@@ -4913,6 +4917,7 @@ export namespace Prisma {
      * Filter which PricingFeatures to update
      */
     where?: PricingFeatureWhereInput
+    limit?: number
   }
 
   /**
@@ -4967,6 +4972,7 @@ export namespace Prisma {
      * Filter which PricingFeatures to delete
      */
     where?: PricingFeatureWhereInput
+    limit?: number
   }
 
   /**
@@ -5898,6 +5904,7 @@ export namespace Prisma {
      * Filter which PricingModuleFeatures to update
      */
     where?: PricingModuleFeatureWhereInput
+    limit?: number
   }
 
   /**
@@ -5952,6 +5959,7 @@ export namespace Prisma {
      * Filter which PricingModuleFeatures to delete
      */
     where?: PricingModuleFeatureWhereInput
+    limit?: number
   }
 
   /**
@@ -6930,6 +6938,7 @@ export namespace Prisma {
      * Filter which Subscriptions to update
      */
     where?: SubscriptionWhereInput
+    limit?: number
   }
 
   /**
@@ -6984,6 +6993,7 @@ export namespace Prisma {
      * Filter which Subscriptions to delete
      */
     where?: SubscriptionWhereInput
+    limit?: number
   }
 
   /**
@@ -7911,6 +7921,7 @@ export namespace Prisma {
      * Filter which SubscriptionQuotas to update
      */
     where?: SubscriptionQuotaWhereInput
+    limit?: number
   }
 
   /**
@@ -7965,6 +7976,7 @@ export namespace Prisma {
      * Filter which SubscriptionQuotas to delete
      */
     where?: SubscriptionQuotaWhereInput
+    limit?: number
   }
 
   /**
@@ -8866,6 +8878,7 @@ export namespace Prisma {
      * Filter which UsageLogs to update
      */
     where?: UsageLogWhereInput
+    limit?: number
   }
 
   /**
@@ -8920,6 +8933,7 @@ export namespace Prisma {
      * Filter which UsageLogs to delete
      */
     where?: UsageLogWhereInput
+    limit?: number
   }
 
   /**
@@ -9846,6 +9860,7 @@ export namespace Prisma {
      * Filter which PaymentLogs to update
      */
     where?: PaymentLogWhereInput
+    limit?: number
   }
 
   /**
@@ -9900,6 +9915,7 @@ export namespace Prisma {
      * Filter which PaymentLogs to delete
      */
     where?: PaymentLogWhereInput
+    limit?: number
   }
 
   /**
@@ -10973,6 +10989,7 @@ export namespace Prisma {
      * Filter which SourceProducts to update
      */
     where?: SourceProductWhereInput
+    limit?: number
   }
 
   /**
@@ -11027,6 +11044,7 @@ export namespace Prisma {
      * Filter which SourceProducts to delete
      */
     where?: SourceProductWhereInput
+    limit?: number
   }
 
   /**
@@ -11871,6 +11889,7 @@ export namespace Prisma {
      * Filter which SourceCategories to update
      */
     where?: SourceCategoryWhereInput
+    limit?: number
   }
 
   /**
@@ -11917,6 +11936,7 @@ export namespace Prisma {
      * Filter which SourceCategories to delete
      */
     where?: SourceCategoryWhereInput
+    limit?: number
   }
 
   /**
@@ -11959,6 +11979,10 @@ export namespace Prisma {
     platformId: string | null
     sourceProductId: bigint | null
     userId: bigint | null
+    title: string | null
+    handle: string | null
+    descriptionHtml: string | null
+    featuredMedia: string | null
     createdAt: Date | null
   }
 
@@ -11967,6 +11991,10 @@ export namespace Prisma {
     platformId: string | null
     sourceProductId: bigint | null
     userId: bigint | null
+    title: string | null
+    handle: string | null
+    descriptionHtml: string | null
+    featuredMedia: string | null
     createdAt: Date | null
   }
 
@@ -11976,6 +12004,10 @@ export namespace Prisma {
     sourceProductId: number
     userId: number
     metafields: number
+    title: number
+    handle: number
+    descriptionHtml: number
+    featuredMedia: number
     createdAt: number
     _all: number
   }
@@ -11998,6 +12030,10 @@ export namespace Prisma {
     platformId?: true
     sourceProductId?: true
     userId?: true
+    title?: true
+    handle?: true
+    descriptionHtml?: true
+    featuredMedia?: true
     createdAt?: true
   }
 
@@ -12006,6 +12042,10 @@ export namespace Prisma {
     platformId?: true
     sourceProductId?: true
     userId?: true
+    title?: true
+    handle?: true
+    descriptionHtml?: true
+    featuredMedia?: true
     createdAt?: true
   }
 
@@ -12015,6 +12055,10 @@ export namespace Prisma {
     sourceProductId?: true
     userId?: true
     metafields?: true
+    title?: true
+    handle?: true
+    descriptionHtml?: true
+    featuredMedia?: true
     createdAt?: true
     _all?: true
   }
@@ -12107,10 +12151,14 @@ export namespace Prisma {
 
   export type PlatformProductGroupByOutputType = {
     id: bigint
-    platformId: string
+    platformId: string | null
     sourceProductId: bigint
     userId: bigint
     metafields: JsonValue | null
+    title: string
+    handle: string
+    descriptionHtml: string | null
+    featuredMedia: string | null
     createdAt: Date
     _count: PlatformProductCountAggregateOutputType | null
     _avg: PlatformProductAvgAggregateOutputType | null
@@ -12139,6 +12187,10 @@ export namespace Prisma {
     sourceProductId?: boolean
     userId?: boolean
     metafields?: boolean
+    title?: boolean
+    handle?: boolean
+    descriptionHtml?: boolean
+    featuredMedia?: boolean
     createdAt?: boolean
     user?: boolean | PlatformProduct$userArgs<ExtArgs>
     sourceProduct?: boolean | PlatformProduct$sourceProductArgs<ExtArgs>
@@ -12151,6 +12203,10 @@ export namespace Prisma {
     sourceProductId?: boolean
     userId?: boolean
     metafields?: boolean
+    title?: boolean
+    handle?: boolean
+    descriptionHtml?: boolean
+    featuredMedia?: boolean
     createdAt?: boolean
   }
 
@@ -12167,10 +12223,14 @@ export namespace Prisma {
     }
     scalars: $Extensions.GetPayloadResult<{
       id: bigint
-      platformId: string
+      platformId: string | null
       sourceProductId: bigint
       userId: bigint
       metafields: Prisma.JsonValue | null
+      title: string
+      handle: string
+      descriptionHtml: string | null
+      featuredMedia: string | null
       createdAt: Date
     }, ExtArgs["result"]["platformProduct"]>
     composites: {}
@@ -12548,6 +12608,10 @@ export namespace Prisma {
     readonly sourceProductId: FieldRef<"PlatformProduct", 'BigInt'>
     readonly userId: FieldRef<"PlatformProduct", 'BigInt'>
     readonly metafields: FieldRef<"PlatformProduct", 'Json'>
+    readonly title: FieldRef<"PlatformProduct", 'String'>
+    readonly handle: FieldRef<"PlatformProduct", 'String'>
+    readonly descriptionHtml: FieldRef<"PlatformProduct", 'String'>
+    readonly featuredMedia: FieldRef<"PlatformProduct", 'String'>
     readonly createdAt: FieldRef<"PlatformProduct", 'DateTime'>
   }
     
@@ -12791,6 +12855,7 @@ export namespace Prisma {
      * Filter which PlatformProducts to update
      */
     where?: PlatformProductWhereInput
+    limit?: number
   }
 
   /**
@@ -12845,6 +12910,7 @@ export namespace Prisma {
      * Filter which PlatformProducts to delete
      */
     where?: PlatformProductWhereInput
+    limit?: number
   }
 
   /**
@@ -13064,6 +13130,10 @@ export namespace Prisma {
     sourceProductId: 'sourceProductId',
     userId: 'userId',
     metafields: 'metafields',
+    title: 'title',
+    handle: 'handle',
+    descriptionHtml: 'descriptionHtml',
+    featuredMedia: 'featuredMedia',
     createdAt: 'createdAt'
   };
 
@@ -13195,7 +13265,11 @@ export namespace Prisma {
 
 
   export const PlatformProductOrderByRelevanceFieldEnum: {
-    platformId: 'platformId'
+    platformId: 'platformId',
+    title: 'title',
+    handle: 'handle',
+    descriptionHtml: 'descriptionHtml',
+    featuredMedia: 'featuredMedia'
   };
 
   export type PlatformProductOrderByRelevanceFieldEnum = (typeof PlatformProductOrderByRelevanceFieldEnum)[keyof typeof PlatformProductOrderByRelevanceFieldEnum]
@@ -13360,7 +13434,7 @@ export namespace Prisma {
     UsageLog?: UsageLogListRelationFilter
     PaymentLog?: PaymentLogListRelationFilter
     PlatformProduct?: PlatformProductListRelationFilter
-  }, "userId" | "id">
+  }, "id" | "userId">
 
   export type SessionOrderByWithAggregationInput = {
     id?: SortOrder
@@ -14112,10 +14186,14 @@ export namespace Prisma {
     OR?: PlatformProductWhereInput[]
     NOT?: PlatformProductWhereInput | PlatformProductWhereInput[]
     id?: BigIntFilter<"PlatformProduct"> | bigint | number
-    platformId?: StringFilter<"PlatformProduct"> | string
+    platformId?: StringNullableFilter<"PlatformProduct"> | string | null
     sourceProductId?: BigIntFilter<"PlatformProduct"> | bigint | number
     userId?: BigIntFilter<"PlatformProduct"> | bigint | number
     metafields?: JsonNullableFilter<"PlatformProduct">
+    title?: StringFilter<"PlatformProduct"> | string
+    handle?: StringFilter<"PlatformProduct"> | string
+    descriptionHtml?: StringNullableFilter<"PlatformProduct"> | string | null
+    featuredMedia?: StringNullableFilter<"PlatformProduct"> | string | null
     createdAt?: DateTimeFilter<"PlatformProduct"> | Date | string
     user?: XOR<SessionNullableScalarRelationFilter, SessionWhereInput> | null
     sourceProduct?: XOR<SourceProductNullableScalarRelationFilter, SourceProductWhereInput> | null
@@ -14123,10 +14201,14 @@ export namespace Prisma {
 
   export type PlatformProductOrderByWithRelationInput = {
     id?: SortOrder
-    platformId?: SortOrder
+    platformId?: SortOrderInput | SortOrder
     sourceProductId?: SortOrder
     userId?: SortOrder
     metafields?: SortOrderInput | SortOrder
+    title?: SortOrder
+    handle?: SortOrder
+    descriptionHtml?: SortOrderInput | SortOrder
+    featuredMedia?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     user?: SessionOrderByWithRelationInput
     sourceProduct?: SourceProductOrderByWithRelationInput
@@ -14138,10 +14220,14 @@ export namespace Prisma {
     AND?: PlatformProductWhereInput | PlatformProductWhereInput[]
     OR?: PlatformProductWhereInput[]
     NOT?: PlatformProductWhereInput | PlatformProductWhereInput[]
-    platformId?: StringFilter<"PlatformProduct"> | string
+    platformId?: StringNullableFilter<"PlatformProduct"> | string | null
     sourceProductId?: BigIntFilter<"PlatformProduct"> | bigint | number
     userId?: BigIntFilter<"PlatformProduct"> | bigint | number
     metafields?: JsonNullableFilter<"PlatformProduct">
+    title?: StringFilter<"PlatformProduct"> | string
+    handle?: StringFilter<"PlatformProduct"> | string
+    descriptionHtml?: StringNullableFilter<"PlatformProduct"> | string | null
+    featuredMedia?: StringNullableFilter<"PlatformProduct"> | string | null
     createdAt?: DateTimeFilter<"PlatformProduct"> | Date | string
     user?: XOR<SessionNullableScalarRelationFilter, SessionWhereInput> | null
     sourceProduct?: XOR<SourceProductNullableScalarRelationFilter, SourceProductWhereInput> | null
@@ -14149,10 +14235,14 @@ export namespace Prisma {
 
   export type PlatformProductOrderByWithAggregationInput = {
     id?: SortOrder
-    platformId?: SortOrder
+    platformId?: SortOrderInput | SortOrder
     sourceProductId?: SortOrder
     userId?: SortOrder
     metafields?: SortOrderInput | SortOrder
+    title?: SortOrder
+    handle?: SortOrder
+    descriptionHtml?: SortOrderInput | SortOrder
+    featuredMedia?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     _count?: PlatformProductCountOrderByAggregateInput
     _avg?: PlatformProductAvgOrderByAggregateInput
@@ -14166,10 +14256,14 @@ export namespace Prisma {
     OR?: PlatformProductScalarWhereWithAggregatesInput[]
     NOT?: PlatformProductScalarWhereWithAggregatesInput | PlatformProductScalarWhereWithAggregatesInput[]
     id?: BigIntWithAggregatesFilter<"PlatformProduct"> | bigint | number
-    platformId?: StringWithAggregatesFilter<"PlatformProduct"> | string
+    platformId?: StringNullableWithAggregatesFilter<"PlatformProduct"> | string | null
     sourceProductId?: BigIntWithAggregatesFilter<"PlatformProduct"> | bigint | number
     userId?: BigIntWithAggregatesFilter<"PlatformProduct"> | bigint | number
     metafields?: JsonNullableWithAggregatesFilter<"PlatformProduct">
+    title?: StringWithAggregatesFilter<"PlatformProduct"> | string
+    handle?: StringWithAggregatesFilter<"PlatformProduct"> | string
+    descriptionHtml?: StringNullableWithAggregatesFilter<"PlatformProduct"> | string | null
+    featuredMedia?: StringNullableWithAggregatesFilter<"PlatformProduct"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"PlatformProduct"> | Date | string
   }
 
@@ -15061,8 +15155,12 @@ export namespace Prisma {
 
   export type PlatformProductCreateInput = {
     id?: bigint | number
-    platformId: string
+    platformId?: string | null
     metafields?: NullableJsonNullValueInput | InputJsonValue
+    title: string
+    handle: string
+    descriptionHtml?: string | null
+    featuredMedia?: string | null
     createdAt?: Date | string
     user?: SessionCreateNestedOneWithoutPlatformProductInput
     sourceProduct?: SourceProductCreateNestedOneWithoutPlatformProductInput
@@ -15070,17 +15168,25 @@ export namespace Prisma {
 
   export type PlatformProductUncheckedCreateInput = {
     id?: bigint | number
-    platformId: string
+    platformId?: string | null
     sourceProductId: bigint | number
     userId: bigint | number
     metafields?: NullableJsonNullValueInput | InputJsonValue
+    title: string
+    handle: string
+    descriptionHtml?: string | null
+    featuredMedia?: string | null
     createdAt?: Date | string
   }
 
   export type PlatformProductUpdateInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
-    platformId?: StringFieldUpdateOperationsInput | string
+    platformId?: NullableStringFieldUpdateOperationsInput | string | null
     metafields?: NullableJsonNullValueInput | InputJsonValue
+    title?: StringFieldUpdateOperationsInput | string
+    handle?: StringFieldUpdateOperationsInput | string
+    descriptionHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    featuredMedia?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: SessionUpdateOneWithoutPlatformProductNestedInput
     sourceProduct?: SourceProductUpdateOneWithoutPlatformProductNestedInput
@@ -15088,35 +15194,51 @@ export namespace Prisma {
 
   export type PlatformProductUncheckedUpdateInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
-    platformId?: StringFieldUpdateOperationsInput | string
+    platformId?: NullableStringFieldUpdateOperationsInput | string | null
     sourceProductId?: BigIntFieldUpdateOperationsInput | bigint | number
     userId?: BigIntFieldUpdateOperationsInput | bigint | number
     metafields?: NullableJsonNullValueInput | InputJsonValue
+    title?: StringFieldUpdateOperationsInput | string
+    handle?: StringFieldUpdateOperationsInput | string
+    descriptionHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    featuredMedia?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type PlatformProductCreateManyInput = {
     id?: bigint | number
-    platformId: string
+    platformId?: string | null
     sourceProductId: bigint | number
     userId: bigint | number
     metafields?: NullableJsonNullValueInput | InputJsonValue
+    title: string
+    handle: string
+    descriptionHtml?: string | null
+    featuredMedia?: string | null
     createdAt?: Date | string
   }
 
   export type PlatformProductUpdateManyMutationInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
-    platformId?: StringFieldUpdateOperationsInput | string
+    platformId?: NullableStringFieldUpdateOperationsInput | string | null
     metafields?: NullableJsonNullValueInput | InputJsonValue
+    title?: StringFieldUpdateOperationsInput | string
+    handle?: StringFieldUpdateOperationsInput | string
+    descriptionHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    featuredMedia?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type PlatformProductUncheckedUpdateManyInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
-    platformId?: StringFieldUpdateOperationsInput | string
+    platformId?: NullableStringFieldUpdateOperationsInput | string | null
     sourceProductId?: BigIntFieldUpdateOperationsInput | bigint | number
     userId?: BigIntFieldUpdateOperationsInput | bigint | number
     metafields?: NullableJsonNullValueInput | InputJsonValue
+    title?: StringFieldUpdateOperationsInput | string
+    handle?: StringFieldUpdateOperationsInput | string
+    descriptionHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    featuredMedia?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -15822,9 +15944,9 @@ export namespace Prisma {
     string_contains?: string | StringFieldRefInput<$PrismaModel>
     string_starts_with?: string | StringFieldRefInput<$PrismaModel>
     string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
     array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
     array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
     lt?: InputJsonValue
     lte?: InputJsonValue
     gt?: InputJsonValue
@@ -15903,9 +16025,9 @@ export namespace Prisma {
     string_contains?: string | StringFieldRefInput<$PrismaModel>
     string_starts_with?: string | StringFieldRefInput<$PrismaModel>
     string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
     array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
     array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
     lt?: InputJsonValue
     lte?: InputJsonValue
     gt?: InputJsonValue
@@ -16158,6 +16280,10 @@ export namespace Prisma {
     sourceProductId?: SortOrder
     userId?: SortOrder
     metafields?: SortOrder
+    title?: SortOrder
+    handle?: SortOrder
+    descriptionHtml?: SortOrder
+    featuredMedia?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -16172,6 +16298,10 @@ export namespace Prisma {
     platformId?: SortOrder
     sourceProductId?: SortOrder
     userId?: SortOrder
+    title?: SortOrder
+    handle?: SortOrder
+    descriptionHtml?: SortOrder
+    featuredMedia?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -16180,6 +16310,10 @@ export namespace Prisma {
     platformId?: SortOrder
     sourceProductId?: SortOrder
     userId?: SortOrder
+    title?: SortOrder
+    handle?: SortOrder
+    descriptionHtml?: SortOrder
+    featuredMedia?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -17187,9 +17321,9 @@ export namespace Prisma {
     string_contains?: string | StringFieldRefInput<$PrismaModel>
     string_starts_with?: string | StringFieldRefInput<$PrismaModel>
     string_ends_with?: string | StringFieldRefInput<$PrismaModel>
-    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
     array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
     array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
     lt?: InputJsonValue
     lte?: InputJsonValue
     gt?: InputJsonValue
@@ -17396,17 +17530,25 @@ export namespace Prisma {
 
   export type PlatformProductCreateWithoutUserInput = {
     id?: bigint | number
-    platformId: string
+    platformId?: string | null
     metafields?: NullableJsonNullValueInput | InputJsonValue
+    title: string
+    handle: string
+    descriptionHtml?: string | null
+    featuredMedia?: string | null
     createdAt?: Date | string
     sourceProduct?: SourceProductCreateNestedOneWithoutPlatformProductInput
   }
 
   export type PlatformProductUncheckedCreateWithoutUserInput = {
     id?: bigint | number
-    platformId: string
+    platformId?: string | null
     sourceProductId: bigint | number
     metafields?: NullableJsonNullValueInput | InputJsonValue
+    title: string
+    handle: string
+    descriptionHtml?: string | null
+    featuredMedia?: string | null
     createdAt?: Date | string
   }
 
@@ -17561,10 +17703,14 @@ export namespace Prisma {
     OR?: PlatformProductScalarWhereInput[]
     NOT?: PlatformProductScalarWhereInput | PlatformProductScalarWhereInput[]
     id?: BigIntFilter<"PlatformProduct"> | bigint | number
-    platformId?: StringFilter<"PlatformProduct"> | string
+    platformId?: StringNullableFilter<"PlatformProduct"> | string | null
     sourceProductId?: BigIntFilter<"PlatformProduct"> | bigint | number
     userId?: BigIntFilter<"PlatformProduct"> | bigint | number
     metafields?: JsonNullableFilter<"PlatformProduct">
+    title?: StringFilter<"PlatformProduct"> | string
+    handle?: StringFilter<"PlatformProduct"> | string
+    descriptionHtml?: StringNullableFilter<"PlatformProduct"> | string | null
+    featuredMedia?: StringNullableFilter<"PlatformProduct"> | string | null
     createdAt?: DateTimeFilter<"PlatformProduct"> | Date | string
   }
 
@@ -18531,17 +18677,25 @@ export namespace Prisma {
 
   export type PlatformProductCreateWithoutSourceProductInput = {
     id?: bigint | number
-    platformId: string
+    platformId?: string | null
     metafields?: NullableJsonNullValueInput | InputJsonValue
+    title: string
+    handle: string
+    descriptionHtml?: string | null
+    featuredMedia?: string | null
     createdAt?: Date | string
     user?: SessionCreateNestedOneWithoutPlatformProductInput
   }
 
   export type PlatformProductUncheckedCreateWithoutSourceProductInput = {
     id?: bigint | number
-    platformId: string
+    platformId?: string | null
     userId: bigint | number
     metafields?: NullableJsonNullValueInput | InputJsonValue
+    title: string
+    handle: string
+    descriptionHtml?: string | null
+    featuredMedia?: string | null
     createdAt?: Date | string
   }
 
@@ -18825,9 +18979,13 @@ export namespace Prisma {
 
   export type PlatformProductCreateManyUserInput = {
     id?: bigint | number
-    platformId: string
+    platformId?: string | null
     sourceProductId: bigint | number
     metafields?: NullableJsonNullValueInput | InputJsonValue
+    title: string
+    handle: string
+    descriptionHtml?: string | null
+    featuredMedia?: string | null
     createdAt?: Date | string
   }
 
@@ -18953,25 +19111,37 @@ export namespace Prisma {
 
   export type PlatformProductUpdateWithoutUserInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
-    platformId?: StringFieldUpdateOperationsInput | string
+    platformId?: NullableStringFieldUpdateOperationsInput | string | null
     metafields?: NullableJsonNullValueInput | InputJsonValue
+    title?: StringFieldUpdateOperationsInput | string
+    handle?: StringFieldUpdateOperationsInput | string
+    descriptionHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    featuredMedia?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     sourceProduct?: SourceProductUpdateOneWithoutPlatformProductNestedInput
   }
 
   export type PlatformProductUncheckedUpdateWithoutUserInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
-    platformId?: StringFieldUpdateOperationsInput | string
+    platformId?: NullableStringFieldUpdateOperationsInput | string | null
     sourceProductId?: BigIntFieldUpdateOperationsInput | bigint | number
     metafields?: NullableJsonNullValueInput | InputJsonValue
+    title?: StringFieldUpdateOperationsInput | string
+    handle?: StringFieldUpdateOperationsInput | string
+    descriptionHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    featuredMedia?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type PlatformProductUncheckedUpdateManyWithoutUserInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
-    platformId?: StringFieldUpdateOperationsInput | string
+    platformId?: NullableStringFieldUpdateOperationsInput | string | null
     sourceProductId?: BigIntFieldUpdateOperationsInput | bigint | number
     metafields?: NullableJsonNullValueInput | InputJsonValue
+    title?: StringFieldUpdateOperationsInput | string
+    handle?: StringFieldUpdateOperationsInput | string
+    descriptionHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    featuredMedia?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -19153,33 +19323,49 @@ export namespace Prisma {
 
   export type PlatformProductCreateManySourceProductInput = {
     id?: bigint | number
-    platformId: string
+    platformId?: string | null
     userId: bigint | number
     metafields?: NullableJsonNullValueInput | InputJsonValue
+    title: string
+    handle: string
+    descriptionHtml?: string | null
+    featuredMedia?: string | null
     createdAt?: Date | string
   }
 
   export type PlatformProductUpdateWithoutSourceProductInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
-    platformId?: StringFieldUpdateOperationsInput | string
+    platformId?: NullableStringFieldUpdateOperationsInput | string | null
     metafields?: NullableJsonNullValueInput | InputJsonValue
+    title?: StringFieldUpdateOperationsInput | string
+    handle?: StringFieldUpdateOperationsInput | string
+    descriptionHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    featuredMedia?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: SessionUpdateOneWithoutPlatformProductNestedInput
   }
 
   export type PlatformProductUncheckedUpdateWithoutSourceProductInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
-    platformId?: StringFieldUpdateOperationsInput | string
+    platformId?: NullableStringFieldUpdateOperationsInput | string | null
     userId?: BigIntFieldUpdateOperationsInput | bigint | number
     metafields?: NullableJsonNullValueInput | InputJsonValue
+    title?: StringFieldUpdateOperationsInput | string
+    handle?: StringFieldUpdateOperationsInput | string
+    descriptionHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    featuredMedia?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type PlatformProductUncheckedUpdateManyWithoutSourceProductInput = {
     id?: BigIntFieldUpdateOperationsInput | bigint | number
-    platformId?: StringFieldUpdateOperationsInput | string
+    platformId?: NullableStringFieldUpdateOperationsInput | string | null
     userId?: BigIntFieldUpdateOperationsInput | bigint | number
     metafields?: NullableJsonNullValueInput | InputJsonValue
+    title?: StringFieldUpdateOperationsInput | string
+    handle?: StringFieldUpdateOperationsInput | string
+    descriptionHtml?: NullableStringFieldUpdateOperationsInput | string | null
+    featuredMedia?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 

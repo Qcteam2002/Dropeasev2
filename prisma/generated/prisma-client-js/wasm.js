@@ -18,11 +18,11 @@ exports.$Enums = {}
 
 /**
  * Prisma Client JS version: 5.22.0
- * Query Engine version: 11f085a2012c0f4778414c8db2651556ee0ef959
+ * Query Engine version: acc0b9dd43eb689cbd20c9470515d719db10d0b0
  */
 Prisma.prismaVersion = {
   client: "5.22.0",
-  engine: "11f085a2012c0f4778414c8db2651556ee0ef959"
+  engine: "acc0b9dd43eb689cbd20c9470515d719db10d0b0"
 }
 
 Prisma.PrismaClientKnownRequestError = () => {
@@ -250,6 +250,10 @@ exports.Prisma.PlatformProductScalarFieldEnum = {
   sourceProductId: 'sourceProductId',
   userId: 'userId',
   metafields: 'metafields',
+  title: 'title',
+  handle: 'handle',
+  descriptionHtml: 'descriptionHtml',
+  featuredMedia: 'featuredMedia',
   createdAt: 'createdAt'
 };
 
@@ -336,7 +340,11 @@ exports.Prisma.SourceCategoryOrderByRelevanceFieldEnum = {
 };
 
 exports.Prisma.PlatformProductOrderByRelevanceFieldEnum = {
-  platformId: 'platformId'
+  platformId: 'platformId',
+  title: 'title',
+  handle: 'handle',
+  descriptionHtml: 'descriptionHtml',
+  featuredMedia: 'featuredMedia'
 };
 exports.QuotaType = exports.$Enums.QuotaType = {
   SUBSCRIPTION: 'SUBSCRIPTION',
