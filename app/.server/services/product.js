@@ -1,18 +1,30 @@
-import fs from "fs";
-import { join } from "path";
-import db from "../db.server";
-import metafields from "../shopify_theme/metafield_config";
+// import fs from "fs";
+// import { join } from "path";
+import db from "../../db.server";
+import { syncProductQueue } from "../../queues/first_init";
+// import metafields from "../../shopify_theme/metafield_config";
 
 export default class ShopifyProduct {
-  constructor(admin) {
+  constructor(admin, session) {
     this.admin = admin;
-    this.session = admin.session;
+    this.session = session;
     this.limit = 25;
+    this.user = null;
   }
 
   async syncProducts(currentCursor) {
-    const products = await this.getProducts(this.limit, currentCursor);
+    const session = this.session;
+    const admin = this.admin;
+    this.user = await db.user.findUnique({
+        where: {
+            sessionId: session.id,
+        },
+    }); 
+    const userId = this.user.id;
+    console.log("User: ", this.user);
 
+    const products = await this.getProducts(this.limit, currentCursor);
+    // console.log("UserID: ", products);
     if (products.edges.length > 0) {
       // Store products in the database
       let lastCursor = null;
@@ -20,17 +32,32 @@ export default class ShopifyProduct {
         const product = edge.node;
         lastCursor = edge.cursor;
         const insertData = {
-          sourceProductId: product.id,
-          userId: this.session.userId,
+          platformId: product.id,
+          user: { connect: { id: userId } },
           metafields: product.metafields.edges,
           title: product.title,
           handle: product.handle,
-          description: product.descriptionHtml,
+          descriptionHtml: product.descriptionHtml,
           featuredMedia: product.featuredMedia.preview.image.url,
         };
 
-        await db.PlatformProduct.upsert({
-          where: { userId: this.session.userId, sourceProductId: product.id },
+        // const existingProduct = await db.platformProduct.findUnique({
+        //     where: { userId_platformId: { userId: userId, platformId: product.id } },
+        //   });
+          
+        //   if (existingProduct) {
+        //     await db.platformProduct.update({
+        //       where: { userId_platformId: { userId: userId, platformId: product.id } },
+        //       data: insertData,
+        //     });
+        //   } else {
+        //     await db.platformProduct.create({
+        //       data: insertData,
+        //     });
+        //   }
+
+        await db.platformProduct.upsert({
+          where: { userId_platformId: {userId: userId, platformId: product.id} },
           update: insertData,
           create: insertData,
         });
@@ -39,6 +66,7 @@ export default class ShopifyProduct {
       // Add a new job to the queue to process the next batch
       await syncProductQueue.add("sync_product", {
         admin,
+        session,
         cursor: currentCursor,
       });
     }
@@ -123,15 +151,6 @@ export default class ShopifyProduct {
                                         id
                                     }
                                 }
-                                inventoryItem {
-                                    id
-                                    inventoryLevel() {
-                                        id
-                                        location {
-                                            id
-                                        }
-                                    }
-                                }
                                 inventoryQuantity
                                 inventoryPolicy
                             }
@@ -152,8 +171,7 @@ export default class ShopifyProduct {
                     hasNextPage
                 }
             }
-        }
-                `;
+        }`;
 
     const variables = {
       variables: {

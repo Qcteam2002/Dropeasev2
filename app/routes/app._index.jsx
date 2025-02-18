@@ -15,10 +15,18 @@ import {
 import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
 import { firstInitQueue } from "../queues/first_init";
+import UserServices  from "../.server/services/user";
+import ShopifyProduct  from "../.server/services/product";
 
 
 export const loader = async ({ request }) => {
-  const { admin } = await authenticate.admin(request);
+  const { admin,session } = await authenticate.admin(request);
+
+  const shopifyProductService = new ShopifyProduct(admin,session);
+  await shopifyProductService.syncProducts();
+
+  // const userService = new UserServices(admin,session);
+  // await userService.updateUser();
 
   return null;
 };

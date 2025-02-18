@@ -1,9 +1,9 @@
 import { Queue, Worker, Job } from "bullmq";
 import ShopifyInit from "../shopify_theme/shopifyInit";
-import ShopifyProduct from "../services/product";
+import ShopifyProduct from "../.server/services/product";
 
 const connection = {
-  host: process.env.REDIS_HOST, 
+  host: process.env.REDIS_HOST,
   port: process.env.REDIS_PORT,
 };
 
@@ -15,14 +15,20 @@ export const syncProductQueue = new Queue("sync_product", { connection });
 const firstInitWorker = new Worker(
   "first_init",
   async (job) => {
-    const { admin } = job.data;
+    const { admin, session } = job.data;
+    console.log("Admin trong queue first_init \n", admin);
+    console.log("Session trong queue first_init \n", session);
 
+    console.log("Before sync product");
+    // await syncProductQueue.add('sync_product', { admin, session });
+
+    console.log("Before shopify init");
     const shopifyInit = new ShopifyInit(admin);
     await shopifyInit.init();
 
     // Thực hiện gửi email ở đây, ví dụ sử dụng nodemailer
-    const { to, subject } = {to:'abc',subject:'123'};
-    console.log(`Gửi email đến ${to}: ${subject}`);
+    // const { to, subject } = { to: 'abc', subject: '123' };
+    // console.log(`Gửi email đến ${to}: ${subject}`);
   },
   { connection }
 );
@@ -32,50 +38,27 @@ firstInitWorker.on("completed", (job) => {
 });
 
 firstInitWorker.on("failed", (job, err) => {
-  console.error(`Job ${job.id} thất bại: ${err}`);
+  console.error(`Job ${job.id} thất bại: ${err}`, job.data);
 });
 
 const syncProductWorker = new Worker(
   "sync_product",
   async (job) => {
-    const { admin, cursor } = job.data;
-    const limitPage = 25;
-    const ShopifyProduct = new ShopifyProduct(admin);
-
+    console.log("Sync product worker");
+    const { admin, cursor, session } = job.data;
     let currentCursor = cursor;
 
+    console.log("Admin trong queue sync_product \n", admin);
+    console.log("Session trong queue sync_product \n", session);
 
-      const products = await ShopifyProductInstance.getProducts(limitPage, currentCursor);
-
-      if (products.edges.length > 0) {
-        // Store products in the database
-        for (const edge of products.edges) {
-          const product = edge.node;
-          
-          
-        }
-
-        // Update cursor for the next batch
-        currentCursor = products[products.length - 1].cursor;
-
-        // Add a new job to the queue to process the next batch
-        await syncProductQueue.add("sync_product", {
-          admin,
-          cursor: currentCursor,
-        });
-      } 
-
-
-    if(products.length > 0) {
-
-      // const lastProduct = products[products.length - 1];
-      // await syncProductQueue.add("sync_product", {
-      //   admin,
-      //   cursor: lastProduct.cursor,
-      // });
-    }
+    const shopifyProductService = new ShopifyProduct(admin, session);
+    await shopifyProductService.syncProducts(currentCursor);
 
 
   },
   { connection }
 );
+
+syncProductWorker.on("failed", (job, err) => {
+  console.error(`Job ${job.id} thất bại: ${err}`, job);
+});

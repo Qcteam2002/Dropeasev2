@@ -1,10 +1,13 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "678a36f0fe612a390bda9841f7a1de54"
-application_url = "https://hierarchy-retro-politicians-starting.trycloudflare.com"
+application_url = "https://take-contamination-strategies-lobby.trycloudflare.com"
 embedded = true
 name = "abc-app"
 handle = "abc-app"
+
+[build]
+automatically_update_urls_on_dev = true
 
 [webhooks]
 api_version = "2024-10"
@@ -15,13 +18,10 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://hierarchy-retro-politicians-starting.trycloudflare.com/auth/callback",
-  "https://hierarchy-retro-politicians-starting.trycloudflare.com/auth/shopify/callback",
-  "https://hierarchy-retro-politicians-starting.trycloudflare.com/api/auth/callback"
+  "https://take-contamination-strategies-lobby.trycloudflare.com/auth/callback",
+  "https://take-contamination-strategies-lobby.trycloudflare.com/auth/shopify/callback",
+  "https://take-contamination-strategies-lobby.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]
 embedded = false
-
-[build]
-automatically_update_urls_on_dev = true
