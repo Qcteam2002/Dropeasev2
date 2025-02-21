@@ -38,7 +38,7 @@ export default class ShopifyProduct {
           title: product.title,
           handle: product.handle,
           descriptionHtml: product.descriptionHtml,
-          featuredMedia: product.featuredMedia.preview.image.url,
+          featuredMedia: product.featuredMedia?.preview?.image.url,
         };
 
         // const existingProduct = await db.platformProduct.findUnique({

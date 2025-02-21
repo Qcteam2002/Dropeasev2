@@ -208,10 +208,10 @@ model PlatformProduct {
   metafields      Json?
   title           String
   handle          String
-  descriptionHtml String?
+  descriptionHtml String?        @db.LongText
   featuredMedia   String?
   createdAt       DateTime       @default(now())
-  user            User          @relation(fields: [userId], references: [id])
+  user            User           @relation(fields: [userId], references: [id])
   sourceProduct   SourceProduct? @relation(fields: [sourceProductId], references: [id])
 
   @@unique([userId, platformId])
