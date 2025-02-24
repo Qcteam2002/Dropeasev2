@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "678a36f0fe612a390bda9841f7a1de54"
-application_url = "https://desktop-evaluating-favourite-sisters.trycloudflare.com"
+application_url = "https://cause-closing-bracelets-too.trycloudflare.com"
 embedded = true
 name = "abc-app"
 handle = "abc-app"
@@ -18,9 +18,9 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://desktop-evaluating-favourite-sisters.trycloudflare.com/auth/callback",
-  "https://desktop-evaluating-favourite-sisters.trycloudflare.com/auth/shopify/callback",
-  "https://desktop-evaluating-favourite-sisters.trycloudflare.com/api/auth/callback"
+  "https://cause-closing-bracelets-too.trycloudflare.com/auth/callback",
+  "https://cause-closing-bracelets-too.trycloudflare.com/auth/shopify/callback",
+  "https://cause-closing-bracelets-too.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]

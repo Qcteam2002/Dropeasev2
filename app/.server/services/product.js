@@ -2,7 +2,7 @@
 // import { join } from "path";
 import db from "../../db.server";
 import { syncProductQueue } from "../../queues/first_init";
-// import metafields from "../../shopify_theme/metafield_config";
+import Shopify from "../../shopify.server";
 
 export default class ShopifyProduct {
   constructor(admin, session) {
@@ -10,9 +10,11 @@ export default class ShopifyProduct {
     this.session = session;
     this.limit = 25;
     this.user = null;
+    this.shopify = Shopify;
   }
 
   async syncProducts(currentCursor) {
+    console.log("Log shopify service", this.shopify);
     const session = this.session;
     const admin = this.admin;
     this.user = await db.user.findUnique({
