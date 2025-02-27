@@ -23,10 +23,10 @@ const shopify = shopifyApp({
   hooks: {
     afterAuth: async ({ session, admin }) => {
       console.log('entry afterAuth');
-      console.log('Admin trong afterAuth',admin);
-      const userService = new UserServices(admin,session);
+      console.log('Admin trong afterAuth', admin);
+      const userService = new UserServices(admin, session);
       await userService.updateUser();
-      
+
       await firstInitQueue.add('first_init', { admin, session });
       // Add the job to the queue
       // installedQueue.add('installed',{
@@ -45,6 +45,17 @@ const shopify = shopifyApp({
     ? { customShopDomains: [process.env.SHOP_CUSTOM_DOMAIN] }
     : {}),
 });
+
+export const user = async (request) => {
+  const { session } = await shopify.authenticate.admin(request);
+  const user = await prisma.user.findUnique({
+    where: {
+      sessionId: session.id,
+    },
+  });
+
+  return user;
+}
 
 export default shopify;
 export const apiVersion = ApiVersion.October24;
