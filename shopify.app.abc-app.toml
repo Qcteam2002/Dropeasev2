@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "678a36f0fe612a390bda9841f7a1de54"
-application_url = "https://gardening-properties-venezuela-dramatic.trycloudflare.com"
+application_url = "https://lb-minority-spas-bad.trycloudflare.com"
 embedded = true
 name = "abc-app"
 handle = "abc-app"
@@ -18,9 +18,9 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://gardening-properties-venezuela-dramatic.trycloudflare.com/auth/callback",
-  "https://gardening-properties-venezuela-dramatic.trycloudflare.com/auth/shopify/callback",
-  "https://gardening-properties-venezuela-dramatic.trycloudflare.com/api/auth/callback"
+  "https://lb-minority-spas-bad.trycloudflare.com/auth/callback",
+  "https://lb-minority-spas-bad.trycloudflare.com/auth/shopify/callback",
+  "https://lb-minority-spas-bad.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]

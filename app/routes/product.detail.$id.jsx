@@ -17,51 +17,28 @@ import {
 import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate, getUser } from "../shopify.server";
 import enTranslations from '@shopify/polaris/locales/en.json';
-import {getProducts}  from "../models/PlatformProduct";
+import {getProduct}  from "../models/PlatformProduct";
 
 
-export const loader = async ({ request }) => {
+export const loader = async ({ request, params }) => {
   const { admin,session } = await authenticate.admin(request);
   const user = await getUser(request);
-  console.log("Day là user ne",user);
-  const products = await getProducts(user.id);
+  console.log('Log params request', request.params);
+  const productId = params.id;
 
-  // Convert BigInt values to strings
-  const serializedProducts = products.map(product => ({
+  const product = await getProduct(productId);
+
+  const serializedProduct = {
     ...product,
     id: product.id.toString(),
     userId: product.userId.toString(),
     sourceProductId: product.sourceProductId ? product.sourceProductId.toString() : null,
-  }));
-
-
+  };
+  
   return json({
-    products: serializedProducts,
+    product: serializedProduct,
   });
 };
-
-// [START empty]
-const EmptyProductState = ({ onAction }) => (
-  <EmptyState
-    heading="Products"
-    action={{
-      content: "Create Product",
-      onAction,
-    }}
-    image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png"
-  >
-    <p>Empty list</p>
-  </EmptyState>
-);
-// [END empty]
-
-// [START table]
-const ProductTable = ({ products }) => (
-    products.map((product) => (
-      <ProductTableCard key={product.id} product={product} />
-    ))
-);
-// [END table]
 
 // [START row]
 const ProductTableCard = ({ product }) => (
@@ -70,10 +47,10 @@ const ProductTableCard = ({ product }) => (
       title={product.title}
       primaryAction={{
         content: 'Detail',
-        onAction: () => navigate(`/product/detail/${product.id}`),
+        onAction: () => navigate(`/product/detail/${product.io}`),
       }}
       description={product.title}
-      popoverActions={[{content: 'Dismiss', onAction: () => navigate(`/product/detail/${product.id}`)}]}
+      popoverActions={[{content: 'Dismiss', onAction: () => {}}]}
     >
       <img
         alt=""
@@ -85,13 +62,12 @@ const ProductTableCard = ({ product }) => (
         }}
         src={product.featuredMedia}
       />
-      <a href={`/product/detail/${product.id}`}>Xem chi tiết</a>
     </MediaCard>
 );
 // [END row]
 
 export default function Index() {
-  const { products } = useLoaderData();
+  const { product } = useLoaderData();
   const navigate = useNavigate();
 
   // [START page]
@@ -106,11 +82,7 @@ export default function Index() {
       <Layout>
         <Layout.Section>
           <Card padding="0">
-            {products.length === 0 ? (
-              <EmptyProductState onAction={() => navigate("/product")} />
-            ) : (
-              <ProductTable products={products} />
-            )}
+            <ProductTableCard product={product} />
           </Card>
         </Layout.Section>
       </Layout>

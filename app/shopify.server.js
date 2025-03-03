@@ -46,7 +46,7 @@ const shopify = shopifyApp({
     : {}),
 });
 
-export const user = async (request) => {
+export const getUser = async (request) => {
   const { session } = await shopify.authenticate.admin(request);
   const user = await prisma.user.findUnique({
     where: {
