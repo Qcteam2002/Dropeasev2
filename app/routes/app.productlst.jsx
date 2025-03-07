@@ -1,6 +1,7 @@
-import { json } from "@remix-run/node";
-import { useLoaderData, useNavigate } from "@remix-run/react";
-import React, { useState } from "react";
+// ✅ Import các thư viện cần thiết
+import { json } from "@remix-run/node"; // Xử lý dữ liệu JSON trên server
+import { useLoaderData, useNavigate } from "@remix-run/react"; // Hook lấy dữ liệu từ loader và điều hướng trang
+import React, { useState } from "react"; // Import React và hook useState
 import {
     AppProvider,
     Page,
@@ -13,62 +14,65 @@ import {
     Button,
     Thumbnail,
     Toast,
-    Frame, // 🟢 Thêm Frame từ Polaris
+    Frame, // 🟢 Thêm Frame từ Polaris để quản lý UI
 } from "@shopify/polaris";
-import { authenticate, getUser } from "../shopify.server";
-import enTranslations from "@shopify/polaris/locales/en.json";
-import { getProducts } from "../models/PlatformProduct";
+import { authenticate, getUser } from "../shopify.server"; // Xác thực người dùng Shopify
+import enTranslations from "@shopify/polaris/locales/en.json"; // Ngôn ngữ UI
+import { getProducts } from "../models/PlatformProduct"; // Hàm lấy danh sách sản phẩm từ DB
 
+// ✅ Loader - Fetch danh sách sản phẩm từ DB
 export const loader = async ({ request }) => {
-    const { admin, session } = await authenticate.admin(request);
-    const user = await getUser(request);
-    const products = await getProducts(user.id);
+    const { admin, session } = await authenticate.admin(request); // Xác thực admin Shopify
+    const user = await getUser(request); // Lấy thông tin người dùng
+    const products = await getProducts(user.id); // Lấy danh sách sản phẩm từ DB theo userId
 
+    // Chuyển đổi dữ liệu sản phẩm từ BigInt thành chuỗi để tránh lỗi JSON
     const serializedProducts = products.map((product) => ({
         ...product,
         id: product.id.toString(),
         userId: product.userId.toString(),
         sourceProductId: product.sourceProductId ? product.sourceProductId.toString() : null,
-        inventory: product.inventory || 0,
-        descriptionHtml: product.descriptionHtml || "",
+        inventory: product.inventory || 0, // Giá trị mặc định nếu inventory không có
+        descriptionHtml: product.descriptionHtml || "", // Tránh lỗi undefined
     }));
 
-    return json({ products: serializedProducts });
+    return json({ products: serializedProducts }); // Trả về danh sách sản phẩm
 };
 
+// ✅ Component chính hiển thị danh sách sản phẩm
 export default function ProductListPage() {
-    const { products } = useLoaderData();
-    const [searchValue, setSearchValue] = useState("");
-    const [toast, setToast] = useState({ active: false, message: "" });
-    const [loadingId, setLoadingId] = useState(null);
-    const navigate = useNavigate();
+    const { products } = useLoaderData(); // Lấy danh sách sản phẩm từ loader
+    const [searchValue, setSearchValue] = useState(""); // State tìm kiếm
+    const [toast, setToast] = useState({ active: false, message: "" }); // State thông báo toast
+    const [loadingId, setLoadingId] = useState(null); // State xác định sản phẩm nào đang loading
+    const navigate = useNavigate(); // Hook điều hướng trang
 
-    // 🔹 Gửi request tối ưu hóa sản phẩm
+    // ✅ Hàm gửi request tối ưu hóa sản phẩm
     const optimizeProduct = async (product) => {
-        setLoadingId(product.id); // 🔹 Hiển thị trạng thái loading
+        setLoadingId(product.id); // Đánh dấu sản phẩm đang được tối ưu
 
         try {
+            // Gọi API OpenAI để tối ưu hóa sản phẩm
             const response = await fetch("http://localhost:5003/api/openai", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    id: product.id, // 🔹 Truyền thêm productId
+                    id: product.id, // Truyền ID sản phẩm
                     title: product.title,
                     description: product.descriptionHtml || "No description available.",
                 }),
             });
 
             if (!response.ok) throw new Error("API Error!");
-
-            const data = await response.json();
+            const data = await response.json(); // Lấy dữ liệu từ API OpenAI
             console.log("✅ Dữ liệu từ OpenAI:", data);
 
-            // 🔹 Gửi API lưu vào MySQL với productId
+            // Gửi API lưu dữ liệu tối ưu hóa vào MySQL
             const saveResponse = await fetch("http://localhost:51070/api/save-optimized-product", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    id: product.id, // 🔹 Đảm bảo truyền productId
+                    id: product.id, // Truyền ID sản phẩm
                     optimizedTitle: data.optimizedTitle,
                     optimizedDescription: data.optimizedDescription,
                     gridView: data.gridView,
@@ -85,13 +89,12 @@ export default function ProductListPage() {
             console.error("❌ Lỗi khi tối ưu sản phẩm:", error);
             setToast({ active: true, message: "Error optimizing product!" });
         } finally {
-            setLoadingId(null); // 🔹 Tắt trạng thái loading
+            setLoadingId(null); // Tắt trạng thái loading
         }
     };
 
     return (
         <AppProvider i18n={enTranslations}>
-            {/* 🟢 Bọc toàn bộ trong Frame để fix lỗi */}
             <Frame>
                 <Page title="Product List">
                     <Layout>
@@ -108,7 +111,7 @@ export default function ProductListPage() {
                             </Card>
                         </Layout.Section>
 
-                        {/* Bảng sản phẩm */}
+                        {/* Bảng danh sách sản phẩm */}
                         <Layout.Section>
                             <Card>
                                 <IndexTable
@@ -124,10 +127,12 @@ export default function ProductListPage() {
                                 >
                                     {products.map((product, index) => (
                                         <IndexTable.Row id={product.id} key={product.id} position={index}>
+                                            {/* Hiển thị hình ảnh sản phẩm */}
                                             <IndexTable.Cell>
                                                 <Thumbnail source={product.featuredMedia || "https://via.placeholder.com/150"} alt={product.title} size="small" />
                                             </IndexTable.Cell>
 
+                                            {/* Hiển thị tên sản phẩm */}
                                             <IndexTable.Cell>
                                                 <div
                                                     style={{
@@ -146,10 +151,12 @@ export default function ProductListPage() {
                                                 </div>
                                             </IndexTable.Cell>
 
+                                            {/* Hiển thị tồn kho */}
                                             <IndexTable.Cell>
                                                 <Badge status="success">{product.inventory} in stock</Badge>
                                             </IndexTable.Cell>
 
+                                            {/* Hành động với sản phẩm */}
                                             <IndexTable.Cell>
                                                 <div style={{ display: "flex", gap: "10px" }}>
                                                     <Button primary onClick={() => navigate(`/app/product/detail/${product.id}`)}>
@@ -167,13 +174,192 @@ export default function ProductListPage() {
                         </Layout.Section>
                     </Layout>
 
-                    {/* 🟢 Hiển thị Toast thông báo trong Frame */}
+                    {/* Hiển thị Toast thông báo */}
                     {toast.active && <Toast content={toast.message} onDismiss={() => setToast({ active: false })} />}
                 </Page>
             </Frame>
         </AppProvider>
     );
 }
+
+
+
+// import { json } from "@remix-run/node";
+// import { useLoaderData, useNavigate } from "@remix-run/react";
+// import React, { useState } from "react";
+// import {
+//     AppProvider,
+//     Page,
+//     Layout,
+//     Card,
+//     TextField,
+//     IndexTable,
+//     Text,
+//     Badge,
+//     Button,
+//     Thumbnail,
+//     Toast,
+//     Frame, // 🟢 Thêm Frame từ Polaris
+// } from "@shopify/polaris";
+// import { authenticate, getUser } from "../shopify.server";
+// import enTranslations from "@shopify/polaris/locales/en.json";
+// import { getProducts } from "../models/PlatformProduct";
+
+// export const loader = async ({ request }) => {
+//     const { admin, session } = await authenticate.admin(request);
+//     const user = await getUser(request);
+//     const products = await getProducts(user.id);
+
+//     const serializedProducts = products.map((product) => ({
+//         ...product,
+//         id: product.id.toString(),
+//         userId: product.userId.toString(),
+//         sourceProductId: product.sourceProductId ? product.sourceProductId.toString() : null,
+//         inventory: product.inventory || 0,
+//         descriptionHtml: product.descriptionHtml || "",
+//     }));
+
+//     return json({ products: serializedProducts });
+// };
+
+// export default function ProductListPage() {
+//     const { products } = useLoaderData();
+//     const [searchValue, setSearchValue] = useState("");
+//     const [toast, setToast] = useState({ active: false, message: "" });
+//     const [loadingId, setLoadingId] = useState(null);
+//     const navigate = useNavigate();
+
+//     // 🔹 Gửi request tối ưu hóa sản phẩm
+//     const optimizeProduct = async (product) => {
+//         setLoadingId(product.id); // 🔹 Hiển thị trạng thái loading
+
+//         try {
+//             const response = await fetch("http://localhost:5003/api/openai", {
+//                 method: "POST",
+//                 headers: { "Content-Type": "application/json" },
+//                 body: JSON.stringify({
+//                     id: product.id, // 🔹 Truyền thêm productId
+//                     title: product.title,
+//                     description: product.descriptionHtml || "No description available.",
+//                 }),
+//             });
+
+//             if (!response.ok) throw new Error("API Error!");
+
+//             const data = await response.json();
+//             console.log("✅ Dữ liệu từ OpenAI:", data);
+
+//             // 🔹 Gửi API lưu vào MySQL với productId
+//             const saveResponse = await fetch("http://localhost:51070/api/save-optimized-product", {
+//                 method: "POST",
+//                 headers: { "Content-Type": "application/json" },
+//                 body: JSON.stringify({
+//                     id: product.id, // 🔹 Đảm bảo truyền productId
+//                     optimizedTitle: data.optimizedTitle,
+//                     optimizedDescription: data.optimizedDescription,
+//                     gridView: data.gridView,
+//                 }),
+//             });
+
+//             const saveResult = await saveResponse.json();
+//             console.log("✅ Kết quả lưu vào DB:", saveResult);
+
+//             if (!saveResponse.ok) throw new Error("Lưu vào DB thất bại!");
+
+//             setToast({ active: true, message: "Product optimized successfully!" });
+//         } catch (error) {
+//             console.error("❌ Lỗi khi tối ưu sản phẩm:", error);
+//             setToast({ active: true, message: "Error optimizing product!" });
+//         } finally {
+//             setLoadingId(null); // 🔹 Tắt trạng thái loading
+//         }
+//     };
+
+//     return (
+//         <AppProvider i18n={enTranslations}>
+//             {/* 🟢 Bọc toàn bộ trong Frame để fix lỗi */}
+//             <Frame>
+//                 <Page title="Product List">
+//                     <Layout>
+//                         {/* Thanh tìm kiếm */}
+//                         <Layout.Section>
+//                             <Card sectioned>
+//                                 <TextField
+//                                     placeholder="Search Product"
+//                                     value={searchValue}
+//                                     onChange={setSearchValue}
+//                                     clearButton
+//                                     onClearButtonClick={() => setSearchValue("")}
+//                                 />
+//                             </Card>
+//                         </Layout.Section>
+
+//                         {/* Bảng sản phẩm */}
+//                         <Layout.Section>
+//                             <Card>
+//                                 <IndexTable
+//                                     resourceName={{ singular: "product", plural: "products" }}
+//                                     itemCount={products.length}
+//                                     headings={[
+//                                         { title: "Image" },
+//                                         { title: "Product Name" },
+//                                         { title: "Inventory" },
+//                                         { title: "Actions" },
+//                                     ]}
+//                                     selectable
+//                                 >
+//                                     {products.map((product, index) => (
+//                                         <IndexTable.Row id={product.id} key={product.id} position={index}>
+//                                             <IndexTable.Cell>
+//                                                 <Thumbnail source={product.featuredMedia || "https://via.placeholder.com/150"} alt={product.title} size="small" />
+//                                             </IndexTable.Cell>
+
+//                                             <IndexTable.Cell>
+//                                                 <div
+//                                                     style={{
+//                                                         maxWidth: "200px",
+//                                                         whiteSpace: "normal",
+//                                                         overflow: "hidden",
+//                                                         display: "-webkit-box",
+//                                                         WebkitBoxOrient: "vertical",
+//                                                         WebkitLineClamp: 2,
+//                                                         wordBreak: "break-word",
+//                                                     }}
+//                                                 >
+//                                                     <Text fontWeight="500" as="span">
+//                                                         {product.title}
+//                                                     </Text>
+//                                                 </div>
+//                                             </IndexTable.Cell>
+
+//                                             <IndexTable.Cell>
+//                                                 <Badge status="success">{product.inventory} in stock</Badge>
+//                                             </IndexTable.Cell>
+
+//                                             <IndexTable.Cell>
+//                                                 <div style={{ display: "flex", gap: "10px" }}>
+//                                                     <Button primary onClick={() => navigate(`/app/product/detail/${product.id}`)}>
+//                                                         View Details
+//                                                     </Button>
+//                                                     <Button loading={loadingId === product.id} onClick={() => optimizeProduct(product)}>
+//                                                         Product Optimize
+//                                                     </Button>
+//                                                 </div>
+//                                             </IndexTable.Cell>
+//                                         </IndexTable.Row>
+//                                     ))}
+//                                 </IndexTable>
+//                             </Card>
+//                         </Layout.Section>
+//                     </Layout>
+
+//                     {/* 🟢 Hiển thị Toast thông báo trong Frame */}
+//                     {toast.active && <Toast content={toast.message} onDismiss={() => setToast({ active: false })} />}
+//                 </Page>
+//             </Frame>
+//         </AppProvider>
+//     );
+// }
 
 
 
