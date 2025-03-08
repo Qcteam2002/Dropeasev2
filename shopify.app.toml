@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "4990bbf3db44858bf80a2b14ed17bfc5"
-application_url = "https://interfaces-even-marijuana-infinite.trycloudflare.com"
+application_url = "https://gently-mods-offerings-number.trycloudflare.com"
 embedded = true
 name = "optimizeproductpage1"
 handle = "optimizeproductpage1"
@@ -19,9 +19,9 @@ scopes = "read_files,read_locales,read_markets,read_products,read_themes,write_f
 
 [auth]
 redirect_urls = [
-  "https://interfaces-even-marijuana-infinite.trycloudflare.com/auth/callback",
-  "https://interfaces-even-marijuana-infinite.trycloudflare.com/auth/shopify/callback",
-  "https://interfaces-even-marijuana-infinite.trycloudflare.com/api/auth/callback"
+  "https://gently-mods-offerings-number.trycloudflare.com/auth/callback",
+  "https://gently-mods-offerings-number.trycloudflare.com/auth/shopify/callback",
+  "https://gently-mods-offerings-number.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]

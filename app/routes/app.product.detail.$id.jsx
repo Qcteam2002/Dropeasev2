@@ -14,6 +14,7 @@ import {
   Modal,
   Box,
   Badge,
+  Thumbnail,
   Frame,
 } from "@shopify/polaris"; // UI components từ Shopify Polaris
 import enTranslations from "@shopify/polaris/locales/en.json"; // Định nghĩa ngôn ngữ UI
@@ -32,27 +33,42 @@ const productDatadraft = [
     priceDiscounted: "$250.99",
     discountPercentage: "50%",
     rating: "4.5 (20 Reviews)",
-    mainImage: "https://ae-pic-a1.aliexpress-media.com/kf/S43c47ca449b1484fb4f5716c7d26b75cW.jpg_960x960q75.jpg_.avif",
-    thumbnails: [
-      "https://ae-pic-a1.aliexpress-media.com/kf/S959b32ff00224005921b1a1d873858aa5.jpg_960x960q75.jpg_.avif",
-      "https://ae-pic-a1.aliexpress-media.com/kf/S2e1c4aed6e5e489baf57527e51364e33y.jpg_960x960q75.jpg_.avif",
-      "https://ae-pic-a1.aliexpress-media.com/kf/Sb288e4c0ea2744c3a20ec9a0e2151250f.jpg_960x960q75.jpg_.avif",
-      "https://ae-pic-a1.aliexpress-media.com/kf/Scc090b3aab8e4311887709722622984fc.jpg_960x960q75.jpg_.avif",
-    ],
-    colors: ["Black", "White", "Gold"],
-    sizes: ["XS", "S", "M", "L", "XL", "2XL"],
+    // mainImage: "https://ae-pic-a1.aliexpress-media.com/kf/S43c47ca449b1484fb4f5716c7d26b75cW.jpg_960x960q75.jpg_.avif",
+    // thumbnails: [
+    //   "https://ae-pic-a1.aliexpress-media.com/kf/S959b32ff00224005921b1a1d873858aa5.jpg_960x960q75.jpg_.avif",
+    //   "https://ae-pic-a1.aliexpress-media.com/kf/S2e1c4aed6e5e489baf57527e51364e33y.jpg_960x960q75.jpg_.avif",
+    //   "https://ae-pic-a1.aliexpress-media.com/kf/Sb288e4c0ea2744c3a20ec9a0e2151250f.jpg_960x960q75.jpg_.avif",
+    //   "https://ae-pic-a1.aliexpress-media.com/kf/Scc090b3aab8e4311887709722622984fc.jpg_960x960q75.jpg_.avif",
+    // ],
+    // colors: ["Black", "White", "Gold"],
+    // sizes: ["XS", "S", "M", "L", "XL", "2XL"],
     variants: [
       {
-        "option1_name": "Color",
-        "option1_value": "NO.17",
-        "option2_name": null,
-        "option2_value": null,
-        "variant_sku": "ABC123",
-        "variant_price": 9.99,
-        "variant_compare_at_price": 12.99,
-        "variant_inventory_qty": 10,
-        "variant_image": "https://example.com/image1.jpg",
-        "variant_weight": "1 kg"
+        "option1": "Color",
+        "value1": "NO.17",
+        "option2": "Size",
+        "value2": "S",
+        "variantImage": "https://cdn.shopify.com/s/files/1/0603/0953/6946/files/S930d35a72acb464fb24bf6188826193b7.webp?v=1741158213",
+        "variantPrice": "$250.99",
+        "variantCompareAtPrice": "$250.99",
+      },
+      {
+        "option1": "Color",
+        "value1": "NO.16",
+        "option2": "Size",
+        "value2": "M",
+        "variantImage": "https://cdn.shopify.com/s/files/1/0603/0953/6946/files/Se5a171a92b254de792191c66dd992fd87.webp?v=1741158214",
+        "variantPrice": "$150",
+        "variantCompareAtPrice": "$100",
+      },
+      {
+        "option1": "Color",
+        "value1": "NO.18",
+        "option2": "Size",
+        "value2": "N",
+        "variantImage": "https://cdn.shopify.com/s/files/1/0603/0953/6946/files/Scea84afffbd842c0929d6dd6e358e962U.webp?v=1741158213",
+        "variantPrice": "$250",
+        "variantCompareAtPrice": "$240",
       }
     ],
     description:
@@ -263,15 +279,25 @@ export const loader = async ({ request, params }) => {
 // ✅ Component chính - Hiển thị trang chi tiết sản phẩm
 export default function ProductDetailPage() {
   const product1 = productDatadraft.find((p) => p.id === parseInt(1));
-  // State for selected color and size
-  const [selectedColor, setSelectedColor] = useState(product1.colors[0]);
-  const [selectedSize, setSelectedSize] = useState(product1.sizes[0]);
-  const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
+  const draftProduct = productDatadraft?.[0]; //Lấy object đầu tiên trong mảng
   const { product } = useLoaderData(); // Lấy dữ liệu sản phẩm từ loader
+  // State for selected color and size
+  // const [selectedColor, setSelectedColor] = useState(draftProduct.variants[0]?.value1 || "");
+  // const [selectedSize, setSelectedSize] = useState(draftProduct.variants[0].value2);
+  const [currentReviewIndex, setCurrentReviewIndex] = useState(0);
+  // const [mainImage, setMainImage] = useState(product.featuredMedia); // Hình mặc định
+
   const navigate = useNavigate(); // Điều hướng trang
   const [toast, setToast] = useState({ active: false, message: "" }); // Trạng thái thông báo Toast
-  const draftProduct = productDatadraft?.[0]; //Lấy object đầu tiên trong mảng
+
   const [isModalOpen, setModalOpen] = useState(false); //Để mở review
+
+  const [selectedVariant, setSelectedVariant] = useState(draftProduct.variants[0]); // Lưu toàn bộ variant
+  const [mainImage, setMainImage] = useState(product.featuredMedia); // Ảnh mặc định
+
+  const displayedPrice = selectedVariant?.variantPrice || draftProduct.priceOriginal;
+  const displayedCompareAtPrice = selectedVariant?.variantCompareAtPrice || draftProduct.priceDiscounted;
+  // Xác định giá hiển thị
   // 🔹 Hàm gửi API lưu sản phẩm vào bảng ProductsOptimized
   const optimizeProduct = async () => {
     try {
@@ -316,20 +342,55 @@ export default function ProductDetailPage() {
       <Frame>
         <Page title="Product Detail" primaryAction={{ content: "Push to Store", onAction: () => alert("Pushing to Store...") }}>
           <Card>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem", padding: "20px" }}>
-              {/* 🔹 Hiển thị hình ảnh sản phẩm */}
-              <div style={{ alignItems: "flex-start" }}>
-                <img src={product.featuredMedia} alt="Main Product" style={{ width: "100%", borderRadius: "8px", objectFit: "cover" }} />
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr', // Layout for main content and side content
+                gap: '2rem',
+                padding: '20px',
+              }}
+            >
+              {/* Left Section: Image thumbnails and main image */}
+              <div style={{ alignItems: 'flex-start', gap: 'rem' }}>
+                {/* Main Product Image */}
+                <div style={{ flex: '1' }}>
+                  <img
+                    src={mainImage}
+                    alt="Main Product"
+                    style={{
+                      width: '100%',
+                      borderRadius: '8px',
+                      objectFit: 'cover',
+                    }}
+                  />
+                </div>
+                {/* Thumbnails */}
+                <div style={{ paddingTop: '10px', display: 'flex', flexDirection: 'row', gap: '10px', overflowX: 'auto' }}>
+                  {draftProduct.variants.map((variants, index) => (
+                    <span onClick={() => setMainImage(thumbnail)}>
+                      <Thumbnail
+                        key={index}
+                        size="large"
+                        source={variants.variantImage}
+                        alt={`Variant ${variants.value1}`}
+                        style={{ cursor: 'pointer', borderRadius: '4px' }}
+                      />
+                    </span>
+                  ))}
+                </div>
               </div>
 
-              {/* 🔹 Hiển thị thông tin sản phẩm */}
+              {/* Right Section: Product details */}
               <BlockStack spacing="loose">
-                <Text variant="headingLg" fontWeight="bold">{product.title}</Text>
+                {/* Product Title */}
+                <Text variant="headingLg" fontWeight="bold">
+                  {product.title}
+                </Text>
 
                 {/* Product Rating */}
                 <BlockStack gap="500" style={{ padding: '10px 0px 12px 0px' }}>
                   <Text variant="bodySm" color="subdued">
-                    {product.rating}
+                    {draftProduct.rating}
                   </Text>
                 </BlockStack>
 
@@ -337,26 +398,22 @@ export default function ProductDetailPage() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '0px 0px 12px 0px' }}>
                   <Box style={{ color: '#d52e2e' }}>
                     <Text variant="headingLg" as="h5" >
-                      {product1.priceOriginal}
+                      {displayedPrice}
                     </Text>
                   </Box>
                   <Box style={{ textDecoration: 'line-through', color: '#6D6D6D' }}>
                     <Text variant="bodyLg" as="p">
-                      {product1.priceDiscounted}
+                      {displayedCompareAtPrice}
                     </Text>
                   </Box>
 
-                  <Badge status="success">Save {product1.discountPercentage}</Badge>
+                  <Badge status="success">Save {draftProduct.discountPercentage}</Badge>
                 </div>
 
                 {/* Product Description */}
                 <BlockStack style={{ padding: '0px 0px 12px 0px' }}>
-                  <Text color="subdued" style={{ whiteSpace: 'pre-line' }}>
-                    {product.description}
-                  </Text>
+                  <Text color="subdued">{product.description}</Text>
                 </BlockStack>
-
-
 
                 {/* Color Selection */}
                 <div>
@@ -365,14 +422,17 @@ export default function ProductDetailPage() {
                   </Text>
                   <div style={{ padding: '12px 0px 12px 0px' }}>
                     <InlineStack gap="150" wrap={false} blockAlign="center">
-                      {product1.colors.map((color) => (
+                      {draftProduct.variants.map((variant) => (
                         <Button
-                          key={color}
+                          key={variant.value1}
                           size="slim"
-                          primary={selectedColor === color}
-                          onClick={() => setSelectedColor(color)}
+                          primary={selectedVariant.value1 === variant.value1}
+                          onClick={() => {
+                            setSelectedVariant(variant); // Cập nhật toàn bộ variant
+                            setMainImage(variant.variantImage); // Cập nhật ảnh
+                          }}
                         >
-                          {color}
+                          {variant.value1}
                         </Button>
                       ))}
                     </InlineStack>
@@ -386,14 +446,17 @@ export default function ProductDetailPage() {
                   </Text>
                   <div style={{ padding: '12px 0px 12px 0px' }}>
                     <InlineStack gap="150" wrap={false} blockAlign="center" >
-                      {product1.sizes.map((size) => (
+                      {draftProduct.variants.map((variant) => (
                         <Button
-                          key={size}
+                          key={variant.value2}
                           size="slim"
-                          primary={selectedSize === size}
-                          onClick={() => setSelectedSize(size)}
+                          primary={selectedVariant.value2 === variant.value2}
+                          onClick={() => {
+                            setSelectedVariant(variant); // Cập nhật toàn bộ variant
+                            setMainImage(variant.variantImage); // Cập nhật ảnh
+                          }}
                         >
-                          {size}
+                          {variant.value2}
                         </Button>
                       ))}
                     </InlineStack>
@@ -413,8 +476,6 @@ export default function ProductDetailPage() {
                     Add tro Cart
                   </Button>
                 </div>
-
-                {/* Add Icon Payment */}
                 <div
                   style={{
                     display: 'flex',
@@ -493,6 +554,7 @@ export default function ProductDetailPage() {
                   </div>
                 </div>
 
+
                 {/* Customer Reviews Slider */}
                 <div style={{
                   textAlign: 'left', // Đặt toàn bộ text căn trái
@@ -517,7 +579,7 @@ export default function ProductDetailPage() {
                       <Text variant="bodyMd" as="p" style={{
                         textAlign: 'left', // Căn trái nội dung comment
                       }}>
-                        "{product1.reviews[currentReviewIndex].comment}"
+                        "{draftProduct.reviews[currentReviewIndex].comment}"
                       </Text>
                     </div>
                     <div style={{
@@ -534,11 +596,11 @@ export default function ProductDetailPage() {
                           fontSize: '14px',
                           fontWeight: 'bold', // Tô đậm tên reviewer
                         }}>
-                          {product1.reviews[currentReviewIndex].reviewer}
+                          {draftProduct.reviews[currentReviewIndex].reviewer}
                         </Text>
                       </div>
                       <div style={{ display: 'flex', gap: '2px' }}>
-                        {[...Array(Math.floor(product1.reviews[currentReviewIndex].rating))].map((_, i) => (
+                        {[...Array(Math.floor(draftProduct.reviews[currentReviewIndex].rating))].map((_, i) => (
                           <Icon key={i} source={StarFilledIcon} color="warning" />
                         ))}
                       </div>
@@ -559,7 +621,7 @@ export default function ProductDetailPage() {
                       fontSize: '16px',
                       cursor: 'pointer',
                     }}>‹</button>
-                    {product1.reviews.map((_, index) => (
+                    {draftProduct.reviews.map((_, index) => (
                       <div key={index} style={{
                         width: '6px',
                         height: '6px',
@@ -576,8 +638,6 @@ export default function ProductDetailPage() {
                     }}>›</button>
                   </div>
                 </div>
-
-
               </BlockStack>
             </div>
 
@@ -711,7 +771,7 @@ export default function ProductDetailPage() {
           {toast.active && <Toast content={toast.message} onDismiss={() => setToast({ active: false })} />}
         </Page>
       </Frame>
-    </AppProvider>
+    </AppProvider >
   );
 }
 
