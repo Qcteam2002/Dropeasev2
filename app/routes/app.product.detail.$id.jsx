@@ -29,8 +29,8 @@ const productDatadraft = [
   {
     id: 1,
     title: "2023 PAGANI DESIGN Men's Watch - Luxury Quartz",
-    priceOriginal: "$555.99",
-    priceDiscounted: "$250.99",
+    // priceOriginal: "$555.99",
+    // priceDiscounted: "$250.99",
     discountPercentage: "50%",
     rating: "4.5 (20 Reviews)",
     // mainImage: "https://ae-pic-a1.aliexpress-media.com/kf/S43c47ca449b1484fb4f5716c7d26b75cW.jpg_960x960q75.jpg_.avif",
@@ -93,21 +93,12 @@ const productDatadraft = [
     gridSections: [
       {
         image: "https://ae-pic-a1.aliexpress-media.com/kf/S959b32ff00224005921b1a1d873858aa5.jpg_960x960q75.jpg_.avif",
-        title: "AR Sapphire Glass",
-        description:
-          "The watch is equipped with AR Sapphire glass, known for its high hardness, excellent light permeability, and superior wear resistance.",
       },
       {
         image: "https://ae-pic-a1.aliexpress-media.com/kf/S2e1c4aed6e5e489baf57527e51364e33y.jpg_960x960q75.jpg_.avif",
-        title: "Premium Leather Strap",
-        description:
-          "Designed with premium leather strap for durability and comfort, making it perfect for daily wear or special occasions.",
       },
       {
         image: "https://ae-pic-a1.aliexpress-media.com/kf/Sb288e4c0ea2744c3a20ec9a0e2151250f.jpg_960x960q75.jpg_.avif",
-        title: "Water Resistant",
-        description:
-          "With water resistance up to 50 meters, this watch is suitable for everyday use, even during sports or swimming activities.",
       },
     ],
     detailedReviews: [
@@ -243,6 +234,24 @@ export const loader = async ({ request, params }) => {
     where: { id: BigInt(productId) },
   });
 
+  // 🔹 Lấy variants từ bảng PlatformProduct
+  // 🔹 Kiểm tra kiểu dữ liệu của variants trước khi parse
+  // 🔹 Xử lý dữ liệu `variants`
+  let variants = [];
+  if (product.variants) {
+    if (typeof product.variants === "string") {
+      try {
+        variants = JSON.parse(product.variants); // ✅ Chỉ parse nếu là chuỗi JSON
+      } catch (error) {
+        console.error("❌ Lỗi khi parse variants:", error);
+      }
+    } else if (Array.isArray(product.variants)) {
+      variants = product.variants; // ✅ Nếu đã là array, sử dụng trực tiếp
+    } else if (typeof product.variants === "object" && product.variants.create) {
+      variants = product.variants.create; // ✅ Truy cập đúng mảng bên trong object
+    }
+  }
+
   if (!product) {
     console.error("❌ Không tìm thấy sản phẩm trong PlatformProduct.");
     throw new Response("Product not found", { status: 404 });
@@ -257,9 +266,9 @@ export const loader = async ({ request, params }) => {
 
   // 🔹 Kiểm tra và parse gridView nếu có dữ liệu
   let parsedGridView = [];
-  if (optimizedProduct && optimizedProduct.grid_view) {
+  if (optimizedProduct && optimizedProduct.gridView) {
     try {
-      parsedGridView = JSON.parse(optimizedProduct.grid_view);
+      parsedGridView = JSON.parse(optimizedProduct.gridView);
     } catch (error) {
       console.error("❌ Lỗi khi parse gridView:", error);
     }
@@ -268,10 +277,11 @@ export const loader = async ({ request, params }) => {
   return json({
     product: {
       id: product.id.toString(),
-      title: optimizedProduct?.optimized_title || product.title || "No title", // Lấy tiêu đề từ bản tối ưu nếu có
-      description: optimizedProduct?.optimized_description || product.descriptionHtml || "No description available.",
+      title: optimizedProduct?.optimizedTitle || product.title || "No title", // Lấy tiêu đề từ bản tối ưu nếu có
+      description: optimizedProduct?.optimizedDescription || product.descriptionHtml || "No description available.",
       featuredMedia: product.featuredMedia || "https://via.placeholder.com/300", // Ảnh sản phẩm
       gridView: parsedGridView, // Dữ liệu hiển thị dạng lưới nếu có
+      variants, // ✅ Đảm bảo `variants` luôn là mảng hợp lệ
     },
   });
 };
@@ -294,6 +304,26 @@ export default function ProductDetailPage() {
 
   const [selectedVariant, setSelectedVariant] = useState(draftProduct.variants[0]); // Lưu toàn bộ variant
   const [mainImage, setMainImage] = useState(product.featuredMedia); // Ảnh mặc định
+
+  const [visibleIndex, setVisibleIndex] = useState(0); // 🔹 Kiểm soát index hiển thị
+
+  const thumbnailsPerView = 4; // 🔹 Số lượng thumbnails hiển thị mỗi lần
+  const totalThumbnails = product.variants?.length || 0;
+
+  // 🔹 Điều hướng thumbnails
+  const handleNext = () => {
+    if (visibleIndex + thumbnailsPerView < totalThumbnails) {
+      setVisibleIndex(visibleIndex + 1);
+    }
+  };
+
+  const handlePrev = () => {
+    if (visibleIndex > 0) {
+      setVisibleIndex(visibleIndex - 1);
+    }
+  };
+
+
 
   const displayedPrice = selectedVariant?.variantPrice || draftProduct.priceOriginal;
   const displayedCompareAtPrice = selectedVariant?.variantCompareAtPrice || draftProduct.priceDiscounted;
@@ -344,39 +374,99 @@ export default function ProductDetailPage() {
           <Card>
             <div
               style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr', // Layout for main content and side content
-                gap: '2rem',
-                padding: '20px',
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr", // 🔹 Chia cột hình ảnh và nội dung theo tỷ lệ 50:50
+                alignItems: "flex-start",
+                gap: "2rem",
+                padding: "20px",
               }}
             >
-              {/* Left Section: Image thumbnails and main image */}
-              <div style={{ alignItems: 'flex-start', gap: 'rem' }}>
-                {/* Main Product Image */}
-                <div style={{ flex: '1' }}>
-                  <img
-                    src={mainImage}
-                    alt="Main Product"
+              {/* 🔹 Cột hình ảnh sản phẩm */}
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                {/* 🔹 Hình ảnh chính */}
+                <img
+                  src={mainImage}
+                  alt="Main Product"
+                  style={{
+                    width: "100%",
+                    height: "auto",
+                    maxWidth: "600px",
+                    borderRadius: "8px",
+                    objectFit: "cover",
+                  }}
+                />
+
+                {/* 🔹 Phần Thumbnail có nút điều hướng */}
+                <div style={{ position: "relative", width: "100%", maxWidth: "500px", marginTop: "10px" }}>
+                  {/* Nút Prev */}
+                  <button
+                    onClick={handlePrev}
+                    disabled={visibleIndex === 0}
                     style={{
-                      width: '100%',
-                      borderRadius: '8px',
-                      objectFit: 'cover',
+                      position: "absolute",
+                      left: 0,
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      background: "rgba(0,0,0,0.6)",
+                      color: "#fff",
+                      border: "none",
+                      padding: "5px 10px",
+                      cursor: visibleIndex === 0 ? "not-allowed" : "pointer",
+                      opacity: visibleIndex === 0 ? 0.5 : 1,
                     }}
-                  />
-                </div>
-                {/* Thumbnails */}
-                <div style={{ paddingTop: '10px', display: 'flex', flexDirection: 'row', gap: '10px', overflowX: 'auto' }}>
-                  {draftProduct.variants.map((variants, index) => (
-                    <span onClick={() => setMainImage(thumbnail)}>
-                      <Thumbnail
+                  >
+                    ◀
+                  </button>
+
+                  {/* Thumbnails */}
+                  <div
+                    style={{
+                      display: "flex",
+                      overflowX: "hidden",
+                      gap: "10px",
+                      padding: "5px",
+                      whiteSpace: "nowrap",
+                      width: "100%",
+                      justifyContent: "center",
+                    }}
+                  >
+                    {product.variants.slice(visibleIndex, visibleIndex + thumbnailsPerView).map((variant, index) => (
+                      <img
                         key={index}
-                        size="large"
-                        source={variants.variantImage}
-                        alt={`Variant ${variants.value1}`}
-                        style={{ cursor: 'pointer', borderRadius: '4px' }}
+                        src={variant.image}
+                        alt={`Variant ${index}`}
+                        onClick={() => setMainImage(variant.image)}
+                        style={{
+                          width: "80px",
+                          height: "80px",
+                          borderRadius: "5px",
+                          cursor: "pointer",
+                          border: mainImage === variant.image ? "2px solid #000" : "none",
+                          objectFit: "cover",
+                        }}
                       />
-                    </span>
-                  ))}
+                    ))}
+                  </div>
+
+                  {/* Nút Next */}
+                  <button
+                    onClick={handleNext}
+                    disabled={visibleIndex + thumbnailsPerView >= totalThumbnails}
+                    style={{
+                      position: "absolute",
+                      right: 0,
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      background: "rgba(0,0,0,0.6)",
+                      color: "#fff",
+                      border: "none",
+                      padding: "5px 10px",
+                      cursor: visibleIndex + thumbnailsPerView >= totalThumbnails ? "not-allowed" : "pointer",
+                      opacity: visibleIndex + thumbnailsPerView >= totalThumbnails ? 0.5 : 1,
+                    }}
+                  >
+                    ▶
+                  </button>
                 </div>
               </div>
 
@@ -476,6 +566,8 @@ export default function ProductDetailPage() {
                     Add tro Cart
                   </Button>
                 </div>
+
+                {/* Payment Section */}
                 <div
                   style={{
                     display: 'flex',
@@ -645,7 +737,14 @@ export default function ProductDetailPage() {
             {/* Grid Sections for Additional Features */}
             <div style={{ marginTop: '20px', padding: '20px' }}>
               {product.gridView.map((section, index) => {
-                const draftSection = draftProduct.gridSections?.[index]; // Kiểm tra xem phần tử có tồn tại không
+                // 🔹 Lấy ngẫu nhiên một `variantImage` từ danh sách `variants`
+                const randomVariantImage =
+                  product.variants && product.variants.length > 0
+                    ? product.variants[Math.floor(Math.random() * product.variants.length)].image
+                    : null;
+                // 🔹 Log ra console để kiểm tra danh sách variant
+                console.log("🔍 Danh sách Variants:", product.variants);
+                console.log("🎲 Hình ảnh Variant được chọn ngẫu nhiên:", randomVariantImage);
                 return (
                   <div
                     key={index}
@@ -660,7 +759,7 @@ export default function ProductDetailPage() {
                     {index % 2 === 0 ? (
                       <>
                         <img
-                          src={section.image || draftSection?.image} // Lấy image từ draft hoặc giữ nguyên
+                          src={section.image || randomVariantImage} // Lấy image từ draft hoặc giữ nguyên
                           alt={section.title}
                           style={{
                             width: '100%',
@@ -701,7 +800,7 @@ export default function ProductDetailPage() {
                           </Button>
                         </div>
                         <img
-                          src={section.image || draftSection?.image} // Lấy image từ draft hoặc giữ nguyên
+                          src={section.image || randomVariantImage} // Lấy image từ draft hoặc giữ nguyên
                           alt={section.title}
                           style={{
                             width: '100%',

@@ -5,15 +5,20 @@ import { join } from "path";
 
 export default class ShopifyInit {
   constructor(admin) {
+    console.log("🚀 ShopifyInit class instantiated!"); // Kiểm tra xem class có khởi tạo không
     this.admin = admin;
     this.mainTheme = null;
   }
 
   async init() {
+    console.log("🔥 Running init()...");
     await this.initAsset();
+    console.log("✅ Finished init()");
+
   }
 
   async initAsset() {
+    console.log("📢 Initializing Asset...");
     const mainTheme = await this.getMainTheme();
     if (!mainTheme) {
       console.error("Main theme not found");
@@ -24,6 +29,7 @@ export default class ShopifyInit {
     this.createAsset();
     this.customProductTemplate();
     this.defineMetafield();
+    console.log("🎨 Define metafield run");
   }
 
   async getMainTheme() {
@@ -189,6 +195,7 @@ export default class ShopifyInit {
   }
 
   async createMetafield(metafield) {
+    console.log(`🚀 Sending request to create Metafield: ${metafield.namespace}.${metafield.key}`);
     const query = `#graphql
   mutation CreateMetafieldDefinition($definition: MetafieldDefinitionInput!) {
     metafieldDefinitionCreate(definition: $definition) {
@@ -222,6 +229,7 @@ export default class ShopifyInit {
       },
     };
 
+    console.log("📤 GraphQL Mutation Variables:", JSON.stringify(variables, null, 2));
     const response = await this.admin.graphql(query, variables);
 
     const {
@@ -233,7 +241,10 @@ export default class ShopifyInit {
   }
 
   async defineMetafield() {
+    console.log("📢 Starting defineMetafield...");
+    console.log("🔎 Metafield list:", metafields);
     for (const metafield of metafields) { 
+      console.log(`⏳ Creating Metafield: namespace=${metafield.namespace}, key=${metafield.key}`);
       await this.createMetafield(metafield);
     }
   }

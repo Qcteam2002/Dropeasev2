@@ -210,21 +210,32 @@ model PlatformProduct {
   handle          String
   descriptionHtml String?        @db.LongText
   featuredMedia   String?
+  vendor          String?        // 🏢 Vendor
+  productType     String?        // 🏷️ Loại sản phẩm
+  tags            String?        // 🏷️ Tags
+  status          String?        // 🔵 Trạng thái sản phẩm
+  publishedAt     DateTime?      // 📆 Ngày xuất bản
+  collections     Json?          // 📂 Danh mục sản phẩm
+  images          Json?          // 🖼 Lưu danh sách ảnh sản phẩm
+  media           Json?          // 🎥 Lưu media (video, 3D, v.v.)
+  options         Json?          // 🛠 Lưu danh sách options (Màu sắc, kích thước)
+  variants        Json?          // 🔀 Lưu danh sách variants (SKU, Giá, Tồn kho)
+  onlineStoreUrl  String?        // 🌐 URL của sản phẩm trên Shopify (Thêm dòng này)
   createdAt       DateTime       @default(now())
+
   user            User           @relation(fields: [userId], references: [id])
   sourceProduct   SourceProduct? @relation(fields: [sourceProductId], references: [id])
 
   @@unique([userId, platformId])
-  // 🔹 Chỉ khai báo tên biến, không cần @relation vì đã có bên ProductsOptimized
   optimizedProduct ProductsOptimized?
 }
 
 model ProductsOptimized {
   id                   BigInt    @id @default(autoincrement()) // ID của product
   productId            BigInt    @unique  // 🔹 ID của sản phẩm từ PlatformProduct
-  optimized_title      String
-  optimized_description String
-  grid_view            Json
+  optimizedTitle       String
+  optimizedDescription String
+  gridView             Json      // Lưu JSON gridView từ AI
   createdAt            DateTime  @default(now())
   // 🔹 Chỉ khai báo @relation bên này
   product              PlatformProduct @relation(fields: [productId], references: [id], onDelete: Cascade)

@@ -51,9 +51,9 @@ export const action = async ({ request }) => {
       savedProduct = await prisma.productsOptimized.update({
         where: { productId },
         data: {
-          optimized_title: body.optimizedTitle, // 🔥 SỬA LẠI ĐÚNG FIELD
-          optimized_description: body.optimizedDescription, // 🔥 SỬA LẠI ĐÚNG FIELD
-          grid_view: JSON.stringify(body.gridView), // 🔥 SỬA LẠI ĐÚNG FIELD
+          optimizedTitle: body.optimizedTitle, // 🔥 SỬA LẠI ĐÚNG FIELD
+          optimizedDescription: body.optimizedDescription, // 🔥 SỬA LẠI ĐÚNG FIELD
+          gridView: JSON.stringify(body.gridView), // 🔥 SỬA LẠI ĐÚNG FIELD
         },
       });
 
@@ -67,9 +67,9 @@ export const action = async ({ request }) => {
       savedProduct = await prisma.productsOptimized.create({
         data: {
           productId,
-          optimized_title: body.optimizedTitle, // 🔥 SỬA LẠI ĐÚNG FIELD
-          optimized_description: body.optimizedDescription, // 🔥 SỬA LẠI ĐÚNG FIELD
-          grid_view: JSON.stringify(body.gridView), // 🔥 SỬA LẠI ĐÚNG FIELD
+          optimizedTitle: body.optimizedTitle, // 🔥 SỬA LẠI ĐÚNG FIELD
+          optimizedDescription: body.optimizedDescription, // 🔥 SỬA LẠI ĐÚNG FIELD
+          gridView: JSON.stringify(body.gridView), // 🔥 SỬA LẠI ĐÚNG FIELD
         },
       });
 
