@@ -67,18 +67,26 @@ export default function ProductListPage() {
     if (currentPage > 1) setCurrentPage(currentPage - 1);
   };
 
+  // ✅ Hàm loại bỏ tất cả thẻ HTML và giữ nội dung văn bản
+  const stripHtml = (html) => {
+    return html.replace(/<[^>]*>?/gm, "").trim(); // Xóa tất cả các thẻ HTML
+  };
+
   // ✅ Gọi API OpenAI để tối ưu sản phẩm
   const optimizeProduct = async (product) => {
     setLoadingId(product.id);
 
     try {
+      console.log("🔄 Đang gửi yêu cầu tối ưu hóa sản phẩm:", product.id);
+      const cleanDescription = stripHtml(product.descriptionHtml || "No description available."); // 🟢 Làm sạch HTML
+
       const response = await fetch("http://localhost:5003/api/openai", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           id: product.id,
           title: product.title,
-          description: product.descriptionHtml || "No description available.",
+          description: cleanDescription || "No description available.",
         }),
       });
 
