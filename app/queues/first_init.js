@@ -2,6 +2,7 @@ import { Queue, Worker, Job } from "bullmq";
 import ShopifyInit from "../shopify_theme/shopifyInit";
 import ShopifyProduct from "../.server/services/product";
 
+
 const connection = {
   host: process.env.REDIS_HOST,
   port: process.env.REDIS_PORT,
@@ -23,7 +24,7 @@ const firstInitWorker = new Worker(
     // await syncProductQueue.add('sync_product', { admin, session });
 
     console.log("Before shopify init");
-    const shopifyInit = new ShopifyInit(admin);
+    const shopifyInit = new ShopifyInit(admin,session);
     await shopifyInit.init();
 
     // Thực hiện gửi email ở đây, ví dụ sử dụng nodemailer

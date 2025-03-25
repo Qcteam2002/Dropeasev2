@@ -2,14 +2,18 @@ import fs from "fs";
 import themeFiles from "./init_config.js";
 import metafields from "./metafield_config.js";
 import { join } from "path";
+import shopify from "../.server/services/shopifyApi";
 
 export default class ShopifyInit {
-  constructor(admin) {
+  constructor(admin,session) {
     this.admin = admin;
     this.mainTheme = null;
+    this.session = session;
   }
 
   async init() {
+    console.log("Init Shopify admin",this.admin);
+    console.log("Init Shopify session",this.session);
     await this.initAsset();
   }
 
@@ -222,6 +226,10 @@ export default class ShopifyInit {
       },
     };
 
+    const session = this.session;
+    const client = new shopify.clients.Graphql({session});
+    console.log("Log graphql shopify client", client);
+
     const response = await this.admin.graphql(query, variables);
 
     const {
@@ -233,6 +241,7 @@ export default class ShopifyInit {
   }
 
   async defineMetafield() {
+    console.log("Define metafield");
     for (const metafield of metafields) { 
       await this.createMetafield(metafield);
     }

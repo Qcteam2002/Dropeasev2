@@ -3,7 +3,7 @@
 client_id = "2aa417f555d85d9f0d7532d9c04cfae9"
 name = "dropease_dev"
 handle = "dropease_dev"
-application_url = "https://rides-soma-foam-profits.trycloudflare.com"
+application_url = "https://lions-shadows-stay-head.trycloudflare.com"
 embedded = true
 
 [build]
@@ -16,9 +16,9 @@ scopes = "read_themes,write_products,write_themes"
 
 [auth]
 redirect_urls = [
-  "https://rides-soma-foam-profits.trycloudflare.com/auth/callback",
-  "https://rides-soma-foam-profits.trycloudflare.com/auth/shopify/callback",
-  "https://rides-soma-foam-profits.trycloudflare.com/api/auth/callback"
+  "https://lions-shadows-stay-head.trycloudflare.com/auth/callback",
+  "https://lions-shadows-stay-head.trycloudflare.com/auth/shopify/callback",
+  "https://lions-shadows-stay-head.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]
