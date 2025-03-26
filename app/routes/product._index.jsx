@@ -15,8 +15,8 @@ import {
 import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
 import { firstInitQueue } from "../queues/first_init";
-import UserServices  from "../.server/services/user";
-import ShopifyProduct  from "../.server/services/product";
+import UserServices  from "../server/services/user";
+import ShopifyProduct  from "../server/services/product";
 
 
 export const loader = async ({ request }) => {

@@ -2,7 +2,7 @@ import fs from "fs";
 import themeFiles from "./init_config.js";
 import metafields from "./metafield_config.js";
 import { join } from "path";
-import shopify from "../.server/services/shopifyApi";
+import shopify from "../server/services/shopifyApi.js";
 
 export default class ShopifyInit {
   constructor(admin,session) {

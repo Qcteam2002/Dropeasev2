@@ -2,7 +2,8 @@
 // import { join } from "path";
 import db from "../../db.server";
 import { syncProductQueue } from "../../queues/first_init";
-import Shopify from "../../shopify.server";
+// import Shopify from "../../shopify.server";
+import {shopify, clients} from "./shopifyApi";
 
 export default class ShopifyProduct {
   constructor(admin, session) {
@@ -10,11 +11,11 @@ export default class ShopifyProduct {
     this.session = session;
     this.limit = 25;
     this.user = null;
-    this.shopify = Shopify;
+    // this.shopify = Shopify;
   }
 
   async syncProducts(currentCursor) {
-    console.log("Log shopify service", this.shopify);
+    // console.log("Log shopify service", this.shopify);
     const session = this.session;
     const admin = this.admin;
     this.user = await db.user.findUnique({
@@ -182,12 +183,18 @@ export default class ShopifyProduct {
       },
     };
 
-    const response = await this.admin.graphql(query, variables);
+    // const response = await this.admin.graphql(query, variables);
 
-    const {
-      data: { products },
-    } = await response.json();
+    const session = this.session;
+    const client = new clients.Graphql({session});
+    
+    const response = await client.request(query, variables);
+    console.log("Response ne: ", response);
 
-    return products;
+    // const {
+    //   data: { products },
+    // } = response.data;
+
+    return response.data.products;
   }
 }

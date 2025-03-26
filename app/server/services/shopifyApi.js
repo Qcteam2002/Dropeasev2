@@ -1,4 +1,5 @@
 import {shopifyApi, LATEST_API_VERSION, ApiVersion} from '@shopify/shopify-api';
+import exp from 'constants';
 
 export const shopify = shopifyApi({
   // The next 4 values are typically read from environment variables for added security
@@ -9,4 +10,4 @@ export const shopify = shopifyApi({
   hostName: process.env.SHOPIFY_APP_URL || "",
 });
 
-
+export const clients = shopify.clients;

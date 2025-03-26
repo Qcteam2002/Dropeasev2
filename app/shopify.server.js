@@ -8,7 +8,7 @@ import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prism
 import prisma from "./db.server";
 // import installedQueue from './queue'; // Import the queue
 import { firstInitQueue } from "./queues/first_init";
-import UserServices from "./.server/services/user.js";
+import UserServices from "./server/services/user.js";
 
 const shopify = shopifyApp({
   apiKey: process.env.SHOPIFY_API_KEY,
