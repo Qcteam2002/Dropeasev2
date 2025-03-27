@@ -3,7 +3,7 @@
 client_id = "2aa417f555d85d9f0d7532d9c04cfae9"
 name = "dropease_dev"
 handle = "dropease_dev"
-application_url = "https://tissue-playing-up-guy.trycloudflare.com"
+application_url = "https://boc-seventh-seminars-spaces.trycloudflare.com"
 embedded = true
 
 [build]
@@ -16,9 +16,9 @@ scopes = "read_themes,write_products,write_themes"
 
 [auth]
 redirect_urls = [
-  "https://tissue-playing-up-guy.trycloudflare.com/auth/callback",
-  "https://tissue-playing-up-guy.trycloudflare.com/auth/shopify/callback",
-  "https://tissue-playing-up-guy.trycloudflare.com/api/auth/callback"
+  "https://boc-seventh-seminars-spaces.trycloudflare.com/auth/callback",
+  "https://boc-seventh-seminars-spaces.trycloudflare.com/auth/shopify/callback",
+  "https://boc-seventh-seminars-spaces.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]

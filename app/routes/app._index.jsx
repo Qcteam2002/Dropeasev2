@@ -24,13 +24,8 @@ import {shopify, clients} from "../server/services/shopifyApi";
 export const loader = async ({ request }) => {
   const { admin,session } = await authenticate.admin(request);
 
-  // console.log("Shopify ne: ", shopify);
-
-  // console.log("Client ne:", clients);
-
-  const shopifyProductService = new ShopifyProduct(admin,session);
-  await shopifyProductService.syncProducts();
-
+  // const shopifyProductService = new ShopifyProduct(session);
+  // await shopifyProductService.syncProducts();
 
 
   // const client = new shopify.clients.Graphql({session});

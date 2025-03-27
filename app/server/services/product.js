@@ -3,31 +3,25 @@
 import db from "../../db.server";
 import { syncProductQueue } from "../../queues/first_init";
 // import Shopify from "../../shopify.server";
-import {shopify, clients} from "./shopifyApi";
+import { getClients } from "./shopifyApi";
 
 export default class ShopifyProduct {
-  constructor(admin, session) {
-    this.admin = admin;
+  constructor(session) {
     this.session = session;
     this.limit = 25;
     this.user = null;
-    // this.shopify = Shopify;
   }
 
   async syncProducts(currentCursor) {
-    // console.log("Log shopify service", this.shopify);
     const session = this.session;
-    const admin = this.admin;
     this.user = await db.user.findUnique({
-        where: {
-            sessionId: session.id,
-        },
-    }); 
+      where: {
+        sessionId: session.id,
+      },
+    });
     const userId = this.user.id;
-    console.log("User: ", this.user);
 
     const products = await this.getProducts(this.limit, currentCursor);
-    // console.log("UserID: ", products);
     if (products.edges.length > 0) {
       // Store products in the database
       let lastCursor = null;
@@ -47,7 +41,7 @@ export default class ShopifyProduct {
         // const existingProduct = await db.platformProduct.findUnique({
         //     where: { userId_platformId: { userId: userId, platformId: product.id } },
         //   });
-          
+
         //   if (existingProduct) {
         //     await db.platformProduct.update({
         //       where: { userId_platformId: { userId: userId, platformId: product.id } },
@@ -60,7 +54,9 @@ export default class ShopifyProduct {
         //   }
 
         await db.platformProduct.upsert({
-          where: { userId_platformId: {userId: userId, platformId: product.id} },
+          where: {
+            userId_platformId: { userId: userId, platformId: product.id },
+          },
           update: insertData,
           create: insertData,
         });
@@ -68,7 +64,6 @@ export default class ShopifyProduct {
 
       // Add a new job to the queue to process the next batch
       await syncProductQueue.add("sync_product", {
-        admin,
         session,
         cursor: currentCursor,
       });
@@ -183,13 +178,8 @@ export default class ShopifyProduct {
       },
     };
 
-    // const response = await this.admin.graphql(query, variables);
-
-    const session = this.session;
-    const client = new clients.Graphql({session});
-    
+    const client = await getClients(this.session);
     const response = await client.request(query, variables);
-    console.log("Response ne: ", response);
 
     // const {
     //   data: { products },

@@ -22,8 +22,6 @@ const shopify = shopifyApp({
   isEmbeddedApp: true,
   hooks: {
     afterAuth: async ({ session, admin }) => {
-      console.log('entry afterAuth');
-      console.log('Admin trong afterAuth',admin);
       const userService = new UserServices(admin,session);
       await userService.updateUser();
       
