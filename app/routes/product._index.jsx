@@ -15,9 +15,10 @@ import {
   MediaCard,
 } from "@shopify/polaris";
 import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
-import { authenticate, getUser } from "../shopify.server";
-import enTranslations from '@shopify/polaris/locales/en.json';
-import {getProducts}  from "../models/PlatformProduct";
+import { authenticate } from "../shopify.server";
+import { firstInitQueue } from "../queues/first_init";
+import UserServices  from "../server/services/user";
+import ShopifyProduct  from "../server/services/product";
 
 
 export const loader = async ({ request }) => {

@@ -16,15 +16,21 @@ import {
 import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
 import { firstInitQueue } from "../queues/first_init";
-import UserServices  from "../.server/services/user";
-import ShopifyProduct  from "../.server/services/product";
+import UserServices  from "../server/services/user";
+import ShopifyProduct  from "../server/services/product";
+import {shopify, clients} from "../server/services/shopifyApi";
+// import {shopifyApi, LATEST_API_VERSION, ApiVersion} from '@shopify/shopify-api';
 
 
 export const loader = async ({ request }) => {
   const { admin,session } = await authenticate.admin(request);
 
-  const shopifyProductService = new ShopifyProduct(admin,session);
-  await shopifyProductService.syncProducts();
+  // const shopifyProductService = new ShopifyProduct(session);
+  // await shopifyProductService.syncProducts();
+
+
+  // const client = new shopify.clients.Graphql({session});
+  // console.log("Client ne: ", client);  
 
   return null;
 };

@@ -2,7 +2,7 @@ import db from "../db.server";
 
 export async function getProducts(user) {
   const products = await db.platformProduct.findMany({
-    where: { userId: user.id },
+    where: { user },
     orderBy: { id: "desc" },
   });
 
@@ -11,12 +11,25 @@ export async function getProducts(user) {
   return products;
 }
 
-export async function getProduct(id) {
-  const product = await db.platformProduct.findFirst({
-    where: { id: id },
-    orderBy: { id: "desc" },
+export async function getProduct(id) {}
+
+export async function upsert(product,session) {
+  await db.PlatformProduct.upsert({
+    where: { userId: session.userId,sourceProductId: product.id },
+    update: {
+      platformId: product.title,
+      description: product.body_html,
+      price: product.variants[0].price,
+      // Add other fields as needed
+    },
+    create: {
+      id: product.id,
+      title: product.title,
+      description: product.body_html,
+      price: product.variants[0].price,
+      // Add other fields as needed
+    },
   });
 
-  return product;
 }
 

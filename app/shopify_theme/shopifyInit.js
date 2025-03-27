@@ -2,11 +2,12 @@ import fs from "fs";
 import themeFiles from "./init_config.js";
 import metafields from "./metafield_config.js";
 import { join } from "path";
+import { getClients } from "../server/services/shopifyApi";
 
 export default class ShopifyInit {
-  constructor(admin) {
-    this.admin = admin;
+  constructor(session) {
     this.mainTheme = null;
+    this.session = session;
   }
 
   async init() {
@@ -39,13 +40,16 @@ export default class ShopifyInit {
     }
   `;
 
-    const response = await this.admin.graphql(query);
+    // const response = await this.admin.graphql(query);
+
+    const client = await getClients(this.session);
+    const response = await client.request(query);
 
     const {
       data: {
         themes: { nodes },
       },
-    } = await response.json();
+    } = response;
 
     return nodes.find((node) => node.role === "MAIN");
   }
@@ -80,15 +84,15 @@ export default class ShopifyInit {
       },
     };
 
-    const response = await this.admin.graphql(query, variables);
+    // const response = await this.admin.graphql(query, variables);
+    const client = await getClients(this.session);
+    const response = await client.request(query,variables);
 
     const {
       data: {
         themeFilesUpsert: { upsertedThemeFiles, userErrors },
       },
-    } = await response.json();
-
-    // console.log("errors", userErrors);
+    } = response;
   }
 
   async makeContentAsset() {
@@ -111,8 +115,6 @@ export default class ShopifyInit {
 
   processThemeFileContent(fileContent) {
     const jsonContent = fileContent.replace(/\/\*[\s\S]*?\*\//, "");
-    // console.log(jsonContent);
-
     const jsonObject = JSON.parse(jsonContent);
     return jsonObject;
   }
@@ -138,8 +140,6 @@ export default class ShopifyInit {
     }
 
     const jsonString = JSON.stringify(productObj);
-
-    // console.log(jsonString);
     const files = [
       {
         filename: filename,
@@ -171,9 +171,9 @@ export default class ShopifyInit {
     }
   }`;
 
-    // console.log(queryTheme);
-
-    const response = await this.admin.graphql(queryTheme);
+    // const response = await this.admin.graphql(queryTheme);
+    const client = await getClients(this.session);
+    const response = await client.request(queryTheme);
 
     const {
       data: {
@@ -183,7 +183,7 @@ export default class ShopifyInit {
           },
         },
       },
-    } = await response.json();
+    } = response;
 
     return firstNode;
   }
@@ -222,18 +222,22 @@ export default class ShopifyInit {
       },
     };
 
-    const response = await this.admin.graphql(query, variables);
+    // const session = this.session;
+    // const client = new shopify.clients.Graphql({ session });
+    // console.log("Log graphql shopify client", client);
 
-    const {
-      data: {
-        metafieldDefinitionCreate
-      },
-    } = await response.json();
-    console.log("metafieldDefinitionCreate", metafieldDefinitionCreate);
+    // const response = await this.admin.graphql(query, variables);
+    const client = await getClients(this.session);
+    const response = await client.request(query,variables);
+
+    // const {
+    //   data: { metafieldDefinitionCreate },
+    // } = response;
   }
 
   async defineMetafield() {
-    for (const metafield of metafields) { 
+    console.log("Define metafield");
+    for (const metafield of metafields) {
       await this.createMetafield(metafield);
     }
   }

@@ -206,10 +206,10 @@ model PlatformProduct {
   sourceProductId BigInt?
   userId          BigInt
   metafields      Json?
-  title           String
-  handle          String
+  title           String         @db.VarChar(255)
+  handle          String         @db.VarChar(255)
   descriptionHtml String?        @db.LongText
-  featuredMedia   String?
+  featuredMedia   String?        @db.VarChar(255)
   createdAt       DateTime       @default(now())
   user            User           @relation(fields: [userId], references: [id])
   sourceProduct   SourceProduct? @relation(fields: [sourceProductId], references: [id])

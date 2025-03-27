@@ -1,15 +1,15 @@
-/*
-  Warnings:
+-- CreateTable
+CREATE TABLE `User` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT,
+    `email` VARCHAR(191) NULL,
+    `sessionId` VARCHAR(191) NOT NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
 
-  - The primary key for the `Session` table will be changed. If it partially fails, the table could be left without primary key constraint.
-  - A unique constraint covering the columns `[id]` on the table `Session` will be added. If there are existing duplicate values, this will fail.
-  - Made the column `userId` on table `Session` required. This step will fail if there are existing NULL values in that column.
-
-*/
--- AlterTable
-ALTER TABLE `Session` DROP PRIMARY KEY,
-    MODIFY `userId` BIGINT NOT NULL AUTO_INCREMENT,
-    ADD PRIMARY KEY (`userId`);
+    UNIQUE INDEX `User_email_key`(`email`),
+    UNIQUE INDEX `User_sessionId_key`(`sessionId`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
 CREATE TABLE `PricingModule` (
@@ -63,6 +63,7 @@ CREATE TABLE `Subscription` (
     `is_test` BOOLEAN NULL DEFAULT false,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
+    `sessionId` VARCHAR(191) NULL,
 
     INDEX `Subscription_userId_status_idx`(`userId`, `status`),
     PRIMARY KEY (`id`)
@@ -150,16 +151,21 @@ CREATE TABLE `SourceCategory` (
 CREATE TABLE `PlatformProduct` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
     `platformId` VARCHAR(191) NOT NULL,
-    `sourceProductId` BIGINT NOT NULL,
+    `sourceProductId` BIGINT NULL,
     `userId` BIGINT NOT NULL,
     `metafields` JSON NULL,
+    `title` VARCHAR(191) NOT NULL,
+    `handle` VARCHAR(191) NOT NULL,
+    `descriptionHtml` LONGTEXT NULL,
+    `featuredMedia` VARCHAR(191) NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
+    UNIQUE INDEX `PlatformProduct_userId_platformId_key`(`userId`, `platformId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
--- CreateIndex
-CREATE UNIQUE INDEX `Session_id_key` ON `Session`(`id`);
+-- AddForeignKey
+ALTER TABLE `User` ADD CONSTRAINT `User_sessionId_fkey` FOREIGN KEY (`sessionId`) REFERENCES `Session`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `PricingModuleFeature` ADD CONSTRAINT `PricingModuleFeature_moduleId_fkey` FOREIGN KEY (`moduleId`) REFERENCES `PricingModule`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -171,25 +177,25 @@ ALTER TABLE `PricingModuleFeature` ADD CONSTRAINT `PricingModuleFeature_featureI
 ALTER TABLE `Subscription` ADD CONSTRAINT `Subscription_moduleId_fkey` FOREIGN KEY (`moduleId`) REFERENCES `PricingModule`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `Subscription` ADD CONSTRAINT `Subscription_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `Session`(`userId`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `Subscription` ADD CONSTRAINT `Subscription_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `SubscriptionQuota` ADD CONSTRAINT `SubscriptionQuota_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `Session`(`userId`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `SubscriptionQuota` ADD CONSTRAINT `SubscriptionQuota_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `SubscriptionQuota` ADD CONSTRAINT `SubscriptionQuota_feature_id_fkey` FOREIGN KEY (`feature_id`) REFERENCES `PricingFeature`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `UsageLog` ADD CONSTRAINT `UsageLog_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `Session`(`userId`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `UsageLog` ADD CONSTRAINT `UsageLog_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `UsageLog` ADD CONSTRAINT `UsageLog_feature_id_fkey` FOREIGN KEY (`feature_id`) REFERENCES `PricingFeature`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `PaymentLog` ADD CONSTRAINT `PaymentLog_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `Session`(`userId`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `PaymentLog` ADD CONSTRAINT `PaymentLog_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `PlatformProduct` ADD CONSTRAINT `PlatformProduct_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `Session`(`userId`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `PlatformProduct` ADD CONSTRAINT `PlatformProduct_userId_fkey` FOREIGN KEY (`userId`) REFERENCES `User`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `PlatformProduct` ADD CONSTRAINT `PlatformProduct_sourceProductId_fkey` FOREIGN KEY (`sourceProductId`) REFERENCES `SourceProduct`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE `PlatformProduct` ADD CONSTRAINT `PlatformProduct_sourceProductId_fkey` FOREIGN KEY (`sourceProductId`) REFERENCES `SourceProduct`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
