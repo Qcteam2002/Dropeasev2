@@ -33,3 +33,11 @@ export async function upsert(product,session) {
 
 }
 
+export async function getFirstProduct() {
+  const product = await db.platformProduct.findFirst({
+    orderBy: { id: "asc" },
+  });
+
+  return product || null;
+}
+

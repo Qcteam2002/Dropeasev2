@@ -222,11 +222,6 @@ export default class ShopifyInit {
       },
     };
 
-    // const session = this.session;
-    // const client = new shopify.clients.Graphql({ session });
-    // console.log("Log graphql shopify client", client);
-
-    // const response = await this.admin.graphql(query, variables);
     const client = await getClients(this.session);
     const response = await client.request(query,variables);
 

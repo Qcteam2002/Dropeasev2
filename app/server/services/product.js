@@ -80,11 +80,11 @@ export default class ShopifyProduct {
                         title
                         descriptionHtml
                         productType
-                        onlineStoreUrl
+                        # onlineStoreUrl
                         status
                         publishedAt
                         handle
-                        tags
+                        # tags
                         collections(first: 20) {
                             nodes {
                                 id
@@ -186,5 +186,197 @@ export default class ShopifyProduct {
     // } = response.data;
 
     return response.data.products;
+  }
+
+  async makeProductInput(product) {
+    return {
+      title: "Test-" + product.title,
+      descriptionHtml: product.descriptionHtml,
+      // productOptions: [
+      //   {
+      //     name: "Color",
+      //     values: [{name:"Red"}, {name:"Blue"}, {name:"Green"}],
+      //   },
+      // ],
+      // handle: product.handle, // Optional: Custom handle for the product
+      // variants: product.variants
+      //   ? product.variants.map((variant) => ({
+      //       price: variant.price,
+      //       sku: variant.sku,
+      //       inventoryQuantity: variant.inventoryQuantity || 0, // Default to 0 if not provided
+      //     }))
+      //   : [], // Default to an empty array if no variants are provided
+      // images: product.images
+      //   ? product.images.map((image) => ({ src: image.url }))
+      //   : [], // Default to an empty array if no images are provided
+      // metafields: product.metafields
+      //   ? product.metafields.map((metafieldEdge) => ({
+      //       namespace: metafieldEdge.node.namespace,
+      //       key: metafieldEdge.node.key,
+      //       value: metafieldEdge.node.value,
+      //       type: "multi_line_text_field", // Default type, can be adjusted based on requirements
+      //     }))
+      //   : [], // Default to an empty array if no metafields are provided
+      // tags: product.tags || [], // Optional: Tags for the product
+      // vendor: product.vendor || "Default Vendor", // Optional: Default vendor if not provided
+    };
+  }
+
+  async mergeImages(params) {
+    const arImages = [
+      // Spread single image into array (if exists)
+      ...(params.feturedMedia ? [params.feturedMedia] : []),
+      // Spread product images array
+      ...(params.images || []),
+      // Get images from variants and spread
+      ...(params.variants || [])
+        .map((variant) => variant.image)
+        .filter(Boolean),
+    ];
+
+    // Remove duplicates and falsy values (null, undefined, empty string)
+    return [...new Set(arImages)].filter(Boolean);
+  }
+
+  async pushProductToShopify(product) {
+    const query = `#graphql
+      mutation CreateProduct($productInput: ProductCreateInput!, $media: [CreateMediaInput!]) {
+        productCreate(product: $productInput, media: $media) {
+          product {
+            id
+            title
+            descriptionHtml
+            handle
+            variants(first: 10) {
+              edges {
+                node {
+                  id
+                  price
+                  sku
+                }
+              }
+            }
+            images(first: 10) {
+              edges {
+                node {
+                  id
+                  src
+                }
+              }
+            }
+            media(first:250) {
+              nodes {
+                  id
+                  alt
+                  preview {
+                      image {
+                          id
+                          url
+                      }
+                  }
+              }
+            }
+            featuredMedia {
+              id
+              alt
+              mediaContentType
+              status
+              preview {
+                  image {
+                      id
+                      url
+                  }
+              }
+            }
+            options {
+              id
+              name
+              position
+              optionValues {
+                  id
+                  name
+              }
+            }
+            metafields(first: 10) {
+              edges {
+                node {
+                  namespace
+                  key
+                  value
+                  type
+                }
+              }
+            }
+          }
+          userErrors {
+            field
+            message
+          }
+        }
+      }
+    `;
+
+    const productData = await this.makeProductInput(product);
+    console.log("Product data:", JSON.stringify(productData, null, 2));
+    // Ensure productData is formatted correctly
+    if (!productData) {
+      throw new Error("Invalid product data");
+    }
+    // Ensure productData has the required fields
+    if (!productData.title || !productData.descriptionHtml) {
+      throw new Error("Product data is missing required fields");
+    }
+
+    const variables = {
+      variables: {
+        productInput: {
+          title: "Test-Sản phẩm hay ho lắm nè",
+          descriptionHtml:
+            "<p>fjalskdfjlksf jfj dskldjsfl;djslf djslf;dsjl;fdsjfldksf</p>",
+          productOptions: [
+            {
+              name: "Color",
+              values: [{ name: "Red" }, { name: "Blue" }, { name: "Green" }],
+            },
+          ],
+        },
+        media: [],
+      },
+    };
+    console.log("Variables ne:", JSON.stringify(variables, null, 2));
+
+    try {
+      const client = await getClients(this.session);
+      const response = await client.request(query, variables);
+
+      if (response.data.productCreate.userErrors.length > 0) {
+        console.error("User Errors:", response.data.productCreate.userErrors);
+        throw new Error("Failed to push product to Shopify due to user errors");
+      }
+
+      console.log(
+        "Product with metafields pushed successfully:",
+        response.data.productCreate.product
+      );
+
+      // following process to upload images
+      // const media = await this.uploadImagesToShopify(product.images);
+      // if (media.length > 0) {
+      //   variables.media = media;
+      //   const response = await client.request(query, variables);
+      //   if (response.data.productCreate.userErrors.length > 0) {
+      //     console.error("User Errors:", response.data.productCreate.userErrors);
+      //   }
+      //   console.log(
+      //     "Product with images pushed successfully:",
+      //     response.data.productCreate.product
+      //   );
+      // }
+
+      return response.data.productCreate.product;
+    } catch (error) {
+      console.error("Error pushing product to Shopify:", error);
+      throw error;
+    }
   }
 }

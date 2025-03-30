@@ -15,28 +15,37 @@ import {
 } from "@shopify/polaris";
 import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
 import { authenticate } from "../shopify.server";
-import { firstInitQueue } from "../queues/first_init";
-import UserServices  from "../server/services/user";
-import ShopifyProduct  from "../server/services/product";
-import {shopify, clients} from "../server/services/shopifyApi";
+// import { firstInitQueue } from "../queues/first_init";
+// import UserServices  from "../server/services/user";
+import ShopifyProduct from "../server/services/product";
+// import {shopify, clients} from "../server/services/shopifyApi";
 // import {shopifyApi, LATEST_API_VERSION, ApiVersion} from '@shopify/shopify-api';
-
+import { getFirstProduct } from "../models/PlatformProduct";
 
 export const loader = async ({ request }) => {
-  const { admin,session } = await authenticate.admin(request);
+  const { admin, session } = await authenticate.admin(request);
 
-  // const shopifyProductService = new ShopifyProduct(session);
+  const shopifyProductService = new ShopifyProduct(session);
   // await shopifyProductService.syncProducts();
 
-
   // const client = new shopify.clients.Graphql({session});
-  // console.log("Client ne: ", client);  
+  // console.log("Client ne: ", client);
+
+  const platformProduct = await getFirstProduct();
+  console.log("Platform product:", platformProduct);
+  shopifyProductService
+    .pushProductToShopify(platformProduct)
+    .then((shopifyProduct) => {
+      console.log("Product created in Shopify:", shopifyProduct);
+    })
+    .catch((error) => {
+      console.error("Error:", error);
+    });
 
   return null;
 };
 
-export const action = async ({ request }) => {
-};
+export const action = async ({ request }) => {};
 
 export default function Index() {
   const fetcher = useFetcher();
@@ -46,7 +55,7 @@ export default function Index() {
     fetcher.formMethod === "POST";
   const productId = fetcher.data?.product?.id.replace(
     "gid://shopify/Product/",
-    "",
+    ""
   );
 
   useEffect(() => {
