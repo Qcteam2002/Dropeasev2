@@ -1,7 +1,7 @@
 const metafields = [
   {
     namespace: "gridviewname",
-    key: "gridviewkey",
+    key: "gridview",
     name: "gridview",
     type: "json", 
     description: "Grid View configuration for product display",
@@ -11,8 +11,8 @@ const metafields = [
     }
   },
   {
-    namespace: "reviewn",
-    key: "reviewk",
+    namespace: "review",
+    key: "review",
     name: "Review",
     type: "json",
     description: "Warranty information for the product",

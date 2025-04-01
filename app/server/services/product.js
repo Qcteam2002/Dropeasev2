@@ -4,6 +4,8 @@ import db from "../../db.server";
 import { syncProductQueue } from "../../queues/first_init";
 // import Shopify from "../../shopify.server";
 import { getClients } from "./shopifyApi";
+import metafields from "../../shopify_theme/metafield_config.js";
+import { optimizeProduct } from './optimizeProduct';
 
 export default class ShopifyProduct {
   constructor(session) {
@@ -376,6 +378,77 @@ export default class ShopifyProduct {
       return response.data.productCreate.product;
     } catch (error) {
       console.error("Error pushing product to Shopify:", error);
+      throw error;
+    }
+  }
+
+  async updateProductShopify(product) {
+    const query = `#graphql
+      mutation productUpdate($input: ProductUpdateInput!) {
+        productUpdate(product: $input) {
+          product {
+            id
+            title
+            descriptionHtml
+            metafields(first: 10) {
+              edges {
+                node {
+                  namespace
+                  key
+                  value
+                  type
+                }
+              }
+            }
+          }
+          userErrors {
+            field
+            message
+          }
+        }
+      }
+    `;
+
+    try {
+      const optimizedProduct = await optimizeProduct(product);
+
+      // Map metafields từ config với dữ liệu từ optimizedProduct
+      const productMetafields = metafields.map((metafield) => {
+        const { namespace, key, type } = metafield;
+        return {
+          namespace,
+          key,
+          value: JSON.stringify(optimizedProduct.metafields[key]),
+          type,
+        };
+      });
+
+      const variables = {
+        variables: {
+          input: {
+            id: product.platformId,
+            title: optimizedProduct.title,
+            descriptionHtml: optimizedProduct.descriptionHtml,
+            metafields: productMetafields,
+          }
+        }
+      };
+
+      const client = await getClients(this.session);
+      const response = await client.request(query, variables);
+
+      console.log("Response update product:", JSON.stringify(response, null, 2));
+
+      if (response.data.productUpdate.userErrors.length > 0) {
+        console.error("User Errors:", response.data.productUpdate.userErrors);
+        throw new Error(
+          "Failed to update product in Shopify due to user errors"
+        );
+      }
+
+      return response.data.productUpdate.product;
+    } catch (error) {
+      console.error("Error updating product in Shopify:", error);
       throw error;
     }
   }

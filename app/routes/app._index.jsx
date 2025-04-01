@@ -34,7 +34,7 @@ export const loader = async ({ request }) => {
   const platformProduct = await getFirstProduct();
   console.log("Platform product:", platformProduct);
   shopifyProductService
-    .pushProductToShopify(platformProduct)
+    .updateProductShopify(platformProduct)
     .then((shopifyProduct) => {
       console.log("Product created in Shopify:", shopifyProduct);
     })
