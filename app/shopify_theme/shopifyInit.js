@@ -11,10 +11,14 @@ export default class ShopifyInit {
   }
 
   async init() {
+    console.log("🔥 Running init()...");
     await this.initAsset();
+    console.log("✅ Finished init()");
+
   }
 
   async initAsset() {
+    console.log("📢 Initializing Asset...");
     const mainTheme = await this.getMainTheme();
     if (!mainTheme) {
       console.error("Main theme not found");
@@ -25,6 +29,7 @@ export default class ShopifyInit {
     this.createAsset();
     this.customProductTemplate();
     this.defineMetafield();
+    console.log("🎨 Define metafield run");
   }
 
   async getMainTheme() {
@@ -189,6 +194,7 @@ export default class ShopifyInit {
   }
 
   async createMetafield(metafield) {
+    console.log(`🚀 Sending request to create Metafield: ${metafield.namespace}.${metafield.key}`);
     const query = `#graphql
   mutation CreateMetafieldDefinition($definition: MetafieldDefinitionInput!) {
     metafieldDefinitionCreate(definition: $definition) {
