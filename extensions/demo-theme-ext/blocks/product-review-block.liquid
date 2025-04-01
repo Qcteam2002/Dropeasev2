@@ -1,0 +1,176 @@
+<div class="product-review-section" style="max-width: 1200px; margin: 0 auto; text-align: left;">
+  {% assign review_config = product.metafields.productReview.configuration.value | parse_json %}
+  
+  {% assign should_display = false %}
+  {% if request.design_mode %}
+    {% assign should_display = true %}
+  {% else %}
+    {% if review_config.product_handle and review_config.product_handle == product.handle and review_config.reviews and review_config.reviews.size > 0 %}
+      {% assign should_display = true %}
+    {% endif %}
+  {% endif %}
+
+  {% if should_display %}
+    <div class="review-carousel" style="position: relative;">
+      <!-- Review Content -->
+      <div class="review-slider" style="overflow: hidden;">
+        <div class="review-items" style="display: flex; transition: transform 0.3s ease;" id="reviewSlider">
+          {% if request.design_mode %}
+            <!-- Default data for Theme Editor -->
+            <div class="review-item" style="flex: 0 0 100%; margin: 0 auto; max-width: 600px; display: flex; flex-direction: column; justify-content: space-between;">
+              <div style="font-size: 14px; line-height: 1.5; color: #333;">
+                <p>"This is a sample review to preview in the Theme Editor."</p>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; border-top: 1px solid #e1e1e1; padding-top: 8px;">
+                <div style="font-size: 14px; color: #666;">
+                  <p>Sample Reviewer</p>
+                </div>
+                <div style="display: flex; gap: 2px;">
+                  <span style="color: #000; font-size: 14px;">★</span>
+                  <span style="color: #000; font-size: 14px;">★</span>
+                  <span style="color: #000; font-size: 14px;">★</span>
+                  <span style="color: #000; font-size: 14px;">★</span>
+                  <span style="color: #000; font-size: 14px;">☆</span>
+                </div>
+              </div>
+            </div>
+            <div class="review-item" style="flex: 0 0 100%; margin: 0 auto; max-width: 600px; display: flex; flex-direction: column; justify-content: space-between;">
+              <div style="font-size: 14px; line-height: 1.5; color: #333;">
+                <p>"Another sample review for preview purposes."</p>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; border-top: 1px solid #e1e1e1; padding-top: 8px;">
+                <div style="font-size: 14px; color: #666;">
+                  <p>Another Reviewer</p>
+                </div>
+                <div style="display: flex; gap: 2px;">
+                  <span style="color: #000; font-size: 14px;">★</span>
+                  <span style="color: #000; font-size: 14px;">★</span>
+                  <span style="color: #000; font-size: 14px;">★</span>
+                  <span style="color: #000; font-size: 14px;">☆</span>
+                  <span style="color: #000; font-size: 14px;">☆</span>
+                </div>
+              </div>
+            </div>
+          {% else %}
+            <!-- Real data for Storefront -->
+            {% for review in review_config.reviews %}
+              <div class="review-item" style="flex: 0 0 100%; margin: 0 auto; max-width: 600px; display: flex; flex-direction: column; justify-content: space-between;">
+                <div style="font-size: 14px; line-height: 1.5; color: #333;">
+                  <p>"{{ review.comment }}"</p>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; border-top: 1px solid #e1e1e1; padding-top: 8px;">
+                  <div style="font-size: 14px; color: #666;">
+                    <p>{{ review.reviewer }}</p>
+                  </div>
+                  <div style="display: flex; gap: 2px;">
+                    {% for i in (1..5) %}
+                      {% if i <= review.rating %}
+                        <span style="color: #000; font-size: 14px;">★</span>
+                      {% else %}
+                        <span style="color: #000; font-size: 14px;">☆</span>
+                      {% endif %}
+                    {% endfor %}
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Pagination Dots and Navigation -->
+      <div style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 10px;">
+        <button onclick="moveReviewSlider(-1)" style="background: none; border: none; font-size: 16px; cursor: pointer; color: #333;">‹</button>
+        {% if request.design_mode %}
+          <!-- Default dots for Theme Editor -->
+          <div class="pagination-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #333; cursor: pointer;" onclick="setReviewIndex(0)"></div>
+          <div class="pagination-dot" style="width: 8px; height: 8px; border-radius: 50%; background: #ccc; cursor: pointer;" onclick="setReviewIndex(1)"></div>
+        {% else %}
+          <!-- Real dots for Storefront -->
+          {% for review in review_config.reviews %}
+            <div class="pagination-dot" style="width: 8px; height: 8px; border-radius: 50%; background: {% if forloop.index0 == 0 %}#333{% else %}#ccc{% endif %}; cursor: pointer;" onclick="setReviewIndex({{ forloop.index0 }})"></div>
+          {% endfor %}
+        {% endif %}
+        <button onclick="moveReviewSlider(1)" style="background: none; border: none; font-size: 16px; cursor: pointer; color: #333;">›</button>
+      </div>
+    </div>
+
+    <!-- JavaScript for Slider -->
+    <script>
+      let currentReviewIndex = 0;
+      const reviewItems = document.querySelectorAll('.review-item');
+      const dots = document.querySelectorAll('.pagination-dot');
+      const totalReviews = reviewItems.length;
+
+      function updateSlider() {
+        const slider = document.getElementById('reviewSlider');
+        slider.style.transform = `translateX(-${currentReviewIndex * 100}%)`;
+        dots.forEach((dot, index) => {
+          dot.style.background = index === currentReviewIndex ? '#333' : '#ccc';
+        });
+      }
+
+      function moveReviewSlider(direction) {
+        currentReviewIndex += direction;
+        if (currentReviewIndex < 0) currentReviewIndex = totalReviews - 1;
+        if (currentReviewIndex >= totalReviews) currentReviewIndex = 0;
+        updateSlider();
+      }
+
+      function setReviewIndex(index) {
+        currentReviewIndex = index;
+        updateSlider();
+      }
+
+      // Initialize slider
+      updateSlider();
+    </script>
+  {% endif %}
+
+  <style>
+    .review-carousel {
+      position: relative;
+    }
+    .review-item {
+      transition: all 0.3s ease;
+    }
+    @media (max-width: 768px) {
+      .product-review-section {
+        padding: 15px 10px;
+      }
+      .review-item {
+        max-width: 100%;
+      }
+      .review-item p {
+        font-size: 12px;
+      }
+      .review-item div[style*="font-size: 14px"] p {
+        font-size: 12px;
+      }
+      .review-item div[style*="display: flex"] span {
+        font-size: 12px;
+      }
+      .pagination-dot {
+        width: 6px;
+        height: 6px;
+      }
+      button[onclick*="moveReviewSlider"] {
+        font-size: 14px;
+      }
+    }
+  </style>
+
+  {% schema %}
+  {
+    "name": "Product Review Block",
+    "target": "section",
+    "settings": [
+      {
+        "type": "product",
+        "id": "product",
+        "label": "Select Product"
+      }
+    ]
+  }
+  {% endschema %}
+</div>

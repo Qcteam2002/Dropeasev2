@@ -864,7 +864,7 @@ export default function ProductDetailPage() {
                 </div>
               ))}
             </div>
-          )} */}
+          )}
 
           {/* 🔹 Hiển thị Toast thông báo */}
           {toast.active && <Toast content={toast.message} onDismiss={() => setToast({ active: false })} />}

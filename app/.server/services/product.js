@@ -1,11 +1,15 @@
 // import fs from "fs";
 // import { join } from "path";
-import db from "../../db.server";
+import db from "../../db.server.js";
 import { syncProductQueue } from "../../queues/first_init";
 import Shopify from "../../shopify.server";
 
 export default class ShopifyProduct {
   constructor(admin, session) {
+    console.log("🛠 Initializing ShopifyProduct...");
+    console.log("🔍 admin:", admin);
+    console.log("🔍 session:", session);
+
     this.admin = admin;
     this.session = session;
     this.limit = 25;
@@ -127,6 +131,14 @@ export default class ShopifyProduct {
           create: insertData,
         });
       }
+
+      console.log("🔍 Before adding job to queue:");
+console.log("🔍 admin:", admin);
+console.log("🔍 session:", session);
+
+if (!admin || Object.keys(admin).length === 0) {
+  throw new Error("❌ admin is empty before adding to queue!");
+}
 
       // Add a new job to the queue to process the next batch
       await syncProductQueue.add("sync_product", {

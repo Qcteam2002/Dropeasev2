@@ -8,4 +8,6 @@ const shopify = shopifyApi({
   hostName: 'ngrok-tunnel-address',
 });
 
+export default shopify;
+
 

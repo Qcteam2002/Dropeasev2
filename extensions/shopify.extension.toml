@@ -1,3 +1,4 @@
+[extension]
 type = "theme_app_extension"
 name = "demo-theme-ext"
 
