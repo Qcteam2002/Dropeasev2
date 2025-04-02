@@ -3,7 +3,7 @@
 client_id = "2aa417f555d85d9f0d7532d9c04cfae9"
 name = "dropease_dev"
 handle = "dropease_dev"
-application_url = "https://specifies-thank-jet-crops.trycloudflare.com"
+application_url = "https://snapshot-scottish-germany-enhance.trycloudflare.com"
 embedded = true
 
 [build]
@@ -16,9 +16,9 @@ scopes = "read_themes,write_products,write_themes"
 
 [auth]
 redirect_urls = [
-  "https://specifies-thank-jet-crops.trycloudflare.com/auth/callback",
-  "https://specifies-thank-jet-crops.trycloudflare.com/auth/shopify/callback",
-  "https://specifies-thank-jet-crops.trycloudflare.com/api/auth/callback"
+  "https://snapshot-scottish-germany-enhance.trycloudflare.com/auth/callback",
+  "https://snapshot-scottish-germany-enhance.trycloudflare.com/auth/shopify/callback",
+  "https://snapshot-scottish-germany-enhance.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]

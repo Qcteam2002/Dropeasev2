@@ -1,12 +1,7 @@
 import { Queue, Worker, Job } from "bullmq";
-<<<<<<< HEAD
 import ShopifyInit from "../shopify_theme/shopifyInit";
 import ShopifyProduct from "../server/services/product";
 
-=======
-import ShopifyInit from "../shopify_theme/shopifyInit.js";
-import ShopifyProduct from "../.server/services/product.js";
->>>>>>> tuananh
 
 const connection = {
   host: process.env.REDIS_HOST,

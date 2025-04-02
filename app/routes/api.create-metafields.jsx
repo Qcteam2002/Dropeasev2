@@ -1,5 +1,5 @@
 import { json } from "@remix-run/node";
-import shopify from "/Users/vophuong/Documents/easyd-1/app/shopify.server.js";
+import shopify from "../shopify.server";
 
 export const action = async ({ request }) => {
     try {
