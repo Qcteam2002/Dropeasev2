@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { json } from "@remix-run/node";
-import { useFetcher } from "@remix-run/react";
+import { useFetcher, useLoaderData } from "@remix-run/react";
 import {
   Page,
   Layout,
@@ -21,6 +21,7 @@ import ShopifyProduct from "../server/services/product";
 // import {shopify, clients} from "../server/services/shopifyApi";
 // import {shopifyApi, LATEST_API_VERSION, ApiVersion} from '@shopify/shopify-api';
 import { getFirstProduct } from "../models/PlatformProduct";
+import { clientEnv } from "../config/env";
 
 export const loader = async ({ request }) => {
   const { admin, session } = await authenticate.admin(request);
@@ -30,6 +31,9 @@ export const loader = async ({ request }) => {
 
   // const client = new shopify.clients.Graphql({session});
   // console.log("Client ne: ", client);
+  // const deeplinkUrl = `https://${session.shop}/admin/themes/current/editor?context=apps&template=product&activateAppId=${clientEnv.SHOPIFY_DEMO_THEME_EXT_ID}/star_rating`;
+  const deeplinkUrl = `https://${session.shop}/admin/themes/current/editor?template=product&addAppBlockId=${clientEnv.SHOPIFY_DEMO_THEME_EXT_ID}/star_rating&target=newAppsSection`;
+  console.log("Deeplink URL:", deeplinkUrl);
 
   const platformProduct = await getFirstProduct();
   console.log("Platform product:", platformProduct);
@@ -48,6 +52,7 @@ export const loader = async ({ request }) => {
 export const action = async ({ request }) => {};
 
 export default function Index() {
+  // const { deeplinkUrl, themeExtId } = useLoaderData();
   const fetcher = useFetcher();
   const shopify = useAppBridge();
   const isLoading =
@@ -403,7 +408,7 @@ export default function Index() {
 //                       to get started
 //                     </List.Item>
 //                     <List.Item>
-//                       Explore Shopify’s API with{" "}
+//                       Explore Shopify's API with{" "}
 //                       <Link
 //                         url="https://shopify.dev/docs/apps/tools/graphiql-admin-api"
 //                         target="_blank"
