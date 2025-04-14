@@ -35,16 +35,19 @@ export const loader = async ({ request }) => {
   const deeplinkUrl = `https://${session.shop}/admin/themes/current/editor?template=product&addAppBlockId=${clientEnv.SHOPIFY_DEMO_THEME_EXT_ID}/star_rating&target=newAppsSection`;
   console.log("Deeplink URL:", deeplinkUrl);
 
-  const platformProduct = await getFirstProduct();
-  console.log("Platform product:", platformProduct);
-  shopifyProductService
-    .updateProductShopify(platformProduct)
-    .then((shopifyProduct) => {
-      console.log("Product created in Shopify:", shopifyProduct);
-    })
-    .catch((error) => {
-      console.error("Error:", error);
-    });
+  // const platformProduct = await getFirstProduct();
+  // console.log("Platform product:", platformProduct);
+  // shopifyProductService
+  //   .updateProductShopify(platformProduct)
+  //   .then((shopifyProduct) => {
+  //     console.log("Product created in Shopify:", shopifyProduct);
+  //   })
+  //   .catch((error) => {
+  //     console.error("Error:", error);
+  //   });
+
+    const webhooks = await shopifyProductService.getWebhooks(50);
+    console.log("webhook nè:", webhooks);
 
   return null;
 };

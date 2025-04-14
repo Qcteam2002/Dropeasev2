@@ -5,7 +5,7 @@ import { syncProductQueue } from "../../queues/first_init";
 // import Shopify from "../../shopify.server";
 import { getClients } from "./shopifyApi";
 import metafields from "../../shopify_theme/metafield_config.js";
-import { optimizeProduct } from './optimizeProduct';
+import { optimizeProduct } from "./optimizeProduct";
 
 export default class ShopifyProduct {
   constructor(session) {
@@ -430,14 +430,17 @@ export default class ShopifyProduct {
             title: optimizedProduct.title,
             descriptionHtml: optimizedProduct.descriptionHtml,
             metafields: productMetafields,
-          }
-        }
+          },
+        },
       };
 
       const client = await getClients(this.session);
       const response = await client.request(query, variables);
 
-      console.log("Response update product:", JSON.stringify(response, null, 2));
+      console.log(
+        "Response update product:",
+        JSON.stringify(response, null, 2)
+      );
 
       if (response.data.productUpdate.userErrors.length > 0) {
         console.error("User Errors:", response.data.productUpdate.userErrors);
@@ -451,5 +454,47 @@ export default class ShopifyProduct {
       console.error("Error updating product in Shopify:", error);
       throw error;
     }
+  }
+
+  async getWebhooks(limit, cursor = null) {
+    const query = `#graphql
+        query ($numProducts: Int!, $cursor: String) {
+          webhookSubscriptions(first: $numProducts, after: $cursor) {
+            edges {
+                node {
+                  id
+                  topic
+                  endpoint {
+                    __typename
+                    ... on WebhookHttpEndpoint {
+                      callbackUrl
+                    }
+                    ... on WebhookEventBridgeEndpoint {
+                      arn
+                    }
+                    ... on WebhookPubSubEndpoint {
+                      pubSubProject
+                      pubSubTopic
+                    }
+                  }
+                }
+              }
+                pageInfo {
+                    hasNextPage
+                }
+            }
+        }`;
+
+    const variables = {
+      variables: {
+        numProducts: limit,
+        cursor: cursor,
+      },
+    };
+
+    const client = await getClients(this.session);
+    const response = await client.request(query, variables);
+
+    return response.data.webhookSubscriptions;
   }
 }

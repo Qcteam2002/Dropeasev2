@@ -41,8 +41,11 @@ const shopify = shopifyApp({
   },
   hooks: {
     afterAuth: async ({ session, admin }) => {
+      await shopify.registerWebhooks({ session });
+      
       const userService = new UserServices(admin,session);
       await userService.updateUser();
+
 
       await firstInitQueue.add('first_init', { admin, session });
       // Add the job to the queue
