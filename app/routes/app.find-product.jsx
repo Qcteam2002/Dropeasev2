@@ -73,7 +73,7 @@ export default function FindProduct() {
       id: 1,
       image:
         "https://img.kwcdn.com/product/fancy/df46fe8c-f2e7-4675-9435-822cd61d698e.jpg?imageView2/2/w/800/q/70/format/webp",
-      video: "https://goods-vod.kwcdn.com/goods-video/760fedbf5ebf8ecee384dfad0e5916d27e3b882c.f30.mp4", // Thêm video URL
+      video: "https://goods-vod.kwcdn.com/goods-video/760fedbf5ebf8ecee384dfad0e5916d27e3b882c.f30.mp4",
       title: "Titanic Ship Model Decoration Air Humidifier 250ml Essential Oil Diffuser Jellyfish Smoke Ring Spray Aroma Diffuser For Home",
       description: [
         "https://ae01.alicdn.com/kf/S7c53a7aa4f5b4b1c8487dc6eeb980f15U.jpg",
@@ -94,7 +94,7 @@ export default function FindProduct() {
       id: 2,
       image:
         "https://img.kwcdn.com/product/fancy/aceb0577-cd53-4744-b8b7-5486a38fea19.jpg?imageView2/2/w/800/q/70/format/webp",
-      video: "https://goods-vod.kwcdn.com/goods-video/24837a160ba2ad9733f210ab6af9f93a1cc63cab.f30.mp4", // Thêm video URL
+      video: "https://goods-vod.kwcdn.com/goods-video/24837a160ba2ad9733f210ab6af9f93a1cc63cab.f30.mp4",
       title: "Men's Athletic Sneakers - Striped/Solid",
       price: "$21.42",
       oldPrice: "$39.14",
@@ -109,7 +109,7 @@ export default function FindProduct() {
       id: 3,
       image:
         "https://img.kwcdn.com/product/Fancyalgo/VirtualModelMatting/c312b928bc8ed6d1ef1dd278b9fae51a.jpg?imageView2/2/w/800/q/70/format/webp",
-      video: "https://goods-vod.kwcdn.com/goods-video/9d419dda0447f6b4a4b7edac65f71541137fee03.f30.mp4", // Thêm video URL
+      video: "https://goods-vod.kwcdn.com/goods-video/9d419dda0447f6b4a4b7edac65f71541137fee03.f30.mp4",
       title: "Men'S Fashion Street Style Colorful",
       price: "$19.42",
       oldPrice: "$101.14",
@@ -124,7 +124,7 @@ export default function FindProduct() {
       id: 4,
       image:
         "https://img.kwcdn.com/product/fancy/0b83ac7d-6933-47a4-9581-f456668e514a.jpg?imageView2/2/w/800/q/70/format/webp",
-      video: "https://goods-vod.kwcdn.com/goods-video/d50081c78ac9eefef9feea3285a4ed59899d1ab9.f30.mp4", // Thêm video URL
+      video: "https://goods-vod.kwcdn.com/goods-video/d50081c78ac9eefef9feea3285a4ed59899d1ab9.f30.mp4",
       title: "Plus Size Men's Chunky Sneakers",
       price: "$26.03",
       oldPrice: "$44.80",
@@ -139,7 +139,7 @@ export default function FindProduct() {
       id: 5,
       image:
         "https://img.kwcdn.com/product/fancy/bf2b1b31-50fd-45da-b784-e8b36af3c2a0.jpg?imageView2/2/w/800/q/70/format/webp",
-      video: "https://goods-vod.kwcdn.com/goods-video/4539a92cf54ada6b5f6dcd928c63ea7f56902e7d.f30.mp4", // Thêm video URL
+      video: "https://goods-vod.kwcdn.com/goods-video/4539a92cf54ada6b5f6dcd928c63ea7f56902e7d.f30.mp4",
       title: "Men's Fashion Street Style Low-Top Sneakers",
       price: "$46.03",
       oldPrice: "$104.80",
@@ -154,7 +154,7 @@ export default function FindProduct() {
       id: 6,
       image:
         "https://img.kwcdn.com/product/Fancyalgo/VirtualModelMatting/5c6062cd347d2525dada8ea42adce9c7.jpg?imageView2/2/w/800/q/70/format/webp",
-      video: "https://goods-vod.kwcdn.com/goods-video/cebb8b9ecf9b747adae7051aa90e679a954ec343.f30.mp4", // Thêm video URL
+      video: "https://goods-vod.kwcdn.com/goods-video/cebb8b9ecf9b747adae7051aa90e679a954ec343.f30.mp4",
       title: "Boys Casual Solid Color Breathable",
       price: "$46.03",
       oldPrice: "$104.80",
@@ -166,10 +166,10 @@ export default function FindProduct() {
       stars: "(2000)",
     },
     {
-      id: 1,
+      id: 7,
       image:
         "https://img.kwcdn.com/product/fancy/df46fe8c-f2e7-4675-9435-822cd61d698e.jpg?imageView2/2/w/800/q/70/format/webp",
-      video: "https://goods-vod.kwcdn.com/goods-video/760fedbf5ebf8ecee384dfad0e5916d27e3b882c.f30.mp4", // Thêm video URL
+      video: "https://goods-vod.kwcdn.com/goods-video/760fedbf5ebf8ecee384dfad0e5916d27e3b882c.f30.mp4",
       title: "Nike New Dunk Low Men's White",
       price: "$100",
       oldPrice: "$150",
@@ -181,10 +181,10 @@ export default function FindProduct() {
       stars: "(2000)",
     },
     {
-      id: 2,
+      id: 8,
       image:
         "https://img.kwcdn.com/product/fancy/aceb0577-cd53-4744-b8b7-5486a38fea19.jpg?imageView2/2/w/800/q/70/format/webp",
-      video: "https://goods-vod.kwcdn.com/goods-video/24837a160ba2ad9733f210ab6af9f93a1cc63cab.f30.mp4", // Thêm video URL
+      video: "https://goods-vod.kwcdn.com/goods-video/24837a160ba2ad9733f210ab6af9f93a1cc63cab.f30.mp4",
       title: "Men's Athletic Sneakers - Striped/Solid",
       price: "$21.42",
       oldPrice: "$39.14",

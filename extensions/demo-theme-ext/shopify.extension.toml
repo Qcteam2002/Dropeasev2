@@ -1,12 +1,24 @@
+[[extensions]]
 type = "theme_app_extension"
 name = "demo-theme-ext"
+handle = "demo-theme-ext"
+version = "1.0.0"
 
-[[extension.targets]]
+[[extensions.blocks]]
 type = "block"
 name = "gridview-block"
 target = "section"
 
-[[extension.targets]]
+[[extensions.blocks]]
 type = "block"
 name = "product-review-block"
 target = "section"
+
+[[extensions.blocks]]
+type = "app_embed_block"
+name = "Optimize Core Script"
+
+[[extensions.blocks]]
+type = "app_embed_block"
+name = "Floating Video Block"
+target = "head"

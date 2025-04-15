@@ -209,7 +209,7 @@ model PlatformProduct {
   title           String         @db.VarChar(255)
   handle          String         @db.VarChar(255)
   descriptionHtml String?        @db.LongText
-  featuredMedia   String?
+  featuredMedia   String?        @db.Text // Hoặc @db.LongText
   vendor          String?        // 🏢 Vendor
   productType     String?        // 🏷️ Loại sản phẩm
   tags            String?        // 🏷️ Tags
@@ -234,8 +234,9 @@ model ProductsOptimized {
   id                   BigInt    @id @default(autoincrement()) // ID của product
   productId            BigInt    @unique  // 🔹 ID của sản phẩm từ PlatformProduct
   optimizedTitle       String
-  optimizedDescription String
+  optimizedDescription String    @db.LongText
   gridView             Json      // Lưu JSON gridView từ AI
+  aiReviews            Json?     // ✅ Thêm trường mới để lưu review từ AI
   createdAt            DateTime  @default(now())
   // 🔹 Chỉ khai báo @relation bên này
   product              PlatformProduct @relation(fields: [productId], references: [id], onDelete: Cascade)

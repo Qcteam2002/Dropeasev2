@@ -14,7 +14,7 @@ export default class ShopifyProduct {
     this.user = null;
   }
 
-  async syncProducts(currentCursor) {
+  async syncProducts(currentCursor = null) {
     const session = this.session;
     this.user = await db.user.findUnique({
       where: {
@@ -23,52 +23,117 @@ export default class ShopifyProduct {
     });
     const userId = this.user.id;
 
-    const products = await this.getProducts(this.limit, currentCursor);
-    if (products.edges.length > 0) {
-      // Store products in the database
-      let lastCursor = null;
-      for (const edge of products.edges) {
-        const product = edge.node;
-        lastCursor = edge.cursor;
-        const insertData = {
-          platformId: product.id,
-          user: { connect: { id: userId } },
-          metafields: product.metafields.edges,
-          title: product.title,
-          handle: product.handle,
-          descriptionHtml: product.descriptionHtml,
-          featuredMedia: product.featuredMedia?.preview?.image.url,
-        };
+    try {
+      let hasNextPage = true;
+      let cursor = currentCursor;
+      
+      while (hasNextPage) {
+        console.log(`🔄 Syncing products with cursor: ${cursor}`);
+        const products = await this.getProducts(this.limit, cursor);
+        
+        if (!products.edges || products.edges.length === 0) {
+          console.log("✅ No more products to sync");
+          hasNextPage = false;
+          break;
+        }
 
-        // const existingProduct = await db.platformProduct.findUnique({
-        //     where: { userId_platformId: { userId: userId, platformId: product.id } },
-        //   });
+        console.log(`📦 Found ${products.edges.length} products to sync`);
+        
+        // Store products in the database
+        for (const edge of products.edges) {
+          const product = edge.node;
+          cursor = edge.cursor;
+          
+          console.log(`🏷️ Processing product: ${product.title}`);
+          
+          const insertData = {
+            platformId: product.id,
+            user: { connect: { id: userId } },
+            metafields: product.metafields?.edges || [],
+            title: product.title,
+            handle: product.handle,
+            descriptionHtml: product.descriptionHtml,
+            featuredMedia: product.featuredMedia?.preview?.image?.url,
+            status: "ACTIVE",
 
-        //   if (existingProduct) {
-        //     await db.platformProduct.update({
-        //       where: { userId_platformId: { userId: userId, platformId: product.id } },
-        //       data: insertData,
-        //     });
-        //   } else {
-        //     await db.platformProduct.create({
-        //       data: insertData,
-        //     });
-        //   }
+            //TA Bổ sung
+            // Collections
+            collections: {
+              create: product.collections.nodes.map((collection) => ({
+                collectionId: collection.id,
+                title: collection.title,
+              })),
+            },
 
-        await db.platformProduct.upsert({
-          where: {
-            userId_platformId: { userId: userId, platformId: product.id },
-          },
-          update: insertData,
-          create: insertData,
-        });
+            // Images
+            images: {
+              create: product.images.nodes.map((image) => ({
+                url: image.url,
+              })),
+            },
+
+            // Media
+            media: {
+              create: product.media.nodes.map((media) => ({
+                mediaId: media.id,
+                url: media.preview?.image?.url || "",
+                alt: media.alt || "",
+              })),
+            },
+
+            // Options
+            options: {
+              create: product.options.map((option) => ({
+                optionId: option.id,
+                name: option.name,
+                position: option.position,
+                values: option.optionValues.map((value) => value.name),
+              })),
+            },
+
+            // Variants
+            variants: {
+              create: product.variants.nodes.map((variant) => ({
+                variantId: variant.id,
+                sku: variant.sku || "",
+                price: variant.price || 0,
+                compareAtPrice: variant.compareAtPrice || 0,
+                taxable: variant.taxable || false,
+                title: variant.title || "",
+                image: variant.image?.url || null,
+                inventoryQuantity: variant.inventoryQuantity || 0,
+                inventoryPolicy: variant.inventoryPolicy || "DENY",
+                selectedOptions: JSON.stringify(variant.selectedOptions || []),
+              })),
+            },
+          };
+
+          try {
+            await db.platformProduct.upsert({
+              where: {
+                userId_platformId: { userId: userId, platformId: product.id },
+              },
+              update: insertData,
+              create: insertData,
+            });
+            console.log(`✅ Successfully synced product: ${product.title}`);
+          } catch (error) {
+            console.error(`❌ Error syncing product ${product.title}:`, error);
+          }
+        }
+
+        // Check if we have more pages
+        hasNextPage = products.pageInfo?.hasNextPage;
+        if (!hasNextPage) {
+          console.log("✅ Finished syncing all products");
+          break;
+        }
       }
 
-      // Add a new job to the queue to process the next batch
-      await syncProductQueue.add("sync_product", {
-        session,
-        cursor: currentCursor,
-      });
+      return { success: true, message: "Products synced successfully" };
+    } catch (error) {
+      console.error("❌ Error in syncProducts:", error);
+      throw error;
     }
   }
 
@@ -408,21 +473,71 @@ export default class ShopifyProduct {
         }
       }
     `;
-
+  
     try {
-      const optimizedProduct = await optimizeProduct(product);
-
-      // Map metafields từ config với dữ liệu từ optimizedProduct
+      // ===== LẤY optimizedData TỪ DB =====
+      const optimizedData = await db.productsOptimized.findUnique({
+        where: {
+          productId: BigInt(product.id),
+        },
+      });
+  
+      console.log("== optimizedData từ DB ==", optimizedData);
+  
+      if (!optimizedData) {
+        console.log("Chưa có dữ liệu tối ưu, bỏ qua cập nhật");
+        return null;
+      }
+  
+      // Chỉ cập nhật các trường có dữ liệu
+      const optimizedProduct = {
+        title: optimizedData.optimizedTitle || product.title,
+        descriptionHtml: optimizedData.optimizedDescription 
+          ? `<div>${optimizedData.optimizedDescription.replace(/\n/g, "<br>")}</div>`
+          : product.descriptionHtml,
+        metafields: {}
+      };
+  
+      // Thêm gridView nếu có
+      if (optimizedData.gridView) {
+        const parsedGridView = typeof optimizedData.gridView === 'string'
+          ? JSON.parse(optimizedData.gridView)
+          : optimizedData.gridView;
+        optimizedProduct.metafields.gridviewConfiguration = parsedGridView;
+      }
+  
+      // Thêm aiReviews nếu có  
+      if (optimizedData.aiReviews) {
+        const parsedAiReviews = typeof optimizedData.aiReviews === 'string'
+          ? JSON.parse(optimizedData.aiReviews)
+          : optimizedData.aiReviews;
+        optimizedProduct.metafields.reviewConfiguration = parsedAiReviews;
+      }
+  
+      const metafields = [
+        {
+          namespace: "gridview",
+          key: "configuration",
+          type: "json"
+        },
+        {
+          namespace: "productReview",
+          key: "configuration",
+          type: "json"
+        }
+      ];
+  
       const productMetafields = metafields.map((metafield) => {
         const { namespace, key, type } = metafield;
+        const metafieldKey = namespace === "gridview" ? "gridviewConfiguration" : "reviewConfiguration";
         return {
           namespace,
           key,
-          value: JSON.stringify(optimizedProduct.metafields[key]),
+          value: JSON.stringify(optimizedProduct.metafields[metafieldKey]),
           type,
         };
       });
-
+  
       const variables = {
         variables: {
           input: {
@@ -433,22 +548,17 @@ export default class ShopifyProduct {
           },
         },
       };
-
-      const client = await getClients(this.session);
+  
+      const client = await getClients(this.session || product.session);
       const response = await client.request(query, variables);
-
-      console.log(
-        "Response update product:",
-        JSON.stringify(response, null, 2)
-      );
-
+  
+      console.log("Response update product:", JSON.stringify(response, null, 2));
+  
       if (response.data.productUpdate.userErrors.length > 0) {
         console.error("User Errors:", response.data.productUpdate.userErrors);
-        throw new Error(
-          "Failed to update product in Shopify due to user errors"
-        );
+        throw new Error("Failed to update product in Shopify due to user errors");
       }
-
+  
       return response.data.productUpdate.product;
     } catch (error) {
       console.error("Error updating product in Shopify:", error);
@@ -498,3 +608,103 @@ export default class ShopifyProduct {
     return response.data.webhookSubscriptions;
   }
 }
+  // async updateProductShopify(product) {
+  //   const query = `#graphql
+  //     mutation productUpdate($input: ProductUpdateInput!) {
+  //       productUpdate(product: $input) {
+  //         product {
+  //           id
+  //           title
+  //           descriptionHtml
+  //           metafields(first: 10) {
+  //             edges {
+  //               node {
+  //                 namespace
+  //                 key
+  //                 value
+  //                 type
+  //               }
+  //             }
+  //           }
+  //         }
+  //         userErrors {
+  //           field
+  //           message
+  //         }
+  //       }
+  //     }
+  //   `;
+
+  //   try {
+  //     // ===== LẤY optimizedData TỪ DB =====
+  //     const optimizedData = await db.productsOptimized.findUnique({
+  //       where: {
+  //         productId: BigInt(product.id),
+  //       },
+  //     });
+
+  //     console.log("== optimizedData từ DB ==", optimizedData);
+
+  //     if (!optimizedData || !optimizedData.optimizedTitle || !optimizedData.optimizedDescription || !optimizedData.gridView) {
+  //       throw new Error("optimizedData bị thiếu thông tin cần thiết (title, description hoặc gridView)");
+  //     }
+
+  //     // Nếu gridView đang là chuỗi JSON thì parse lại
+  //     const parsedGridView = typeof optimizedData.gridView === 'string'
+  //       ? JSON.parse(optimizedData.gridView)
+  //       : optimizedData.gridView;
+
+  //     const optimizedProduct = {
+  //       title: optimizedData.optimizedTitle,
+  //       descriptionHtml: `<div>${optimizedData.optimizedDescription.replace(/\n/g, "<br>")}</div>`,
+  //       metafields: {
+  //         configuration: parsedGridView
+  //       }
+  //     };
+
+  //     const metafields = [
+  //       {
+  //         namespace: "gridview",
+  //         key: "configuration",
+  //         type: "json"
+  //       }
+  //     ];
+
+  //     const productMetafields = metafields.map((metafield) => {
+  //       const { namespace, key, type } = metafield;
+  //       return {
+  //         namespace,
+  //         key,
+  //         value: JSON.stringify(optimizedProduct.metafields[key]),
+  //         type,
+  //       };
+  //     });
+
+  //     const variables = {
+  //       variables: {
+  //         input: {
+  //           id: product.platformId,
+  //           title: optimizedProduct.title,
+  //           descriptionHtml: optimizedProduct.descriptionHtml,
+  //           metafields: productMetafields,
+  //         }
+  //       }
+  //     };
+
+  //     const client = await getClients(this.session || product.session);
+  //     const response = await client.request(query, variables);
+
+  //     console.log("Response update product:", JSON.stringify(response, null, 2));
+
+  //     if (response.data.productUpdate.userErrors.length > 0) {
+  //       console.error("User Errors:", response.data.productUpdate.userErrors);
+  //       throw new Error("Failed to update product in Shopify due to user errors");
+  //     }
+
+  //     return response.data.productUpdate.product;
+  //   } catch (error) {
+  //     console.error("Error updating product in Shopify:", error);
+  //     throw error;
+  //   }
+  // }
+

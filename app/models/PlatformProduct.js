@@ -2,7 +2,9 @@ import db from "../db.server";
 
 export async function getProducts(user) {
   const products = await db.platformProduct.findMany({
-    where: { user },
+    where: {
+      userId: Number(user), // 👈 Convert BigInt to Number
+    },
     orderBy: { id: "desc" },
   });
 

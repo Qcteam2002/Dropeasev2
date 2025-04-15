@@ -1,0 +1,480 @@
+{% if request.page_type == 'product' %}
+  {% assign sticky_bar_config = shop.metafields.custom.sticky_bar_config %}
+  {% assign float_video_settings = shop.metafields.floatvideo.configuration.value | json_parse %}
+  {% assign video_url = product.metafields.floatvideo.configuration.value | json_parse %}
+  
+  <script>
+    console.log('🚀 Float Video Block Starting...');
+    console.log('📄 Page type:', '{{ request.page_type }}');
+    console.log('⚙️ Float video settings from shop:', {{ float_video_settings | json }});
+    console.log('🎥 Video URL from product:', {{ video_url | json }});
+  </script>
+
+  {% if sticky_bar_config %}
+    {% assign sticky_settings = sticky_bar_config | json_parse %}
+    {% assign has_sticky_bar = sticky_settings.isActive %}
+    <!-- Debug: Raw sticky bar metafield value -->
+    <!-- {{ sticky_bar_config }} -->
+    
+    <div id="sticky-bar" style="display: none;">
+      <div class="product-info">
+        <div class="product-title"></div>
+        <div id="variant-name" class="variant-info">Select Variant</div>
+      </div>
+      <select id="sticky-variant-selector"></select>
+      <div class="button-group">
+        <button class="add-to-cart-btn" onclick="addToCartSticky()">Add to cart</button>
+        <button class="buy-now-btn" onclick="buyNowSticky()">Buy now</button>
+      </div>
+    </div>
+
+    <style>
+      #sticky-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background: {{ sticky_settings.backgroundColor | default: '#ffffff' }};
+        color: {{ sticky_settings.textColor | default: '#000000' }};
+        padding: 10px 20px;
+        box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+        z-index: 2147483647 !important;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-family: {{ sticky_settings.titleFontFamily | default: 'sans-serif' }};
+        height: {{ sticky_settings.barHeight | default: 60 }}px;
+      }
+
+      #sticky-bar .product-title {
+        font-size: {{ sticky_settings.titleFontSize | default: 14 }}px;
+        font-weight: 600;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 300px;
+      }
+
+      #sticky-bar select {
+        padding: 8px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        font-size: {{ sticky_settings.variantFontSize | default: 12 }}px;
+        width: 160px;
+        background: {{ sticky_settings.backgroundColor | default: '#ffffff' }};
+        color: {{ sticky_settings.textColor | default: '#000000' }};
+      }
+
+      #sticky-bar button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: {{ sticky_settings.buttonBorderRadius | default: 8 }}px;
+        font-size: {{ sticky_settings.buttonFontSize | default: 14 }}px;
+        cursor: pointer;
+      }
+
+      .add-to-cart-btn {
+        background-color: {{ sticky_settings.addToCartBgColor | default: '#000000' }};
+        color: {{ sticky_settings.addToCartTextColor | default: '#ffffff' }};
+      }
+
+      .buy-now-btn {
+        background-color: {{ sticky_settings.buyNowBgColor | default: '#000000' }};
+        color: {{ sticky_settings.buyNowTextColor | default: '#ffffff' }};
+      }
+
+      #sticky-bar .product-info {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      #sticky-bar .variant-info {
+        font-size: {{ sticky_settings.variantFontSize | default: 12 }}px;
+        color: {{ sticky_settings.textColor | default: '#777777' }};
+        opacity: 0.8;
+      }
+
+      @media (max-width: 768px) {
+        #sticky-bar {
+          flex-direction: column;
+          align-items: stretch;
+          padding: 12px;
+          gap: 10px;
+          height: auto;
+          min-height: {{ sticky_settings.barHeight | default: 60 }}px;
+        }
+
+        #sticky-bar .product-info {
+          align-items: flex-start;
+          text-align: left;
+        }
+
+        #sticky-bar select {
+          width: 100%;
+          font-size: {{ sticky_settings.variantFontSize | default: 12 }}px;
+        }
+
+        #sticky-bar button {
+          flex: 1;
+          font-size: {{ sticky_settings.buttonFontSize | default: 14 }}px;
+          padding: 12px 0;
+        }
+
+        #sticky-bar .product-title {
+          font-size: {{ sticky_settings.titleFontSize | default: 14 }}px;
+          max-width: 100%;
+        }
+
+        #sticky-bar .variant-info {
+          font-size: {{ sticky_settings.variantFontSize | default: 12 }}px;
+        }
+
+        #sticky-bar > div:last-child {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+      }
+    </style>
+
+    <script>
+      // Get sticky bar settings from metafield
+      var stickyBarConfig = {{ sticky_bar_config }};
+      console.log('Raw sticky bar config:', stickyBarConfig);
+      
+      try {
+        var stickySettings = typeof stickyBarConfig === 'string' ? JSON.parse(stickyBarConfig) : stickyBarConfig;
+        console.log('Parsed sticky bar settings:', stickySettings);
+        
+        if (stickySettings && stickySettings.isActive) {
+          console.log('Sticky bar is enabled');
+          
+          document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM Content Loaded');
+            
+            const product = window.meta?.product || window.Shopify?.product || {};
+            console.log('Product data:', product);
+
+            const title = product.title || document.querySelector('h1')?.textContent?.trim() || "Sản phẩm";
+            console.log('Product title:', title);
+
+            const variantOptions = product.variants?.map(v => 
+              `<option value="${v.id}" data-image="${v.featured_image?.url || v.image || ''}" data-title="${v.public_title || v.title || 'Variant'}">
+                ${v.public_title || v.title || "Default Variant"}
+              </option>`).join("") || '';
+
+            // Update sticky bar content
+            const stickyBar = document.getElementById('sticky-bar');
+            if (stickyBar) {
+              const productTitle = stickyBar.querySelector('.product-title');
+              const variantSelector = stickyBar.querySelector('#sticky-variant-selector');
+              
+              if (productTitle) productTitle.textContent = title;
+              if (variantSelector) variantSelector.innerHTML = variantOptions;
+              
+              // Show sticky bar
+              console.log('Initializing sticky bar');
+              
+              // Handle variant selection
+              const name = document.getElementById("variant-name");
+              if (name && variantSelector) {
+                function updateVariantPreview() {
+                  const selected = variantSelector.options[variantSelector.selectedIndex];
+                  const title = selected.dataset.title;
+                  name.innerText = title || "Variant";
+                }
+
+                variantSelector.addEventListener("change", updateVariantPreview);
+                updateVariantPreview();
+              }
+
+              // Handle scroll
+              window.addEventListener("scroll", () => {
+                const scrollY = window.scrollY;
+                const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+                if ((scrollY / docHeight) * 100 >= 20) {
+                  stickyBar.style.display = "flex";
+                } else {
+                  stickyBar.style.display = "none";
+                }
+              });
+            } else {
+              console.error('Sticky bar element not found');
+            }
+          });
+        } else {
+          console.log('Sticky bar is disabled');
+        }
+      } catch (error) {
+        console.error('Error parsing sticky bar settings:', error);
+      }
+
+      function addToCartSticky() {
+        const variantId = document.getElementById("sticky-variant-selector")?.value;
+        console.log('Adding to cart:', variantId);
+
+        if (!variantId) {
+          console.error("No variant selected");
+          return;
+        }
+
+        fetch("/cart/add.js", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            items: [
+              {
+                id: variantId,
+                quantity: 1,
+              },
+            ],
+          }),
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            console.log('Added to cart:', data);
+            fetch("/cart.js")
+              .then((response) => response.json())
+              .then((cartData) => {
+                const cartCount = cartData.item_count;
+                const cartCountElement = document.getElementById("cart-count");
+                if (cartCountElement) {
+                  cartCountElement.textContent = cartCount;
+                }
+              })
+              .catch((err) => {
+                console.error("Error updating cart: ", err);
+              });
+
+            const event = new CustomEvent("cart:refresh", { bubbles: true });
+            document.dispatchEvent(event);
+          })
+          .catch((err) => console.error("Error adding to cart:", err));
+      }
+
+      function buyNowSticky() {
+        const variantId = document.getElementById("sticky-variant-selector")?.value;
+        if (variantId) {
+          console.log('Buy now:', variantId);
+          window.location.href = `/checkout?add-to-cart=${variantId}`;
+        }
+      }
+    </script>
+  {% else %}
+    {% assign has_sticky_bar = false %}
+  {% endif %}
+
+  <script>
+    console.log('🔍 Checking float video config...');
+    {% if video_url.videoUrl != blank %}
+      console.log('📦 Raw float video config:', {{ video_url | json }});
+    {% else %}
+      console.log('📦 Float video config: null');
+    {% endif %}
+  </script>
+
+  {% if video_url.videoUrl != blank and float_video_settings.isActive %}
+    <div id="float-video" class="{% if has_sticky_bar %}has-sticky-bar{% endif %}">
+      <div class="video-container">
+        <button type="button" class="close-button" onclick="document.getElementById('float-video').remove();">×</button>
+        <video id="float-video-player" controls autoplay muted playsinline>
+          <source src="{{ video_url.videoUrl }}" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+      </div>
+    </div>
+
+    <style>
+      #float-video {
+        position: fixed;
+        {% if float_video_settings.position == 'right' %}
+          right: 20px;
+          left: auto;
+        {% else %}
+          left: 20px;
+          right: auto;
+        {% endif %}
+        bottom: 20px;
+        width: {{ float_video_settings.width | default: 300 }}px;
+        height: {{ float_video_settings.height | default: 200 }}px;
+        background: {{ float_video_settings.backgroundColor | default: '#ffffff' }};
+        opacity: {{ float_video_settings.opacity | default: 0.9 }};
+        border-radius: {{ float_video_settings.borderRadius | default: 8 }}px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        z-index: 2147483646;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #ddd;
+        pointer-events: all;
+        transition: all 0.3s ease;
+      }
+
+      #float-video.with-sticky {
+        bottom: calc({{ sticky_settings.barHeight | default: 60 }}px + 20px);
+        z-index: 2147483648;
+      }
+
+      #float-video.hidden {
+        opacity: 0 !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+        display: none !important;
+      }
+
+      #float-video .video-container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        position: relative;
+      }
+
+      #float-video video {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        border-radius: {{ float_video_settings.borderRadius | default: 8 }}px;
+      }
+
+      #float-video .close-button {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        width: 24px;
+        height: 24px;
+        background: rgba(0, 0, 0, 0.5);
+        border: none;
+        border-radius: 50%;
+        color: white;
+        font-size: 18px;
+        line-height: 1;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        z-index: 999999;
+        transition: background-color 0.2s ease;
+      }
+
+      #float-video .close-button:hover {
+        background: rgba(0, 0, 0, 0.7);
+      }
+
+      @media (max-width: 768px) {
+        #float-video {
+          width: 100%;
+          max-width: {{ float_video_settings.width | default: 300 }}px;
+          height: auto;
+          aspect-ratio: 16/9;
+        }
+
+        #float-video.with-sticky {
+          bottom: calc({{ sticky_settings.barHeight | default: 60 }}px + 60px);
+        }
+      }
+    </style>
+
+    <script>
+      console.log('🎬 Starting float video initialization...');
+      
+      // Parse settings
+      const floatVideoSettings = {{ float_video_settings | json }};
+      const videoUrl = {{ video_url | json }};
+      console.log('⚙️ Float video settings:', floatVideoSettings);
+      console.log('🎥 Video URL:', videoUrl);
+      
+      document.addEventListener('DOMContentLoaded', function() {
+        console.log('🔄 DOM Content Loaded for float video');
+        
+        const floatVideo = document.getElementById('float-video');
+        const videoPlayer = document.getElementById('float-video-player');
+        
+        if (floatVideo && videoPlayer) {
+          console.log('✅ Float video elements found');
+          
+          // Apply settings via JavaScript to ensure they're set
+          if (floatVideoSettings) {
+            floatVideo.style.width = `${floatVideoSettings.width || 300}px`;
+            floatVideo.style.height = `${floatVideoSettings.height || 200}px`;
+            floatVideo.style.opacity = floatVideoSettings.opacity || 0.9;
+            floatVideo.style.backgroundColor = floatVideoSettings.backgroundColor || '#ffffff';
+            floatVideo.style.borderRadius = `${floatVideoSettings.borderRadius || 8}px`;
+            
+            if (floatVideoSettings.position === 'right') {
+              floatVideo.style.right = '20px';
+              floatVideo.style.left = 'auto';
+            } else {
+              floatVideo.style.left = '20px';
+              floatVideo.style.right = 'auto';
+            }
+            
+            console.log('✅ Applied settings:', {
+              width: floatVideo.style.width,
+              height: floatVideo.style.height,
+              opacity: floatVideo.style.opacity,
+              backgroundColor: floatVideo.style.backgroundColor,
+              borderRadius: floatVideo.style.borderRadius,
+              position: floatVideoSettings.position,
+              right: floatVideo.style.right,
+              left: floatVideo.style.left
+            });
+          }
+          
+          // Handle sticky bar scroll
+          if ({{ has_sticky_bar }}) {
+            window.addEventListener("scroll", () => {
+              const scrollY = window.scrollY;
+              const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+              const scrollPercent = (scrollY / docHeight) * 100;
+              
+              if (scrollPercent >= 20) {
+                floatVideo.classList.add('with-sticky');
+              } else {
+                floatVideo.classList.remove('with-sticky');
+              }
+            });
+          }
+
+          // Check if video loads successfully
+          videoPlayer.addEventListener('loadeddata', () => {
+            console.log('✅ Video loaded successfully');
+            videoPlayer.play().catch(error => {
+              console.error('❌ Error playing video:', error);
+            });
+          });
+
+          videoPlayer.addEventListener('error', (e) => {
+            console.error('❌ Video error:', e.target.error);
+          });
+        } else {
+          console.error('❌ Could not find video elements');
+        }
+      });
+    </script>
+  {% else %}
+    <script>
+      console.log('⚠️ No video URL found:', {
+        settings: {{ float_video_settings | json }},
+        video_url: {{ video_url | json }}
+      });
+    </script>
+  {% endif %}
+{% endif %}
+
+{% schema %}
+{
+  "name": "Floating Video Block",
+  "target": "body",
+  "enabled_on": {
+    "templates": ["product"]
+  }
+}
+{% endschema %}
+

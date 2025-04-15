@@ -2,7 +2,7 @@ version: "3"
 services:
   mysql:
     image: mysql:9.1.0
-    container_name: database
+    container_name: database3
     restart: always
     environment:
       - MYSQL_DATABASE=main
@@ -17,7 +17,7 @@ services:
       - ../databases/dropeasy:/var/lib/mysql
   redis:
     image: redis:8.0-M02
-    container_name: redis
+    container_name: redis3
     ports:
       - "6782:6379"
     networks:

@@ -1,7 +1,7 @@
 const metafields = [
   {
-    namespace: "gridviewname",
-    key: "gridview",
+    namespace: "gridview",
+    key: "configuration",
     name: "gridview",
     type: "json", 
     description: "Grid View configuration for product display",
@@ -11,8 +11,8 @@ const metafields = [
     }
   },
   {
-    namespace: "review",
-    key: "review",
+    namespace: "productReview",
+    key: "configuration",
     name: "Review",
     type: "json",
     description: "Warranty information for the product",
@@ -21,6 +21,17 @@ const metafields = [
       storefront: "PUBLIC_READ"
     }
   },
+  {
+    namespace: "floatvideo",
+    key: "configuration",
+    name: "floatvideo",
+    type: "json", 
+    description: "Float Video configuration for product display",
+    ownerType: "PRODUCT", 
+    access: {
+      storefront: "PUBLIC_READ"
+    }
+  }
 ];
 
 export default metafields;

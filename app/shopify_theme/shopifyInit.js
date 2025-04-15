@@ -1,196 +1,68 @@
-import fs from "fs";
-import themeFiles from "./init_config.js";
 import metafields from "./metafield_config.js";
-import { join } from "path";
-import { getClients } from "../server/services/shopifyApi";
+import { getClients } from "../server/services/shopifyApi.js";
 
 export default class ShopifyInit {
   constructor(session) {
-    this.mainTheme = null;
     this.session = session;
   }
 
   async init() {
     console.log("🔥 Running init()...");
-    await this.initAsset();
+    console.log(`🏪 Shop: ${this.session.shop}`);
+    try {
+      await this.defineMetafield();
+      await this.registerWebhooks();
     console.log("✅ Finished init()");
-
+    } catch (error) {
+      console.error("❌ Error during initialization:", error);
+      throw error;
+    }
   }
 
-  async initAsset() {
-    console.log("📢 Initializing Asset...");
-    const mainTheme = await this.getMainTheme();
-    if (!mainTheme) {
-      console.error("Main theme not found");
-      return;
+  async registerWebhooks() {
+    console.log("🔔 Starting webhook registration...");
+    console.log(`🌐 App URL: ${process.env.SHOPIFY_APP_URL}`);
+    
+    if (!this.session || !this.session.accessToken) {
+      throw new Error("No valid session or access token found");
     }
-
-    this.mainTheme = mainTheme;
-    this.createAsset();
-    this.customProductTemplate();
-    this.defineMetafield();
-    console.log("🎨 Define metafield run");
-  }
-
-  async getMainTheme() {
-    const query = `#graphql
-    query {
-      themes(first: 1) {
-          nodes{
-            id
-            name
-            role 
-          }
-      }
-    }
-  `;
-
-    // const response = await this.admin.graphql(query);
-
-    const client = await getClients(this.session);
-    const response = await client.request(query);
-
-    const {
-      data: {
-        themes: { nodes },
-      },
-    } = response;
-
-    return nodes.find((node) => node.role === "MAIN");
-  }
-
-  async createAsset() {
-    const files = await this.makeContentAsset();
-    this.createFile(files);
-  }
-
-  async createFile(files) {
-    const themeId = this.mainTheme.id;
-
-    const query = `#graphql
-    mutation themeFilesUpsert($files: [OnlineStoreThemeFilesUpsertFileInput!]!, $themeId: ID!) {
-      themeFilesUpsert(files: $files, themeId: $themeId) {
-        upsertedThemeFiles {
-      filename
-    }
-    userErrors {
-      field
-      message
-    }
-      }
-    }
-  `;
-
-    // console.log(files);
-    const variables = {
-      variables: {
-        themeId: themeId,
-        files: files,
-      },
-    };
-
-    // const response = await this.admin.graphql(query, variables);
-    const client = await getClients(this.session);
-    const response = await client.request(query,variables);
-
-    const {
-      data: {
-        themeFilesUpsert: { upsertedThemeFiles, userErrors },
-      },
-    } = response;
-  }
-
-  async makeContentAsset() {
-    const filePromises = themeFiles.map(async (file) => {
-      const filePath = join(process.cwd(), file.source);
-      const fileContent = await fs.promises.readFile(filePath, "base64"); // Đọc file bất đồng bộ
-      return {
-        filename: file.target,
-        body: {
-          type: "BASE64",
-          value: fileContent,
+    
+    try {
+      console.log("📡 Making request to register webhooks...");
+      const response = await fetch(`${process.env.SHOPIFY_APP_URL}/api/webhooks/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.session.accessToken}`,
         },
-      };
-    });
-
-    const files = await Promise.all(filePromises);
-
-    return files;
-  }
-
-  processThemeFileContent(fileContent) {
-    const jsonContent = fileContent.replace(/\/\*[\s\S]*?\*\//, "");
-    const jsonObject = JSON.parse(jsonContent);
-    return jsonObject;
-  }
-
-  async customProductTemplate() {
-    const filename = "templates/product.json";
-    const productTemplate = await this.getFile(filename);
-    const productObj = this.processThemeFileContent(
-      productTemplate.body.content
-    );
-    const sections = themeFiles
-      .filter((file) => file.type === "section")
-      .map((file) => {
-        return {
-          type: file.name,
-          settings: {},
-        };
       });
 
-    for (const sec of sections) {
-      productObj.sections[`${sec.type}`] = sec;
-      productObj.order.push(sec.type);
-    }
-
-    const jsonString = JSON.stringify(productObj);
-    const files = [
-      {
-        filename: filename,
-        body: {
-          type: "TEXT",
-          value: jsonString,
-        },
-      },
-    ];
-    this.createFile(files);
-  }
-
-  async getFile(filename) {
-    const queryTheme = `#graphql
-  query {
-    theme(id: "${this.mainTheme.id}") {
-      id
-      name
-      role
-      files(filenames: ["${filename}"],first: 1) {
-        nodes {
-          body {
-            ... on OnlineStoreThemeFileBodyText {
-              content
-            }
-          }
-        }
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to register webhooks: ${response.status} ${response.statusText}\n${errorText}`);
       }
+
+      const responseData = await response.json();
+      console.log("📦 Response data:", JSON.stringify(responseData, null, 2));
+
+      if (!responseData.success) {
+        throw new Error(`Webhook registration failed: ${responseData.error || 'Unknown error'}`);
+      }
+
+      if (responseData.errors && responseData.errors.length > 0) {
+        console.warn("⚠️ Some webhooks failed to register:", responseData.errors);
+      }
+
+      if (responseData.registered && responseData.registered.length > 0) {
+        console.log("✅ Successfully registered webhooks:", responseData.registered);
+      }
+
+      console.log("✅ Webhook registration process completed");
+    } catch (error) {
+      console.error("❌ Error registering webhooks:", error);
+      console.error("Stack trace:", error.stack);
+      throw error;
     }
-  }`;
-
-    // const response = await this.admin.graphql(queryTheme);
-    const client = await getClients(this.session);
-    const response = await client.request(queryTheme);
-
-    const {
-      data: {
-        theme: {
-          files: {
-            nodes: [firstNode],
-          },
-        },
-      },
-    } = response;
-
-    return firstNode;
   }
 
   async createMetafield(metafield) {
@@ -229,11 +101,8 @@ export default class ShopifyInit {
     };
 
     const client = await getClients(this.session);
-    const response = await client.request(query,variables);
-
-    // const {
-    //   data: { metafieldDefinitionCreate },
-    // } = response;
+    const response = await client.request(query, variables);
+    console.log(`📦 Metafield creation response:`, JSON.stringify(response, null, 2));
   }
 
   async defineMetafield() {

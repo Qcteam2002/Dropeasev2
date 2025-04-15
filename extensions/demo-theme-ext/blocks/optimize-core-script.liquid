@@ -1,0 +1,156 @@
+{% if request.page_type == 'product' and product.metafields.custom.optimize_core_config %}
+  {% assign config = product.metafields.custom.optimize_core_config | parse_json %}
+
+  <style>
+    #float-video-wrapper {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      border-radius: 8px;
+      overflow: hidden;
+      z-index: 9999;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    #popup-banner {
+      position: fixed;
+      z-index: 9999;
+      padding: 16px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      display: none;
+      max-width: 300px;
+      text-align: center;
+    }
+
+    #popup-banner.active {
+      display: block;
+    }
+
+    #popup-banner.center {
+      top: 30%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    #popup-banner.bottom-right {
+      bottom: 20px;
+      right: 20px;
+    }
+  </style>
+
+  <script>console.log("✅ App Embed Loaded", window.meta?.product);</script>
+
+  {% comment %} FLOAT VIDEO {% endcomment %}
+  {% if config.float_video.enabled and config.float_video.video_url %}
+    <div id="float-video-wrapper" style="width: {{ config.float_video.width | default: 320 }}px">
+      <video
+        id="float-video"
+        width="100%"
+        {% if config.float_video.autoplay %} autoplay {% endif %}
+        muted
+        loop
+        playsinline
+        controls
+        style="display: block;"
+      >
+        <source src="{{ config.float_video.video_url | escape }}" type="video/mp4">
+      </video>
+    </div>
+    {% if config.float_video.on_click.type == "redirect" and config.float_video.on_click.url %}
+      <script>
+        document.addEventListener("DOMContentLoaded", function () {
+          const video = document.getElementById("float-video");
+          if (video) {
+            video.addEventListener("click", () => {
+              window.location.href = "{{ config.float_video.on_click.url | escape }}";
+            });
+          }
+        });
+      </script>
+    {% endif %}
+  {% endif %}
+
+  {% comment %} POPUP {% endcomment %}
+  {% if config.popup.enabled and config.popup.text %}
+    <div
+      id="popup-banner"
+      class="{{ config.popup.position | default: 'center' }}"
+      style="background: {{ config.popup.bgColor | default: '#000' }}; color: {{ config.popup.color | default: '#fff' }};">
+      {{ config.popup.text }}
+    </div>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        setTimeout(() => {
+          document.getElementById("popup-banner")?.classList.add("active");
+        }, {{ config.popup.delay | default: 3000 }});
+      });
+    </script>
+  {% endif %}
+
+  {% comment %} STICKY BAR {% endcomment %}
+  {% if config.sticky_bar.enabled %}
+    <script>
+      window.addEventListener("load", function () {
+        if (!window.meta || !window.meta.product) return;
+
+        const product = window.meta.product;
+        const variantOptions = product.variants.map(v => 
+          `<option value="${v.id}">${v.public_title}</option>`).join("");
+
+        const stickyBarHTML = `
+          <div id="sticky-bar" style="display:none;position:fixed;bottom:0;left:0;width:100%;background:#fff;padding:10px 20px;box-shadow:0 -2px 10px rgba(0,0,0,0.1);z-index:9999;display:flex;align-items:center;justify-content:space-between">
+            <div style="flex:1;margin-right:20px;">
+              <div style="font-weight:bold;font-size:16px;">\${product.title}</div>
+            </div>
+            <div style="margin-right:20px;">
+              <select id="sticky-variant-selector" style="padding:8px;border-radius:4px;">
+                \${variantOptions}
+              </select>
+            </div>
+            <div style="display:flex;gap:10px;">
+              <button onclick="addToCartSticky()" style="padding:10px 20px;background:#4a5c4a;color:white;border:none;border-radius:4px;">Add to cart</button>
+              <button onclick="buyNowSticky()" style="padding:10px 20px;background:black;color:white;border:none;border-radius:4px;">Buy now</button>
+            </div>
+          </div>
+        `;
+
+        document.body.insertAdjacentHTML("beforeend", stickyBarHTML);
+
+        window.addEventListener("scroll", () => {
+          const scrollY = window.scrollY;
+          const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+          if ((scrollY / docHeight) * 100 >= 20) {
+            document.getElementById("sticky-bar").style.display = "flex";
+          } else {
+            document.getElementById("sticky-bar").style.display = "none";
+          }
+        });
+      });
+
+      function addToCartSticky() {
+        const variantId = document.getElementById("sticky-variant-selector").value;
+        fetch("/cart/add.js", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ items: [{ id: variantId, quantity: 1 }] })
+        }).then(() => alert("Added to cart!"));
+      }
+
+      function buyNowSticky() {
+        const variantId = document.getElementById("sticky-variant-selector").value;
+        window.location.href = `/checkout?add-to-cart=${variantId}`;
+      }
+    </script>
+  {% endif %}
+{% endif %}
+
+{% schema %}
+{
+  "name": "Optimize Core Script",
+  "target": "body",
+  "enabled_on": {
+    "templates": ["product"]
+  }
+}
+{% endschema %}
