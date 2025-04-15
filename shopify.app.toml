@@ -3,7 +3,7 @@
 client_id = "2ffd238e00074de340be24c6da5d6883"
 name = "dropeaseApr"
 handle = "dropeaseapr"
-application_url = "https://attract-y-flag-tabs.trycloudflare.com"
+application_url = "https://dose-exp-attachment-hawaiian.trycloudflare.com"
 embedded = true
 
 [build]
@@ -31,9 +31,9 @@ scopes = "read_files,read_locales,read_markets,read_products,read_themes,write_f
 
 [auth]
 redirect_urls = [
-  "https://attract-y-flag-tabs.trycloudflare.com/auth/callback",
-  "https://attract-y-flag-tabs.trycloudflare.com/auth/shopify/callback",
-  "https://attract-y-flag-tabs.trycloudflare.com/api/auth/callback"
+  "https://dose-exp-attachment-hawaiian.trycloudflare.com/auth/callback",
+  "https://dose-exp-attachment-hawaiian.trycloudflare.com/auth/shopify/callback",
+  "https://dose-exp-attachment-hawaiian.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]
