@@ -157,7 +157,7 @@ CREATE TABLE `PlatformProduct` (
     `title` VARCHAR(191) NOT NULL,
     `handle` VARCHAR(191) NOT NULL,
     `descriptionHtml` LONGTEXT NULL,
-    `featuredMedia` VARCHAR(191) NULL,
+    `featuredMedia` TEXT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 
     UNIQUE INDEX `PlatformProduct_userId_platformId_key`(`userId`, `platformId`),

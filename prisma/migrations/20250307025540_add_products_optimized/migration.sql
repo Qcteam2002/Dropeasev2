@@ -3,7 +3,7 @@ CREATE TABLE `ProductsOptimized` (
     `id` BIGINT NOT NULL AUTO_INCREMENT,
     `productId` BIGINT NOT NULL,
     `optimizedTitle` VARCHAR(191) NOT NULL,
-    `optimizedDescription` VARCHAR(191) NOT NULL,
+    `optimizedDescription` LONGTEXT NOT NULL,
     `gridView` JSON NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
 

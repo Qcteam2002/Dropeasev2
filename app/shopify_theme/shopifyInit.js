@@ -11,7 +11,7 @@ export default class ShopifyInit {
     console.log(`🏪 Shop: ${this.session.shop}`);
     try {
       await this.defineMetafield();
-      await this.registerWebhooks();
+      // await this.registerWebhooks();
     console.log("✅ Finished init()");
     } catch (error) {
       console.error("❌ Error during initialization:", error);

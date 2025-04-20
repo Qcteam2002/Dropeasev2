@@ -3,7 +3,7 @@
 client_id = "2aa417f555d85d9f0d7532d9c04cfae9"
 name = "dropease_dev"
 handle = "dropease_dev"
-application_url = "https://scholar-drew-peripheral-inc.trycloudflare.com"
+application_url = "https://accompanying-circles-endangered-photographs.trycloudflare.com"
 embedded = true
 
 [build]
@@ -12,13 +12,13 @@ dev_store_url = "quanletest1.myshopify.com"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "read_themes,write_products,write_themes"
+scopes = "read_files,read_locales,read_markets,read_products,read_themes,write_files,write_products,write_themes"
 
 [auth]
 redirect_urls = [
-  "https://scholar-drew-peripheral-inc.trycloudflare.com/auth/callback",
-  "https://scholar-drew-peripheral-inc.trycloudflare.com/auth/shopify/callback",
-  "https://scholar-drew-peripheral-inc.trycloudflare.com/api/auth/callback"
+  "https://accompanying-circles-endangered-photographs.trycloudflare.com/auth/callback",
+  "https://accompanying-circles-endangered-photographs.trycloudflare.com/auth/shopify/callback",
+  "https://accompanying-circles-endangered-photographs.trycloudflare.com/api/auth/callback"
 ]
 
 [webhooks]
