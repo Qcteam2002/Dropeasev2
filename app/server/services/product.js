@@ -10,7 +10,7 @@ import { optimizeProduct } from "./optimizeProduct";
 export default class ShopifyProduct {
   constructor(session) {
     this.session = session;
-    this.limit = 25;
+    this.limit = 100;
     this.user = null;
   }
 
@@ -26,8 +26,10 @@ export default class ShopifyProduct {
     try {
       let hasNextPage = true;
       let cursor = currentCursor;
+      let totalSynced = 0;
+      const MAX_PRODUCTS = 100;
       
-      while (hasNextPage) {
+      while (hasNextPage && totalSynced < MAX_PRODUCTS) {
         console.log(`🔄 Syncing products with cursor: ${cursor}`);
         const products = await this.getProducts(this.limit, cursor);
         
@@ -55,6 +57,7 @@ export default class ShopifyProduct {
             descriptionHtml: product.descriptionHtml,
             featuredMedia: product.featuredMedia?.preview?.image?.url,
             status: "ACTIVE",
+            publishedAt: product.publishedAt,
 
             //TA Bổ sung
             // Collections
@@ -117,6 +120,14 @@ export default class ShopifyProduct {
               create: insertData,
             });
             console.log(`✅ Successfully synced product: ${product.title}`);
+            totalSynced++;
+            
+            // Nếu đã đạt giới hạn 100 sản phẩm thì dừng
+            if (totalSynced >= MAX_PRODUCTS) {
+              console.log(`✅ Reached maximum limit of ${MAX_PRODUCTS} products`);
+              hasNextPage = false;
+              break;
+            }
           } catch (error) {
             console.error(`❌ Error syncing product ${product.title}:`, error);
           }
@@ -130,7 +141,11 @@ export default class ShopifyProduct {
         }
       }
 
-      return { success: true, message: "Products synced successfully" };
+      return { 
+        success: true, 
+        message: `Successfully synced ${totalSynced} products`,
+        totalSynced 
+      };
     } catch (error) {
       console.error("❌ Error in syncProducts:", error);
       throw error;
@@ -140,18 +155,16 @@ export default class ShopifyProduct {
   async getProducts(limit, cursor = null) {
     const query = `#graphql
         query ($numProducts: Int!, $cursor: String) {
-            products(first: $numProducts, after: $cursor) {
+            products(first: $numProducts, after: $cursor, sortKey: UPDATED_AT, reverse: true, query: "status:active") {
                 edges {
                     node {
                         id
                         title
                         descriptionHtml
                         productType
-                        # onlineStoreUrl
                         status
                         publishedAt
                         handle
-                        # tags
                         collections(first: 20) {
                             nodes {
                                 id
@@ -247,10 +260,6 @@ export default class ShopifyProduct {
 
     const client = await getClients(this.session);
     const response = await client.request(query, variables);
-
-    // const {
-    //   data: { products },
-    // } = response.data;
 
     return response.data.products;
   }
