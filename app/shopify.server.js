@@ -7,7 +7,6 @@ import {
 } from "@shopify/shopify-app-remix/server";
 import { PrismaSessionStorage } from "@shopify/shopify-app-session-storage-prisma";
 import prisma from "./db.server";
-// import installedQueue from './queue'; // Import the queue
 import { firstInitQueue } from "./queues/first_init";
 import UserServices from "./server/services/user.js";
 
@@ -46,15 +45,7 @@ const shopify = shopifyApp({
       const userService = new UserServices(admin,session);
       await userService.updateUser();
 
-
       await firstInitQueue.add('first_init', { admin, session });
-      // Add the job to the queue
-      // installedQueue.add('installed',{
-      //   shop: session.shop,
-      //   accessToken: session.accessToken,
-      // });
-
-      // await Promise.all([initShopData(admin, session), installApp(prisma, admin.graphql, session)])
     },
   },
   future: {
@@ -83,5 +74,4 @@ export const addDocumentResponseHeaders = shopify.addDocumentResponseHeaders;
 export const authenticate = shopify.authenticate;
 export const unauthenticated = shopify.unauthenticated;
 export const login = shopify.login;
-export const registerWebhooks = shopify.registerWebhooks;
 export const sessionStorage = shopify.sessionStorage;

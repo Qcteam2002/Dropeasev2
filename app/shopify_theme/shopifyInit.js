@@ -11,56 +11,9 @@ export default class ShopifyInit {
     console.log(`🏪 Shop: ${this.session.shop}`);
     try {
       await this.defineMetafield();
-      // await this.registerWebhooks();
     console.log("✅ Finished init()");
     } catch (error) {
       console.error("❌ Error during initialization:", error);
-      throw error;
-    }
-  }
-
-  async registerWebhooks() {
-    console.log("🔔 Starting webhook registration...");
-    console.log(`🌐 App URL: ${process.env.SHOPIFY_APP_URL}`);
-    
-    if (!this.session || !this.session.accessToken) {
-      throw new Error("No valid session or access token found");
-    }
-    
-    try {
-      console.log("📡 Making request to register webhooks...");
-      const response = await fetch(`${process.env.SHOPIFY_APP_URL}/api/webhooks/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.session.accessToken}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to register webhooks: ${response.status} ${response.statusText}\n${errorText}`);
-      }
-
-      const responseData = await response.json();
-      console.log("📦 Response data:", JSON.stringify(responseData, null, 2));
-
-      if (!responseData.success) {
-        throw new Error(`Webhook registration failed: ${responseData.error || 'Unknown error'}`);
-      }
-
-      if (responseData.errors && responseData.errors.length > 0) {
-        console.warn("⚠️ Some webhooks failed to register:", responseData.errors);
-      }
-
-      if (responseData.registered && responseData.registered.length > 0) {
-        console.log("✅ Successfully registered webhooks:", responseData.registered);
-      }
-
-      console.log("✅ Webhook registration process completed");
-    } catch (error) {
-      console.error("❌ Error registering webhooks:", error);
-      console.error("Stack trace:", error.stack);
       throw error;
     }
   }
