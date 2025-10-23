@@ -233,7 +233,7 @@ export default function PolicyFeaturesSettings() {
     <Page fullWidth>
       <TitleBar
         title="Policy Features Block"
-        breadcrumbs={[{ content: "Widgets", onAction: () => navigate("/app/widgets") }]}
+        breadcrumbs={[{ content: "Widgets", onAction: () => navigate("/app/widget") }]}
       />
 
       <Layout>

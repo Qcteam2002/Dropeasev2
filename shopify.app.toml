@@ -3,12 +3,11 @@
 client_id = "2ffd238e00074de340be24c6da5d6883"
 name = "dropeaseApr"
 handle = "dropeaseapr"
-application_url = "https://dose-exp-attachment-hawaiian.trycloudflare.com"
+application_url = "https://rooms-eh-casinos-lexington.trycloudflare.com"
 embedded = true
 
 [build]
 automatically_update_urls_on_dev = true
-include_config_on_deploy = true
 
 [webhooks]
 api_version = "2024-01"
@@ -25,15 +24,19 @@ api_version = "2024-01"
   topics = [ "products/delete" ]
   uri = "/api/webhooks/products"
 
+  [[webhooks.subscriptions]]
+  topics = [ "themes/publish" ]
+  uri = "/api/webhooks/themes"
+
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
 scopes = "read_files,read_locales,read_markets,read_products,read_themes,write_files,write_products,write_themes"
 
 [auth]
 redirect_urls = [
-  "https://dose-exp-attachment-hawaiian.trycloudflare.com/auth/callback",
-  "https://dose-exp-attachment-hawaiian.trycloudflare.com/auth/shopify/callback",
-  "https://dose-exp-attachment-hawaiian.trycloudflare.com/api/auth/callback"
+  "https://rooms-eh-casinos-lexington.trycloudflare.com/auth/callback",
+  "https://rooms-eh-casinos-lexington.trycloudflare.com/auth/shopify/callback",
+  "https://rooms-eh-casinos-lexington.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]

@@ -23,10 +23,13 @@ export default function App() {
         <Link to="/app" rel="home">
           Home
         </Link>
-        <Link to="/app/additional">Additional page</Link>
+        {/* Hidden menu items - not needed currently */}
+        {/* <Link to="/app/products">Products</Link> */}
+        {/* <Link to="/app/additional">Additional page</Link> */}
+        {/* <Link to="/app/find-product">Find Product</Link> */}
+        {/* <Link to="/app/widget">Widget Product</Link> */}
         <Link to="/app/productlst">Product page</Link>
-        <Link to="/app/find-product">Find Product</Link>
-        <Link to="/app/widget">Widget Product</Link>
+        <Link to="/app/pricing">Pricing & Plan</Link>
       </NavMenu>
       <Outlet />
     </AppProvider>

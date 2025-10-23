@@ -1,0 +1,77 @@
+<div id="gridview-test-{{ section.id }}" class="gridview-test-container">
+  <h3>Feature Highlights Test</h3>
+  <p>Loading content...</p>
+</div>
+
+<script>
+(function() {
+  const container = document.getElementById('gridview-test-{{ section.id }}');
+  if (!container) return;
+  
+  console.log('🧪 GridView Test Block loaded');
+  
+  // Test 1: Try to load test script
+  const testScript = document.createElement('script');
+  testScript.src = '{{ shop.url }}/apps/easyd-2/widgets/test.js';
+  testScript.onload = () => {
+    console.log('✅ Test script loaded successfully');
+  };
+  testScript.onerror = () => {
+    console.error('❌ Test script failed to load');
+    // Try fallback URL
+    const fallbackScript = document.createElement('script');
+    fallbackScript.src = 'https://buys-exciting-husband-dans.trycloudflare.com/widgets/test.js';
+    fallbackScript.onload = () => {
+      console.log('✅ Fallback test script loaded');
+    };
+    fallbackScript.onerror = () => {
+      console.error('❌ Fallback test script also failed');
+    };
+    document.head.appendChild(fallbackScript);
+  };
+  document.head.appendChild(testScript);
+  
+  // Test 2: Try to fetch content directly
+  setTimeout(() => {
+    fetch('{{ shop.url }}/apps/easyd-2/api/highlights/content')
+      .then(response => response.json())
+      .then(data => {
+        console.log('✅ Direct API call successful:', data);
+        if (data.content) {
+          container.innerHTML = `
+            <h3>Feature Highlights</h3>
+            <div style="display: grid; gap: 20px;">
+              ${data.content.map(item => `
+                <div style="border: 1px solid #ddd; padding: 15px; border-radius: 8px;">
+                  <h4>${item.title}</h4>
+                  <p>${item.description}</p>
+                  <span style="font-size: 24px;">${item.icon}</span>
+                </div>
+              `).join('')}
+            </div>
+          `;
+        } else {
+          container.innerHTML = '<p>No content found in metafields</p>';
+        }
+      })
+      .catch(error => {
+        console.error('❌ Direct API call failed:', error);
+        container.innerHTML = '<p>Failed to load content</p>';
+      });
+  }, 1000);
+})();
+</script>
+
+{% schema %}
+{
+  "name": "GridView Test Block",
+  "target": "section",
+  "settings": []
+}
+{% endschema %}
+
+
+
+
+
+

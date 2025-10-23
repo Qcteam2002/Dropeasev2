@@ -213,7 +213,7 @@ export default function FloatVideoSettings() {
     <Page fullWidth>
       <TitleBar
         title="Float Video Block"
-        breadcrumbs={[{ content: "Widgets", onAction: () => navigate("/app/widgets") }]}
+        breadcrumbs={[{ content: "Widgets", onAction: () => navigate("/app/widget") }]}
       />
 
       <Layout>

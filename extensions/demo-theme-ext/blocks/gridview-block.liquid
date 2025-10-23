@@ -1,106 +1,51 @@
-<div class="grid-view-section" style="max-width: 1470px; margin: 0 auto; padding: 50px 15px;">
-  {% assign grid_items = product.metafields.gridview.configuration.value | parse_json %}
-  
-  {% assign should_display = false %}
-  {% if request.design_mode %}
-    {% assign should_display = true %}
-  {% else %}
-    {% if grid_items and grid_items.size > 0 %}
-      {% assign should_display = true %}
-    {% endif %}
-  {% endif %}
-
-  {% if should_display %}
-    <div class="grid-view">
-      {% if request.design_mode %}
-        <!-- Default data for Theme Editor with 3 grid items -->
-        {% assign demo_image = 'https://cdn.shopify.com/s/files/1/0533/2089/files/placeholder-images-image_large.png' %}
-        
-        <!-- Grid Item 1 -->
-        <div class="product-grid-item" style="display: flex; flex-wrap: wrap; gap: 40px; align-items: center; margin-bottom: 40px; flex-direction: row;">
-          <div class="grid-item-image" style="flex: 1; min-width: 250px;">
-            <img src="{{ demo_image }}" alt="Sample Feature 1" style="width: 100%; height: auto; border-radius: 10px; object-fit: cover;">
-          </div>
-          <div class="grid-item-text" style="flex: 1; padding: 20px; min-width: 250px;">
-            <h3 style="font-size: 24px; font-weight: bold; margin-bottom: 15px;">Sample Feature 1</h3>
-            <p style="font-size: 16px; line-height: 1.6; color: #555; margin-bottom: 20px;">This is a sample description for the first grid item to preview in the Theme Editor.</p>
-          </div>
-        </div>
-
-        <!-- Grid Item 2 -->
-        <div class="product-grid-item" style="display: flex; flex-wrap: wrap; gap: 40px; align-items: center; margin-bottom: 40px; flex-direction: row-reverse;">
-          <div class="grid-item-image" style="flex: 1; min-width: 250px;">
-            <img src="{{ demo_image }}" alt="Sample Feature 2" style="width: 100%; height: auto; border-radius: 10px; object-fit: cover;">
-          </div>
-          <div class="grid-item-text" style="flex: 1; padding: 20px; min-width: 250px;">
-            <h3 style="font-size: 24px; font-weight: bold; margin-bottom: 15px;">Sample Feature 2</h3>
-            <p style="font-size: 16px; line-height: 1.6; color: #555; margin-bottom: 20px;">This is a sample description for the second grid item to preview in the Theme Editor.</p>
-          </div>
-        </div>
-
-        <!-- Grid Item 3 -->
-        <div class="product-grid-item" style="display: flex; flex-wrap: wrap; gap: 40px; align-items: center; margin-bottom: 40px; flex-direction: row;">
-          <div class="grid-item-image" style="flex: 1; min-width: 250px;">
-            <img src="{{ demo_image }}" alt="Sample Feature 3" style="width: 100%; height: auto; border-radius: 10px; object-fit: cover;">
-          </div>
-          <div class="grid-item-text" style="flex: 1; padding: 20px; min-width: 250px;">
-            <h3 style="font-size: 24px; font-weight: bold; margin-bottom: 15px;">Sample Feature 3</h3>
-            <p style="font-size: 16px; line-height: 1.6; color: #555; margin-bottom: 20px;">This is a sample description for the third grid item to preview in the Theme Editor.</p>
-          </div>
-        </div>
-      {% else %}
-        <!-- Real data for Storefront -->
-        {% for item in grid_items limit: 5 %}
-          {% assign is_odd = forloop.index | modulo: 2 %}
-          <div class="product-grid-item" style="display: flex; flex-wrap: wrap; gap: 40px; align-items: center; margin-bottom: 40px; {% if is_odd == 1 %}flex-direction: row;{% else %}flex-direction: row-reverse;{% endif %}">
-            <div class="grid-item-image" style="flex: 1; min-width: 250px;">
-              {% if item.image %}
-                <img src="{{ item.image }}" alt="{{ item.title }}" style="width: 100%; height: auto; border-radius: 10px; object-fit: cover;">
-              {% else %}
-                <img src="{{ 'no-image.png' | asset_url }}" alt="No image available" style="width: 100%; height: auto; border-radius: 10px; object-fit: cover;">
-              {% endif %}
-            </div>
-            <div class="grid-item-text" style="flex: 1; padding: 20px; min-width: 250px;">
-              <h3 style="font-size: 24px; font-weight: bold; margin-bottom: 15px;">{{ item.title }}</h3>
-              <p style="font-size: 16px; line-height: 1.6; color: #555; margin-bottom: 20px;">{{ item.description }}</p>
-            </div>
-          </div>
-        {% endfor %}
-      {% endif %}
-    </div>
-  {% endif %}
-
-  <style>
-    @media (max-width: 768px) {
-      .product-grid-item {
-        flex-direction: column !important; /* Stack image and text on mobile */
-        text-align: center;
-      }
-      .grid-item-image, .grid-item-text {
-        width: 100% !important;
-        max-width: 100% !important; /* Full width on mobile */
-        padding: 10px;
-      }
-      .grid-item-text h3 {
-        font-size: 20px; /* Smaller heading on mobile */
-      }
-      .grid-item-text p {
-        font-size: 14px; /* Smaller text on mobile */
-      }
-    }
-  </style>
-
-  {% schema %}
-  {
-    "name": "Grid View Block",
-    "target": "section",
-    "settings": [
-      {
-        "type": "product",
-        "id": "product",
-        "label": "Select Product"
-      }
-    ]
-  }
-  {% endschema %}
+<div id="gridview-widget-{{ section.id }}" class="gridview-container" data-app-id="{{ app.id }}" data-shop="{{ shop.permanent_domain }}">
+  <!-- Content will be loaded dynamically from app -->
 </div>
+
+<script>
+(function() {
+  const container = document.getElementById('gridview-widget-{{ section.id }}');
+  if (!container) return;
+  
+  const appId = container.dataset.appId;
+  const shop = container.dataset.shop;
+  
+  // Load widget from app
+  const script = document.createElement('script');
+  script.src = `{{ shop.url }}/apps/easyd-2/widgets/gridview.js?shop=${shop}&app=${appId}&section={{ section.id }}`;
+  script.async = true;
+  script.onload = () => {
+    console.log('🎉 GridView widget script loaded successfully');
+  };
+  script.onerror = (error) => {
+    console.error('❌ Failed to load GridView widget script:', error);
+    console.error('❌ Script URL:', script.src);
+    // Fallback: try to load from different URL
+    const fallbackScript = document.createElement('script');
+    fallbackScript.src = `https://buys-exciting-husband-dans.trycloudflare.com/widgets/gridview.js?shop=${shop}&app=${appId}&section={{ section.id }}`;
+    fallbackScript.async = true;
+    fallbackScript.onload = () => {
+      console.log('🎉 GridView widget script loaded from fallback URL');
+    };
+    fallbackScript.onerror = () => {
+      console.error('❌ Fallback script also failed to load');
+    };
+    document.head.appendChild(fallbackScript);
+  };
+  document.head.appendChild(script);
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Grid View Block",
+  "target": "section",
+  "settings": [
+    {
+      "type": "product",
+      "id": "product",
+      "label": "Select Product"
+    }
+  ]
+}
+{% endschema %}

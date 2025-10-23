@@ -1,0 +1,961 @@
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import {
+  Card,
+  TextField,
+  Select,
+  Button,
+  BlockStack,
+  Text,
+  Box,
+  InlineStack,
+  ChoiceList,
+  Divider,
+  Spinner,
+  Tag,
+  Listbox,
+  Combobox,
+  Icon,
+  TextContainer,
+  LegacyStack,
+  AutoSelection,
+  Tooltip,
+  Toast,
+  Badge,
+} from '@shopify/polaris';
+import { SearchIcon } from '@shopify/polaris-icons';
+import { useFetcher } from '@remix-run/react';
+
+const OptimizationSettings = ({ 
+  settings, 
+  onSettingsChange, 
+  onSaveSettings,
+  product // Add product prop for API calls
+}) => {
+  const [localSettings, setLocalSettings] = useState({
+    targetMarket: 'vi',
+    languageOutput: 'vi-VN',
+    keywords: [],
+    persona: '',
+    painpoints: [],
+    tone: 'friendly',
+    optimizationType: 'keyword',
+    ...settings
+  });
+
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoadingInsights, setIsLoadingInsights] = useState(false);
+  const [availableKeywords, setAvailableKeywords] = useState([]);
+  const [availablePersonas, setAvailablePersonas] = useState([]);
+  const [availablePainpoints, setAvailablePainpoints] = useState([]);
+  const [toast, setToast] = useState({ active: false, message: "" });
+
+  const fetcher = useFetcher();
+  
+  // Search states for comboboxes
+  const [keywordInputValue, setKeywordInputValue] = useState('');
+  const [painpointInputValue, setPainpointInputValue] = useState('');
+
+  // Default options
+  const defaultKeywords = [
+    'wireless', 'bluetooth', 'premium', 'durable', 'portable', 'innovative', 'sustainable', 'affordable', 'luxury', 'compact', 'professional', 'stylish', 'comfortable', 'reliable', 'versatile',
+  ];
+
+  const defaultPersonas = [
+    'Tech Enthusiast', 'Busy Professional', 'Fashion Forward', 'Budget Conscious', 'Quality Seeker', 'Early Adopter', 'Minimalist', 'Luxury Buyer', 'Family Oriented', 'Health Conscious',
+  ];
+
+  const defaultPainpoints = [
+    'Poor Quality', 'High Price', 'Difficult to Use', 'Not Durable', 'Poor Customer Service', 'Slow Delivery', 'Limited Options', 'Outdated Design', 'Compatibility Issues', 'Lack of Support',
+  ];
+
+  // Keywords options - Only use API data, never show default data
+  const keywordOptions = useMemo(() => {
+    if (availableKeywords.length > 0) {
+      return availableKeywords.map(keyword => {
+        if (typeof keyword === 'string') {
+          return { value: keyword, label: keyword };
+        } else if (keyword.keyword) {
+          return { 
+            value: keyword.keyword, 
+            label: keyword.keyword,
+            metrics: keyword.metrics,
+            type: keyword.type || 'informational' // Default type
+          };
+        }
+        return { value: keyword, label: keyword };
+      });
+    }
+    return []; // Return empty array instead of default data
+  }, [availableKeywords]);
+
+  // Personas options - Show default data if no API data, otherwise show API data
+  const personaOptions = useMemo(() => {
+    console.log('personaOptions useMemo - availablePersonas:', availablePersonas.length, availablePersonas);
+    
+    if (availablePersonas.length > 0) {
+      console.log('Using API personas:', availablePersonas);
+      return availablePersonas.map(persona => {
+        if (typeof persona === 'string') {
+          return { value: persona, label: persona };
+        } else if (persona.name) {
+          return { 
+            value: persona.name, 
+            label: persona.name
+          };
+        }
+        return { value: persona, label: persona };
+      });
+    }
+    
+    console.log('No API personas available, using default personas');
+    return defaultPersonas.map(persona => ({ value: persona, label: persona }));
+  }, [availablePersonas]);
+
+  // Painpoints options - Only use API data, never show default data
+  const painpointOptions = useMemo(() => {
+    if (availablePainpoints.length > 0) {
+      return availablePainpoints.map(painpoint => ({ value: painpoint, label: painpoint }));
+    }
+    return []; // Return empty array instead of default data
+  }, [availablePainpoints]);
+
+  // Load settings from localStorage on mount
+  useEffect(() => {
+    const savedSettings = localStorage.getItem('seo-optimization-settings');
+    if (savedSettings) {
+      const parsed = JSON.parse(savedSettings);
+      setLocalSettings(prev => ({ ...prev, ...parsed }));
+      onSettingsChange({ ...localSettings, ...parsed });
+    }
+  }, []);
+
+  // Clear settings when product changes (except for global settings like targetMarket, languageOutput, tone)
+  useEffect(() => {
+    if (product?.id) {
+      console.log('=== CLEARING SETTINGS FOR NEW PRODUCT ===');
+      console.log('Product ID:', product.id);
+      console.log('Previous settings:', localSettings);
+      
+      const clearedSettings = {
+        keywords: [],
+        persona: '',
+        painpoints: [],
+        // Keep global settings
+        targetMarket: localSettings.targetMarket,
+        languageOutput: localSettings.languageOutput,
+        tone: localSettings.tone,
+        optimizationType: localSettings.optimizationType
+      };
+      
+      setLocalSettings(clearedSettings);
+      onSettingsChange(clearedSettings);
+      
+      console.log('Settings cleared for product:', product.id);
+      console.log('New settings:', clearedSettings);
+    }
+  }, [product?.id]);
+
+  // Load market insights data for this product
+  useEffect(() => {
+    console.log('=== LOADING MARKET INSIGHTS ===');
+    console.log('Product object:', product);
+    console.log('Product ID:', product?.id);
+    console.log('Product platformId:', product?.platformId);
+    
+    // Clear previous data when product changes
+    setAvailableKeywords([]);
+    setAvailablePersonas([]);
+    setAvailablePainpoints([]);
+    
+    if (product?.id) {
+      const productId = product.id;
+      const platformId = product.platformId;
+      
+      // Try both productId and platformId as keys
+      const savedInsightsById = localStorage.getItem(`market-insights-${productId}`);
+      const savedInsightsByPlatformId = platformId ? localStorage.getItem(`market-insights-${platformId}`) : null;
+      
+      console.log('Loading market insights for product:', productId, 'savedInsightsById exists:', !!savedInsightsById);
+      console.log('Loading market insights for platformId:', platformId, 'savedInsightsByPlatformId exists:', !!savedInsightsByPlatformId);
+      
+      // Debug: Check all localStorage keys
+      const allKeys = Object.keys(localStorage).filter(key => key.includes('market-insights'));
+      console.log('All localStorage keys with market-insights:', allKeys);
+      
+      // Use whichever key has data
+      const savedInsights = savedInsightsById || savedInsightsByPlatformId;
+      const usedKey = savedInsightsById ? `market-insights-${productId}` : `market-insights-${platformId}`;
+      
+      if (savedInsights) {
+        try {
+          const insightsData = JSON.parse(savedInsights);
+          
+          console.log('Parsed insights data from key:', usedKey, insightsData);
+          console.log('Personas in localStorage:', insightsData.personas);
+          
+          // Check if data is not too old (24 hours)
+          const isDataFresh = Date.now() - insightsData.timestamp < 24 * 60 * 60 * 1000;
+          
+          console.log('Data freshness check:', { isDataFresh, timestamp: insightsData.timestamp, now: Date.now() });
+          
+                if (isDataFresh && (insightsData.keywords?.length > 0 || insightsData.personas?.length > 0 || insightsData.painpoints?.length > 0)) {
+                  console.log('Setting available data from cache:', {
+                    keywords: insightsData.keywords?.length || 0,
+                    personas: insightsData.personas?.length || 0,
+                    painpoints: insightsData.painpoints?.length || 0
+                  });
+                  
+                  // Process keywords with metrics if available
+                  const processedKeywords = insightsData.keywords?.map(keyword => {
+                    if (typeof keyword === 'string') {
+                      return keyword;
+                    } else if (keyword.keyword) {
+                      return {
+                        keyword: keyword.keyword,
+                        metrics: keyword.metrics ? {
+                          volume: keyword.metrics.volume,
+                          cpc: keyword.metrics.cpc,
+                          competition: keyword.metrics.competition
+                        } : undefined
+                      };
+                    }
+                    return keyword;
+                  }) || [];
+                  
+                  setAvailableKeywords(processedKeywords);
+                  setAvailablePersonas(insightsData.personas || []);
+                  setAvailablePainpoints(insightsData.painpoints || []);
+                  
+                  console.log('✅ Data loaded successfully from localStorage');
+                } else {
+                  console.log('❌ Data not fresh or empty, not loading from cache');
+                }
+        } catch (error) {
+          console.error('❌ Error loading cached market insights:', error);
+        }
+      } else {
+        console.log('❌ No saved insights found for product:', productId, 'or platformId:', platformId);
+        
+        // Clear data when no insights found for this product
+        setAvailableKeywords([]);
+        setAvailablePersonas([]);
+        setAvailablePainpoints([]);
+        
+        // Debug: Show what's actually in localStorage
+        console.log('Available localStorage keys:', Object.keys(localStorage));
+      }
+    } else {
+      console.log('❌ No product ID available');
+      
+      // Clear data when no product
+      setAvailableKeywords([]);
+      setAvailablePersonas([]);
+      setAvailablePainpoints([]);
+    }
+    console.log('=== END LOADING MARKET INSIGHTS ===');
+  }, [product?.id, product?.platformId]);
+
+
+  // Update parent when settings change
+  useEffect(() => {
+    onSettingsChange(localSettings);
+  }, [localSettings]);
+
+  const handleFieldChange = (field, value) => {
+    setLocalSettings(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+
+  // Keywords combobox helpers
+  const escapeSpecialRegExCharacters = useCallback(
+    (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+    [],
+  );
+
+  const updateKeywordText = useCallback(
+    (value) => {
+      setKeywordInputValue(value);
+    },
+    [],
+  );
+
+  const updateKeywordSelection = useCallback(
+    (selected) => {
+      if (localSettings.keywords.includes(selected)) {
+        setLocalSettings(prev => ({
+          ...prev,
+          keywords: prev.keywords.filter((option) => option !== selected),
+        }));
+      } else {
+        setLocalSettings(prev => ({
+          ...prev,
+          keywords: [...prev.keywords, selected],
+        }));
+      }
+      setKeywordInputValue('');
+    },
+    [localSettings.keywords],
+  );
+
+  const removeKeywordTag = useCallback(
+    (tag) => () => {
+      setLocalSettings(prev => ({
+        ...prev,
+        keywords: prev.keywords.filter((option) => option !== tag),
+      }));
+    },
+    [],
+  );
+
+  // Painpoints combobox helpers
+  const updatePainpointText = useCallback(
+    (value) => {
+      setPainpointInputValue(value);
+    },
+    [],
+  );
+
+  const updatePainpointSelection = useCallback(
+    (selected) => {
+      if (localSettings.painpoints.includes(selected)) {
+        setLocalSettings(prev => ({
+          ...prev,
+          painpoints: prev.painpoints.filter((option) => option !== selected),
+        }));
+      } else {
+        setLocalSettings(prev => ({
+          ...prev,
+          painpoints: [...prev.painpoints, selected],
+        }));
+      }
+      setPainpointInputValue('');
+    },
+    [localSettings.painpoints],
+  );
+
+  const removePainpointTag = useCallback(
+    (tag) => () => {
+      setLocalSettings(prev => ({
+        ...prev,
+        painpoints: prev.painpoints.filter((option) => option !== tag),
+      }));
+    },
+    [],
+  );
+
+  // Filtered options for keywords
+  const filteredKeywordOptions = useMemo(() => {
+    if (keywordInputValue === '') {
+      return keywordOptions;
+    }
+    const filterRegex = new RegExp(escapeSpecialRegExCharacters(keywordInputValue), 'i');
+    return keywordOptions.filter((option) => option.label.match(filterRegex));
+  }, [keywordOptions, keywordInputValue, escapeSpecialRegExCharacters]);
+
+  // Filtered options for painpoints
+  const filteredPainpointOptions = useMemo(() => {
+    if (painpointInputValue === '') {
+      return painpointOptions;
+    }
+    const filterRegex = new RegExp(escapeSpecialRegExCharacters(painpointInputValue), 'i');
+    return painpointOptions.filter((option) => option.label.match(filterRegex));
+  }, [painpointOptions, painpointInputValue, escapeSpecialRegExCharacters]);
+
+  const handleGetMarketInsights = async () => {
+    if (!product) {
+      setToast({ active: true, message: "Product information required for market insights" });
+      return;
+    }
+
+    setIsLoadingInsights(true);
+    
+    const formData = new FormData();
+    formData.append("productTitle", product.title);
+    formData.append("productDescription", product.descriptionHtml || product.description || "");
+    formData.append("productId", product.id);
+    
+    // Add target market and language from current settings
+    if (localSettings.targetMarket) {
+      formData.append("targetMarket", localSettings.targetMarket);
+    }
+    if (localSettings.languageOutput) {
+      formData.append("languageOutput", localSettings.languageOutput);
+    }
+
+    fetcher.submit(formData, { 
+      method: "post", 
+      action: "/api/market-insights" 
+    });
+  };
+
+  // Handle fetcher response
+  useEffect(() => {
+    if (fetcher.data) {
+      console.log('Fetcher response received:', fetcher.data);
+      
+      if (fetcher.data.success) {
+        const { keywords, personas, painpoints } = fetcher.data.data || fetcher.data;
+        
+        console.log('API data received:', { 
+          keywords: keywords?.length || 0, 
+          personas: personas?.length || 0, 
+          painpoints: painpoints?.length || 0 
+        });
+        
+        // Process keywords with metrics if available
+        const processedKeywords = keywords?.map(keyword => {
+          if (typeof keyword === 'string') {
+            return keyword;
+          } else if (keyword.keyword) {
+            return {
+              keyword: keyword.keyword,
+              type: keyword.type, // Keep the type from API
+              metrics: keyword.metrics ? {
+                volume: keyword.metrics.volume,
+                cpc: keyword.metrics.cpc,
+                competition: keyword.metrics.competition
+              } : undefined
+            };
+          }
+          return keyword;
+        }) || [];
+        
+        // Debug: Log processed keywords with types
+        console.log('Processed keywords sample:', processedKeywords.slice(0, 3));
+        console.log('Keywords by type:', {
+          informational: processedKeywords.filter(k => k.type === 'informational').length,
+          transactional: processedKeywords.filter(k => k.type === 'transactional').length,
+          comparative: processedKeywords.filter(k => k.type === 'comparative').length,
+          painpoint_related: processedKeywords.filter(k => k.type === 'painpoint_related').length
+        });
+        
+        // Save to localStorage with product-specific key
+        const productId = product?.id || 'default';
+        const insightsData = {
+          keywords: processedKeywords,
+          personas: personas || [],
+          painpoints: painpoints || [],
+          timestamp: Date.now()
+        };
+        
+        localStorage.setItem(`market-insights-${productId}`, JSON.stringify(insightsData));
+        console.log('Saved insights data to localStorage for product:', productId);
+        
+        setAvailableKeywords(processedKeywords);
+        setAvailablePersonas(personas || []);
+        setAvailablePainpoints(painpoints || []);
+        
+        console.log('Set available data in state:', {
+          keywords: processedKeywords.length,
+          personas: (personas || []).length,
+          painpoints: (painpoints || []).length
+        });
+        
+        setToast({ active: true, message: "Market insights loaded successfully!" });
+      } else {
+        console.error('API error:', fetcher.data.error);
+        setToast({ active: true, message: fetcher.data.error || "Failed to get market insights" });
+      }
+      setIsLoadingInsights(false);
+    }
+  }, [fetcher.data, product?.id]);
+
+  const handleGetKeywordInsights = async () => {
+    setIsLoadingInsights(true);
+    try {
+      // TODO: Replace with actual API call
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      setAvailableKeywords([
+        'elegant jewelry',
+        'pearl necklace',
+        'timeless beauty',
+        'classic design',
+        'sophisticated style',
+        'gift for women',
+        'special occasions',
+        'traditional elegance'
+      ]);
+    } catch (error) {
+      console.error('Error fetching keyword insights:', error);
+    } finally {
+      setIsLoadingInsights(false);
+    }
+  };
+
+  const handleGetPersonaInsights = async () => {
+    setIsLoadingInsights(true);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      setAvailablePersonas([
+        'Jewelry Collector',
+        'Fashion Enthusiast',
+        'Gift Buyer',
+        'Luxury Shopper',
+        'Traditional Style Lover'
+      ]);
+    } catch (error) {
+      console.error('Error fetching persona insights:', error);
+    } finally {
+      setIsLoadingInsights(false);
+    }
+  };
+
+  const handleGetPainpointInsights = async () => {
+    setIsLoadingInsights(true);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      setAvailablePainpoints([
+        'Jewelry tarnishes quickly',
+        'Poor craftsmanship',
+        'Not suitable for daily wear',
+        'Overpriced for quality',
+        'Limited style options'
+      ]);
+    } catch (error) {
+      console.error('Error fetching painpoint insights:', error);
+    } finally {
+      setIsLoadingInsights(false);
+    }
+  };
+
+  const handleSaveSettings = async () => {
+    setIsSaving(true);
+    try {
+      // Save to localStorage
+      localStorage.setItem('seo-optimization-settings', JSON.stringify(localSettings));
+      
+      // Call parent save function if provided
+      if (onSaveSettings) {
+        await onSaveSettings(localSettings);
+      }
+    } catch (error) {
+      console.error('Error saving settings:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const targetMarketOptions = [
+    { label: '🇻🇳 Vietnam', value: 'vi' },
+    { label: '🇺🇸 United States', value: 'us' },
+    { label: '🇮🇩 Indonesia', value: 'id' },
+    { label: '🇹🇭 Thailand', value: 'th' },
+    { label: '🇲🇾 Malaysia', value: 'my' },
+    { label: '🇵🇭 Philippines', value: 'ph' },
+    { label: '🇸🇬 Singapore', value: 'sg' },
+    { label: '🇯🇵 Japan', value: 'jp' },
+    { label: '🇰🇷 South Korea', value: 'kr' },
+    { label: '🇦🇺 Australia', value: 'au' },
+  ];
+
+  const languageOutputOptions = [
+    { label: '🇺🇸 English (US)', value: 'en-US' },
+    { label: '🇬🇧 English (UK)', value: 'en-GB' },
+    { label: '🇻🇳 Tiếng Việt', value: 'vi-VN' },
+    { label: '🇩🇪 Deutsch', value: 'de-DE' },
+    { label: '🇫🇷 Français', value: 'fr-FR' },
+    { label: '🇪🇸 Español', value: 'es-ES' },
+    { label: '🇮🇹 Italiano', value: 'it-IT' },
+    { label: '🇯🇵 日本語', value: 'ja-JP' },
+    { label: '🇰🇷 한국어', value: 'ko-KR' },
+    { label: '🇨🇳 中文', value: 'zh-CN' },
+  ];
+
+  const optimizationTypeOptions = [
+    { label: 'Keyword SEO', value: 'keyword' },
+    { label: 'PAS Model', value: 'pas' },
+    { label: 'AIDA Model', value: 'aida' },
+    { label: 'Professional E-commerce', value: 'professional' },
+  ];
+
+  const toneOptions = [
+    { label: 'Friendly & Casual', value: 'friendly' },
+    { label: 'Professional', value: 'professional' },
+    { label: 'Luxury & Premium', value: 'luxury' },
+    { label: 'Minimal & Clean', value: 'minimal' },
+    { label: 'Technical & Expert', value: 'technical' },
+    { label: 'Playful & Fun', value: 'playful' },
+  ];
+
+
+  return (
+    <Card>
+      <Box padding="400">
+        <BlockStack gap="400">
+          <Text variant="headingMd" as="h2">
+            Optimization Settings
+          </Text>
+          
+          <Text variant="bodyMd" color="subdued">
+            Configure your optimization preferences. These settings will be used to generate AI-powered suggestions.
+          </Text>
+
+          {/* Get Market Insights Button */}
+          <BlockStack gap="200">
+            <Button
+              primary
+              onClick={handleGetMarketInsights}
+              loading={isLoadingInsights || fetcher.state === "submitting"}
+              size="slim"
+              fullWidth
+            >
+              {isLoadingInsights || fetcher.state === "submitting" ? 'Getting Insights...' : 'Get Market Insights'}
+            </Button>
+            
+            {/* Test button - remove in production */}
+            <Button
+              secondary
+              onClick={() => {
+                const mockPersonas = [
+                  {
+                    name: "Thế hệ Z (Gen Z) & Sinh viên cá tính",
+                    description: "18-24 | Các thành phố lớn có nhiều trường đại học (Hà Nội, TP.HCM, Cần Thơ), Các khu vực tập trung giới trẻ và văn hóa đường phố"
+                  },
+                  {
+                    name: "Người trẻ làm việc tự do & Sáng tạo (Freelancer, Content Creator)",
+                    description: "25-30 | TP.HCM (Quận 1, 3, Bình Thạnh), Hà Nội (Quận Đống Đa, Hai Bà Trưng)"
+                  },
+                  {
+                    name: "Tín đồ thời trang Streetwear & Hiphop",
+                    description: "16-35 | Cộng đồng Hiphop, Skateboarding, Dance tại các thành phố lớn, Khách hàng thường xuyên mua sắm online trên sàn TMĐT"
+                  }
+                ];
+                
+                setAvailablePersonas(mockPersonas);
+                setToast({ active: true, message: "Mock personas loaded for testing!" });
+              }}
+              size="slim"
+              fullWidth
+              style={{ marginTop: '8px' }}
+            >
+              Load Mock Personas (Test)
+            </Button>
+            
+            {/* Show indicator if we have API data */}
+            {availableKeywords.length > 0 && (
+              <InlineStack align="center" gap="100">
+                <Badge status="success">✓ AI Insights Loaded</Badge>
+                <Text variant="bodySm" color="subdued">
+                  {availableKeywords.length} keywords, {availablePersonas.length} personas, {availablePainpoints.length} pain points
+                </Text>
+              </InlineStack>
+            )}
+          </BlockStack>
+
+          <Divider />
+
+          {/* Target Market - First */}
+          <Tooltip content="Select your primary target market for optimization">
+            <Select
+              label="Target Market"
+              options={targetMarketOptions}
+              value={localSettings.targetMarket}
+              onChange={(value) => handleFieldChange('targetMarket', value)}
+            />
+          </Tooltip>
+
+          {/* Language Output */}
+          <Tooltip content="Language for generated content">
+            <Select
+              label="Language Output"
+              options={languageOutputOptions}
+              value={localSettings.languageOutput}
+              onChange={(value) => handleFieldChange('languageOutput', value)}
+            />
+          </Tooltip>
+
+          {/* Keywords Section */}
+          <div>
+            <Text variant="bodyMd" as="label">
+              Keywords
+            </Text>
+            <Box paddingBlockStart="200">
+              <Combobox
+                allowMultiple
+                activator={
+                  <Combobox.TextField
+                    prefix={<Icon source={SearchIcon} />}
+                    onChange={updateKeywordText}
+                    label="Keywords"
+                    labelHidden
+                    value={keywordInputValue}
+                    placeholder="Search or add keywords"
+                    autoComplete="off"
+                  />
+                }
+              >
+                {filteredKeywordOptions.length > 0 ? (
+                  <Listbox
+                    autoSelection={AutoSelection.None}
+                    onSelect={updateKeywordSelection}
+                  >
+                    {filteredKeywordOptions.map((option) => {
+                      const { label, value, metrics, type } = option;
+                      
+                      // Get badge color and text based on type
+                      const getTypeBadge = (type) => {
+                        const typeMap = {
+                          'informational': { color: '#10B981', text: 'Info' },
+                          'comparative': { color: '#3B82F6', text: 'Compare' },
+                          'transactional': { color: '#F59E0B', text: 'Buy' },
+                          'painpoint_related': { color: '#EF4444', text: 'Pain' }
+                        };
+                        return typeMap[type] || { color: '#6B7280', text: 'Info' };
+                      };
+                      
+                      const badge = getTypeBadge(type);
+                      
+                      return (
+                        <Listbox.Option
+                          key={`${value}`}
+                          value={value}
+                          selected={localSettings.keywords.includes(value)}
+                          accessibilityLabel={label}
+                        >
+                          <div style={{ 
+                            display: 'flex', 
+                            flexDirection: 'column', 
+                            width: '100%', 
+                            padding: '12px 16px',
+                            borderBottom: '1px solid #f0f0f0'
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
+                              <input 
+                                type="checkbox" 
+                                checked={localSettings.keywords.includes(value)}
+                                onChange={() => {}} // Handled by onSelect
+                                style={{ margin: 0, flexShrink: 0, transform: 'scale(1.1)' }}
+                              />
+                              <span style={{ flex: 1, fontSize: '14px', fontWeight: '500' }}>{label}</span>
+                              <span style={{
+                                fontSize: '10px',
+                                fontWeight: '600',
+                                color: 'white',
+                                backgroundColor: badge.color,
+                                padding: '2px 6px',
+                                borderRadius: '10px',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.5px'
+                              }}>
+                                {badge.text}
+                              </span>
+                            </div>
+                            {metrics && (
+                              <div style={{ 
+                                fontSize: '12px', 
+                                color: '#6B7280', 
+                                marginLeft: '28px',
+                                lineHeight: '1.4',
+                                padding: '4px 8px',
+                                backgroundColor: '#f8f9fa',
+                                borderRadius: '4px',
+                                border: '1px solid #e9ecef'
+                              }}>
+                                Vol: {metrics.volume?.toLocaleString()} | 
+                                CPC: ${metrics.cpc} | 
+                                Comp: {metrics.competition}
+                              </div>
+                            )}
+                          </div>
+                        </Listbox.Option>
+                      );
+                    })}
+                  </Listbox>
+                ) : null}
+              </Combobox>
+            </Box>
+            
+            {localSettings.keywords.length > 0 && (
+              <Box paddingBlockStart="300">
+                <TextContainer>
+                  <LegacyStack>
+                    {localSettings.keywords.map((keyword) => {
+                      const keywordData = availableKeywords.find(k => 
+                        (typeof k === 'string' ? k : k.keyword) === keyword
+                      );
+                      const metrics = keywordData && typeof keywordData !== 'string' ? keywordData.metrics : null;
+                      const type = keywordData && typeof keywordData !== 'string' ? keywordData.type : 'informational';
+                      
+                      // Get badge color and text based on type
+                      const getTypeBadge = (type) => {
+                        const typeMap = {
+                          'informational': { color: '#10B981', text: 'Info' },
+                          'comparative': { color: '#3B82F6', text: 'Compare' },
+                          'transactional': { color: '#F59E0B', text: 'Buy' },
+                          'painpoint_related': { color: '#EF4444', text: 'Pain' }
+                        };
+                        return typeMap[type] || { color: '#6B7280', text: 'Info' };
+                      };
+                      
+                      const badge = getTypeBadge(type);
+                      
+                      return (
+                        <div key={`keyword-${keyword}`} style={{ 
+                          marginBottom: '12px',
+                          padding: '8px 12px',
+                          backgroundColor: '#f8f9fa',
+                          borderRadius: '8px',
+                          border: '1px solid #e9ecef'
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                            <Tag onRemove={removeKeywordTag(keyword)}>
+                              {keyword}
+                            </Tag>
+                            <span style={{
+                              fontSize: '9px',
+                              fontWeight: '600',
+                              color: 'white',
+                              backgroundColor: badge.color,
+                              padding: '2px 5px',
+                              borderRadius: '8px',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.5px'
+                            }}>
+                              {badge.text}
+                            </span>
+                          </div>
+                          {metrics && (
+                            <div style={{ 
+                              fontSize: '11px', 
+                              color: '#6B7280', 
+                              marginLeft: '4px',
+                              padding: '4px 6px',
+                              backgroundColor: '#ffffff',
+                              borderRadius: '4px',
+                              border: '1px solid #dee2e6'
+                            }}>
+                              Vol: {metrics.volume?.toLocaleString()} | 
+                              CPC: ${metrics.cpc} | 
+                              Comp: {metrics.competition}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </LegacyStack>
+                </TextContainer>
+              </Box>
+            )}
+          </div>
+
+          {/* Persona Section */}
+          <Tooltip content="Select target persona for content optimization">
+            <Select
+              label="Persona"
+              options={personaOptions}
+              value={localSettings.persona}
+              onChange={(value) => handleFieldChange('persona', value)}
+            />
+          </Tooltip>
+
+          {/* Painpoints Section */}
+          <div>
+            <Text variant="bodyMd" as="label">
+              Pain Points
+            </Text>
+            <Box paddingBlockStart="200">
+              <Combobox
+                allowMultiple
+                activator={
+                  <Combobox.TextField
+                    prefix={<Icon source={SearchIcon} />}
+                    onChange={updatePainpointText}
+                    label="Pain Points"
+                    labelHidden
+                    value={painpointInputValue}
+                    placeholder="Search or add pain points"
+                    autoComplete="off"
+                  />
+                }
+              >
+                {filteredPainpointOptions.length > 0 ? (
+                  <Listbox
+                    autoSelection={AutoSelection.None}
+                    onSelect={updatePainpointSelection}
+                  >
+                    {filteredPainpointOptions.map((option) => {
+                      const { label, value } = option;
+                      return (
+                        <Listbox.Option
+                          key={`${value}`}
+                          value={value}
+                          selected={localSettings.painpoints.includes(value)}
+                          accessibilityLabel={label}
+                        >
+                          {label}
+                        </Listbox.Option>
+                      );
+                    })}
+                  </Listbox>
+                ) : null}
+              </Combobox>
+            </Box>
+            
+            {localSettings.painpoints.length > 0 && (
+              <Box paddingBlockStart="300">
+                <TextContainer>
+                  <LegacyStack>
+                    {localSettings.painpoints.map((painpoint) => (
+                      <Tag key={`painpoint-${painpoint}`} onRemove={removePainpointTag(painpoint)}>
+                        {painpoint}
+                      </Tag>
+                    ))}
+                  </LegacyStack>
+                </TextContainer>
+              </Box>
+            )}
+          </div>
+
+          {/* Optimization Type */}
+          <Tooltip content="Choose the optimization strategy for content generation">
+            <Select
+              label="Optimization Type"
+              options={optimizationTypeOptions}
+              value={localSettings.optimizationType}
+              onChange={(value) => handleFieldChange('optimizationType', value)}
+            />
+          </Tooltip>
+
+          {/* Content Tone */}
+          <Tooltip content="Choose the tone for generated content">
+            <Select
+              label="Content Tone"
+              options={toneOptions}
+              value={localSettings.tone}
+              onChange={(value) => handleFieldChange('tone', value)}
+            />
+          </Tooltip>
+
+          <InlineStack align="space-between">
+            <Text variant="bodySm" color="subdued">
+              Settings auto-saved locally
+            </Text>
+            <Button
+              primary
+              onClick={handleSaveSettings}
+              loading={isSaving}
+              size="slim"
+            >
+              Save Settings
+            </Button>
+          </InlineStack>
+        </BlockStack>
+      </Box>
+      
+      {toast.active && (
+        <Toast
+          content={toast.message}
+          onDismiss={() => setToast({ active: false, message: "" })}
+        />
+      )}
+    </Card>
+  );
+};
+
+export default OptimizationSettings;

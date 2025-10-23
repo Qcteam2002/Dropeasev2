@@ -237,6 +237,8 @@ model ProductsOptimized {
   optimizedDescription String    @db.LongText
   gridView             Json      // Lưu JSON gridView từ AI
   aiReviews            Json?     // ✅ Thêm trường mới để lưu review từ AI
+  isOptimized          Boolean   @default(true) // Trạng thái đã tối ưu hay chưa
+  optimizedAt          DateTime  @default(now()) // Thời điểm tối ưu gần nhất
   createdAt            DateTime  @default(now())
   // 🔹 Chỉ khai báo @relation bên này
   product              PlatformProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
@@ -262,4 +264,26 @@ model DropeaseProduct {
   paymentMethods  Json?
   shippingOptions Json?
   gridView        Json?
+}
+
+model WidgetConfig {
+  id             BigInt         @id @default(autoincrement())
+  shopDomain     String         @unique
+  buttonText     String         @default("👗 Virtual Try-On")
+  colorHex       String         @default("#3B82F6")
+  position       WidgetPosition @default(AFTER_ATC)
+  customSelector String?        // Chỉ sử dụng khi position = CUSTOM_SELECTOR
+  whiteLabel     Boolean        @default(false)
+  enabled        Boolean        @default(true)  // Thêm field enable/disable
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@index([shopDomain])
+}
+
+enum WidgetPosition {
+  BEFORE_ATC
+  AFTER_ATC
+  FLOATING
+  CUSTOM_SELECTOR
 }

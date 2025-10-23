@@ -1,0 +1,197 @@
+<div id="gridview-simple-{{ section.id }}" class="gridview-simple-container" style="max-width: 1200px; margin: 0 auto; padding: 20px;">
+  <h2 style="text-align: center; margin-bottom: 40px; font-size: 28px; color: #333;">Feature Highlights</h2>
+  <div id="content-container" style="text-align: center; padding: 40px;">
+    <p>Loading content...</p>
+  </div>
+</div>
+
+<script>
+(function() {
+  const container = document.getElementById('gridview-simple-{{ section.id }}');
+  const contentContainer = document.getElementById('content-container');
+  
+  if (!container) return;
+  
+  console.log('🚀 GridView Simple Block loaded');
+  
+  // Function to render content
+  function renderContent(highlights) {
+    if (!highlights || highlights.length === 0) {
+      contentContainer.innerHTML = '<p>No highlights available</p>';
+      return;
+    }
+    
+    const html = `
+      <div style="display: grid; gap: 40px; max-width: 1000px; margin: 0 auto;">
+        ${highlights.slice(0, 3).map((highlight, index) => {
+          const isEven = index % 2 === 0;
+          return `
+            <div style="
+              display: grid; 
+              grid-template-columns: 1fr 1fr; 
+              gap: 40px; 
+              align-items: center;
+              padding: 30px;
+              background: rgba(255,255,255,0.8);
+              border-radius: 12px;
+              box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+              ${isEven ? '' : 'direction: rtl;'}
+            ">
+              <div style="${isEven ? '' : 'direction: ltr;'}">
+                <div style="
+                  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+                  border-radius: 12px;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  min-height: 200px;
+                  position: relative;
+                  overflow: hidden;
+                ">
+                  <div style="
+                    font-size: 64px;
+                    color: #6c757d;
+                    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                    z-index: 2;
+                  ">${highlight.icon}</div>
+                  <div style="
+                    position: absolute;
+                    top: 20px;
+                    right: 20px;
+                    width: 60px;
+                    height: 60px;
+                    background: rgba(255,255,255,0.3);
+                    border-radius: 50%;
+                    z-index: 1;
+                  "></div>
+                </div>
+              </div>
+              <div style="${isEven ? '' : 'direction: ltr;'}">
+                <div style="padding: 0 20px;">
+                  <p style="
+                    font-size: 14px;
+                    color: #666;
+                    opacity: 0.7;
+                    margin: 0 0 8px 0;
+                    text-transform: uppercase;
+                    letter-spacing: 1px;
+                    font-weight: 500;
+                  ">Feature Highlight</p>
+                  <h3 style="
+                    font-size: 24px;
+                    color: #333;
+                    margin: 0 0 16px 0;
+                    font-weight: 600;
+                    line-height: 1.2;
+                  ">${highlight.title}</h3>
+                  <p style="
+                    font-size: 16px;
+                    color: #666;
+                    opacity: 0.8;
+                    margin: 0 0 24px 0;
+                    line-height: 1.6;
+                  ">${highlight.description}</p>
+                  <div style="
+                    display: inline-block;
+                    padding: 12px 24px;
+                    background: transparent;
+                    border: 2px solid #333;
+                    color: #333;
+                    text-decoration: none;
+                    border-radius: 4px;
+                    font-weight: 500;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                  " onmouseover="this.style.background='#333'; this.style.color='white';" onmouseout="this.style.background='transparent'; this.style.color='#333';">
+                    Learn More
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+    
+    contentContainer.innerHTML = html;
+  }
+  
+  // Try to fetch content from app
+  async function loadContent() {
+    try {
+      console.log('📦 Fetching content from app...');
+      
+      // Try multiple URLs
+      const urls = [
+        '{{ shop.url }}/apps/easyd-2/api/public/highlights?shop={{ shop.permanent_domain }}',
+        'https://buys-exciting-husband-dans.trycloudflare.com/api/public/highlights?shop={{ shop.permanent_domain }}',
+        '{{ shop.url }}/apps/easyd-2/api/highlights/content',
+        'https://buys-exciting-husband-dans.trycloudflare.com/api/highlights/content'
+      ];
+      
+      let success = false;
+      
+      for (const url of urls) {
+        try {
+          console.log('🔗 Trying URL:', url);
+          const response = await fetch(url);
+          
+          if (response.ok) {
+            const data = await response.json();
+            console.log('✅ Content loaded successfully:', data);
+            
+            if (data.content && data.content.length > 0) {
+              renderContent(data.content);
+              success = true;
+              break;
+            }
+          }
+        } catch (error) {
+          console.log('❌ URL failed:', url, error);
+        }
+      }
+      
+      if (!success) {
+        // Fallback to mock content
+        console.log('📝 Using fallback mock content');
+        const mockContent = [
+          {
+            id: 1,
+            title: "Premium Quality Materials",
+            description: "Made with the finest materials for lasting durability and comfort. This product features high-quality construction that ensures long-term satisfaction and exceptional value.",
+            icon: "⭐"
+          },
+          {
+            id: 2,
+            title: "Perfect Fit & Style",
+            description: "Designed to flatter your figure with a comfortable, tailored fit that works for any occasion. The versatile design adapts to your lifestyle seamlessly.",
+            icon: "👕"
+          },
+          {
+            id: 3,
+            title: "Easy Care & Maintenance",
+            description: "Machine washable and wrinkle-resistant for effortless maintenance and long-lasting beauty. Spend less time caring and more time enjoying your purchase.",
+            icon: "🧺"
+          }
+        ];
+        renderContent(mockContent);
+      }
+      
+    } catch (error) {
+      console.error('❌ Error loading content:', error);
+      contentContainer.innerHTML = '<p>Error loading content. Please try again later.</p>';
+    }
+  }
+  
+  // Load content after a short delay
+  setTimeout(loadContent, 500);
+})();
+</script>
+
+{% schema %}
+{
+  "name": "Feature Highlights Simple",
+  "target": "section",
+  "settings": []
+}
+{% endschema %}

@@ -322,7 +322,7 @@ export default function StickyBarSettings() {
     <Page fullWidth>
       <TitleBar
         title="Sticky Bar Block"
-        breadcrumbs={[{ content: "Widgets", onAction: () => navigate("/app/widgets") }]}
+        breadcrumbs={[{ content: "Widgets", onAction: () => navigate("/app/widget") }]}
       />
 
       <Layout>

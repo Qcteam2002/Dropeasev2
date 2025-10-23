@@ -1,0 +1,403 @@
+/* Products Page - Shopify Admin Style */
+
+/* Analytics Cards Responsive */
+@media (max-width: 768px) {
+  .analytics-cards {
+    flex-direction: column !important;
+  }
+  
+  .analytics-card {
+    flex: none !important;
+  }
+}
+
+/* Table Responsive */
+.product-table {
+  width: 100%;
+}
+
+.product-table-row {
+  border-bottom: 1px solid var(--p-color-border-subdued);
+  cursor: pointer;
+}
+
+.product-table-row:hover {
+  background-color: var(--p-color-surface-hovered);
+}
+
+.product-title-cell {
+  max-width: 300px;
+}
+
+.product-title-cell:hover {
+  color: var(--p-color-text-interactive);
+}
+
+.status-badges-column {
+  min-width: 180px;
+}
+
+.suggestions-column {
+  min-width: 200px;
+  max-width: 250px;
+}
+
+.actions-column {
+  min-width: 200px;
+}
+
+@media (max-width: 1200px) {
+  .suggestions-column {
+    max-width: 180px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .product-title-cell {
+    max-width: 250px;
+  }
+  
+  .status-badges-column {
+    min-width: 150px;
+  }
+  
+  .suggestions-column {
+    max-width: 150px;
+  }
+  
+  .actions-column {
+    min-width: 180px;
+  }
+}
+
+@media (max-width: 768px) {
+  .search-filters-container {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  
+  .search-field-container {
+    max-width: none !important;
+    width: 100% !important;
+  }
+  
+  .filter-pills {
+    justify-content: flex-start !important;
+  }
+  
+  .product-title-cell {
+    max-width: 200px;
+  }
+  
+  .status-badges-column {
+    min-width: 120px;
+  }
+  
+  .suggestions-column {
+    max-width: 120px;
+  }
+  
+  .actions-column {
+    min-width: 160px;
+  }
+}
+
+/* Product Title Truncation */
+.product-title {
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .product-title {
+    max-width: 200px;
+  }
+}
+
+/* Badge Responsive */
+.status-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-width: 200px;
+}
+
+.suggestion-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-width: 250px;
+}
+
+@media (max-width: 768px) {
+  .status-badges,
+  .suggestion-badges {
+    max-width: 150px;
+  }
+}
+
+/* Loading State */
+.loading-overlay {
+  position: relative;
+}
+
+.loading-overlay::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  z-index: 1;
+}
+
+/* Empty State Enhancements */
+.empty-state-container {
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Tab Responsive */
+@media (max-width: 640px) {
+  .tabs-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Bulk Actions */
+.bulk-actions-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: white;
+  border-bottom: 1px solid var(--p-color-border-subdued);
+}
+
+/* Hover Effects */
+.product-row:hover {
+  background-color: var(--p-color-surface-hovered);
+}
+
+.action-button:hover {
+  transform: translateY(-1px);
+  transition: transform 0.2s ease;
+}
+
+/* Focus States */
+.product-link:focus {
+  outline: 2px solid var(--p-color-border-interactive);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Animation for Loading States */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.loading-skeleton {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* Custom Scrollbar for Filter Pills */
+.filter-pills-container {
+  scrollbar-width: thin;
+  scrollbar-color: var(--p-color-border-subdued) transparent;
+}
+
+.filter-pills-container::-webkit-scrollbar {
+  height: 4px;
+}
+
+.filter-pills-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.filter-pills-container::-webkit-scrollbar-thumb {
+  background-color: var(--p-color-border-subdued);
+  border-radius: 2px;
+}
+
+/* High DPI Display Optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .product-thumbnail {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+
+/* Dark Mode Support (if needed) */
+@media (prefers-color-scheme: dark) {
+  .product-row:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+  
+  .bulk-actions-bar {
+    background: var(--p-color-surface-dark);
+    border-bottom-color: var(--p-color-border-subdued-dark);
+  }
+}
+
+/* Print Styles */
+@media print {
+  .analytics-cards,
+  .search-filters-container,
+  .bulk-actions-bar,
+  .pagination-container {
+    display: none !important;
+  }
+  
+  .product-table {
+    width: 100% !important;
+  }
+}
+
+/* Accessibility Improvements */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .action-button:hover {
+    transform: none;
+    transition: none;
+  }
+  
+  .loading-skeleton {
+    animation: none;
+  }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .product-row {
+    border: 1px solid var(--p-color-border);
+  }
+  
+  .status-badges .badge,
+  .suggestion-badges .badge {
+    border: 1px solid currentColor;
+  }
+}
+
+/* Product Detail Page Styles */
+.product-detail-tabs {
+  width: 100%;
+}
+
+/* Content Optimization Animations */
+.content-highlight-animation {
+  animation: contentHighlight 2s ease-in-out;
+}
+
+@keyframes contentHighlight {
+  0% {
+    background-color: rgba(255, 235, 59, 0.2);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+
+/* Side-by-side Content Layout */
+.content-comparison-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .content-comparison-layout {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+.content-optimization-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .content-optimization-layout {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+.image-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 640px) {
+  .image-gallery-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+}
+
+.optimization-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (max-width: 480px) {
+  .optimization-actions {
+    flex-direction: column;
+  }
+  
+  .optimization-actions button {
+    width: 100%;
+  }
+}
+
+.modal-preview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: center;
+}
+
+@media (max-width: 640px) {
+  .modal-preview-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+/* Empty states */
+.empty-state-content {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+@media (max-width: 480px) {
+  .empty-state-content {
+    padding: 30px 15px;
+  }
+}

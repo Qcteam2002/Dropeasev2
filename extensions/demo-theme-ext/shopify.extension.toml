@@ -1,8 +1,10 @@
 [[extensions]]
+uid = "87116820-d9b0-b3f2-9f15-121d93403f7124301013"
 type = "theme_app_extension"
 name = "demo-theme-ext"
 handle = "demo-theme-ext"
 version = "1.0.0"
+targeting = { target = "theme", include_locales = ["*"] }
 
 [[extensions.blocks]]
 type = "block"
@@ -12,6 +14,11 @@ target = "section"
 [[extensions.blocks]]
 type = "block"
 name = "product-review-block"
+target = "section"
+
+[[extensions.blocks]]
+type = "block"
+name = "full-block"
 target = "section"
 
 [[extensions.blocks]]

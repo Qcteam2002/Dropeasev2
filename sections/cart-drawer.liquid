@@ -1,0 +1,380 @@
+{% comment %}
+  Cart drawer section
+{% endcomment %}
+
+<cart-drawer class="cart-drawer">
+  <div class="cart-drawer__overlay"></div>
+  <div class="cart-drawer__content">
+    <div class="cart-drawer__header">
+      <h2 class="cart-drawer__heading">Shopping Cart</h2>
+      <button type="button" class="cart-drawer__close" onclick="closeCartDrawer()">
+        <span class="visually-hidden">Close</span>
+        <svg class="icon icon-close" width="19" height="19" viewBox="0 0 19 19" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M1 1L18 18M18 1L1 18" stroke="currentColor" stroke-width="2"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="cart-drawer__body">
+      {% if cart.item_count > 0 %}
+        <form action="{{ routes.cart_url }}" method="post" id="cart-drawer-form">
+          <div class="cart-items" id="cart-drawer-items">
+            {%- for item in cart.items -%}
+              <div class="cart-item" id="cart-drawer-item-{{ item.key }}">
+                <div class="cart-item__image">
+                  <img src="{{ item.image | img_url: '120x120', scale: 2 }}" alt="{{ item.title | escape }}" loading="lazy" width="60" height="60">
+                </div>
+                <div class="cart-item__details">
+                  <h3 class="cart-item__title">{{ item.product.title }}</h3>
+                  <div class="cart-item__variant">{{ item.variant.title }}</div>
+                  <div class="cart-item__price">{{ item.final_price | money }}</div>
+                  <div class="cart-item__quantity">
+                    <quantity-input class="quantity">
+                      <button class="quantity__button" name="minus" type="button" data-quantity-handler data-action="decrease">
+                        <span>-</span>
+                      </button>
+                      <input class="quantity__input" type="number" name="updates[]" value="{{ item.quantity }}" min="0" data-key="{{ item.key }}">
+                      <button class="quantity__button" name="plus" type="button" data-quantity-handler data-action="increase">
+                        <span>+</span>
+                      </button>
+                    </quantity-input>
+                  </div>
+                </div>
+                <button type="button" class="cart-item__remove" data-key="{{ item.key }}">
+                  <span class="visually-hidden">Remove</span>
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                    <path d="M14 3L2 13M2 3L14 13" stroke="currentColor" stroke-width="2"/>
+                  </svg>
+                </button>
+              </div>
+            {%- endfor -%}
+          </div>
+
+          <div class="cart-drawer__footer">
+            <div class="cart-drawer__totals">
+              <div class="totals__subtotal">
+                <span class="totals__subtotal-text">Subtotal</span>
+                <span class="totals__subtotal-value">{{ cart.total_price | money }}</span>
+              </div>
+            </div>
+
+            <div class="cart-drawer__buttons">
+              <button type="submit" name="checkout" class="button button--primary button--full-width">
+                Check out
+              </button>
+              <button type="button" class="button button--secondary button--full-width" onclick="closeCartDrawer()">
+                Continue shopping
+              </button>
+            </div>
+          </div>
+        </form>
+      {% else %}
+        <div class="cart-drawer__empty">
+          <p>Your cart is empty</p>
+          <button type="button" class="button button--secondary" onclick="closeCartDrawer()">
+            Continue shopping
+          </button>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</cart-drawer>
+
+<style>
+  .cart-drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 999999;
+    display: none;
+  }
+
+  .cart-drawer.active {
+    display: block;
+  }
+
+  .cart-drawer__overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+  }
+
+  .cart-drawer__content {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100%;
+    max-width: 400px;
+    height: 100%;
+    background: #fff;
+    padding: 20px;
+    transform: translateX(100%);
+    transition: transform 0.3s ease-in-out;
+  }
+
+  .cart-drawer.active .cart-drawer__content {
+    transform: translateX(0);
+  }
+
+  .cart-drawer__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #e5e5e5;
+  }
+
+  .cart-drawer__heading {
+    margin: 0;
+    font-size: 1.5em;
+  }
+
+  .cart-drawer__close {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+  }
+
+  .cart-drawer__body {
+    height: calc(100% - 180px);
+    overflow-y: auto;
+  }
+
+  .cart-item {
+    display: flex;
+    padding: 15px 0;
+    border-bottom: 1px solid #e5e5e5;
+  }
+
+  .cart-item__image {
+    width: 80px;
+    margin-right: 15px;
+  }
+
+  .cart-item__details {
+    flex-grow: 1;
+  }
+
+  .cart-item__title {
+    margin: 0 0 5px;
+    font-size: 1em;
+  }
+
+  .cart-item__variant {
+    font-size: 0.9em;
+    color: #666;
+  }
+
+  .cart-item__price {
+    font-weight: bold;
+    margin: 5px 0;
+  }
+
+  .cart-item__quantity {
+    display: flex;
+    align-items: center;
+    margin-top: 10px;
+  }
+
+  .quantity {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+
+  .quantity__button {
+    background: none;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+  }
+
+  .quantity__input {
+    width: 40px;
+    text-align: center;
+    border: none;
+    -moz-appearance: textfield;
+  }
+
+  .quantity__input::-webkit-outer-spin-button,
+  .quantity__input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  .cart-drawer__footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 20px;
+    background: #fff;
+    border-top: 1px solid #e5e5e5;
+  }
+
+  .cart-drawer__totals {
+    margin-bottom: 20px;
+  }
+
+  .totals__subtotal {
+    display: flex;
+    justify-content: space-between;
+    font-weight: bold;
+    font-size: 1.1em;
+  }
+
+  .cart-drawer__buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .button {
+    padding: 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1em;
+    text-align: center;
+  }
+
+  .button--primary {
+    background: #000;
+    color: #fff;
+  }
+
+  .button--secondary {
+    background: #f5f5f5;
+    color: #000;
+  }
+
+  .cart-drawer__empty {
+    text-align: center;
+    padding: 40px 0;
+  }
+
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+</style>
+
+<script>
+  class CartDrawer extends HTMLElement {
+    constructor() {
+      super();
+      this.bindEvents();
+    }
+
+    bindEvents() {
+      this.querySelector('.cart-drawer__overlay')?.addEventListener('click', () => {
+        this.close();
+      });
+
+      this.querySelectorAll('[data-quantity-handler]').forEach(button => {
+        button.addEventListener('click', this.handleQuantityUpdate.bind(this));
+      });
+
+      this.querySelectorAll('.cart-item__remove').forEach(button => {
+        button.addEventListener('click', this.handleRemoveItem.bind(this));
+      });
+    }
+
+    open() {
+      this.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    close() {
+      this.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    handleQuantityUpdate(event) {
+      const button = event.currentTarget;
+      const input = button.parentNode.querySelector('.quantity__input');
+      const key = input.dataset.key;
+      let value = parseInt(input.value);
+
+      if (button.dataset.action === 'increase') {
+        value++;
+      } else if (button.dataset.action === 'decrease' && value > 1) {
+        value--;
+      }
+
+      this.updateItemQuantity(key, value);
+    }
+
+    handleRemoveItem(event) {
+      const button = event.currentTarget;
+      const key = button.dataset.key;
+      this.updateItemQuantity(key, 0);
+    }
+
+    updateItemQuantity(key, quantity) {
+      const body = JSON.stringify({
+        updates: {
+          [key]: quantity
+        },
+        sections: ['cart-drawer']
+      });
+
+      fetch(`${window.Shopify.routes.root}cart/update.js`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body
+      })
+      .then(response => response.json())
+      .then(response => {
+        if (response.sections) {
+          this.innerHTML = response.sections['cart-drawer'];
+          this.bindEvents();
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
+    }
+  }
+
+  customElements.define('cart-drawer', CartDrawer);
+
+  function openCartDrawer() {
+    document.querySelector('cart-drawer')?.open();
+  }
+
+  function closeCartDrawer() {
+    document.querySelector('cart-drawer')?.close();
+  }
+
+  // Listen for cart:refresh event
+  document.addEventListener('cart:refresh', (event) => {
+    if (event.detail?.openDrawer) {
+      openCartDrawer();
+    }
+  });
+</script>
+
+{% schema %}
+{
+  "name": "Cart Drawer",
+  "settings": []
+}
+{% endschema %} 

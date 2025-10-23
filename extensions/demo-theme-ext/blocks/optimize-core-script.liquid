@@ -1,5 +1,5 @@
 {% if request.page_type == 'product' and product.metafields.custom.optimize_core_config %}
-  {% assign config = product.metafields.custom.optimize_core_config | parse_json %}
+  {% assign config = product.metafields.custom.optimize_core_config | json %}
 
   <style>
     #float-video-wrapper {

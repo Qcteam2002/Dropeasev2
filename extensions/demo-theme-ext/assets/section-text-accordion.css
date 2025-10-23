@@ -1,0 +1,112 @@
+/* Text Accordion Section Styles */
+.text-accordion-wrapper {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.text-accordion-section {
+  width: 100%;
+  margin: 0;
+  padding: 50px 0;
+}
+
+.text-accordion-container {
+  max-width: 1470px;
+  margin: 0 auto;
+  padding: 0 15px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 40px;
+  font-family: var(--font-body-family);
+}
+
+.text-column {
+  flex: 1;
+  min-width: 300px;
+}
+
+.text-column h2 {
+  font-family: var(--font-heading-family);
+  font-size: var(--heading-scale);
+  margin-bottom: 20px;
+  font-weight: var(--font-heading-weight);
+  font-style: var(--font-heading-style);
+  letter-spacing: var(--heading-letter-spacing);
+  line-height: var(--heading-line-height);
+  text-transform: var(--heading-text-transform, inherit);
+}
+
+.text-column p {
+  font-family: var(--font-body-family);
+  font-size: var(--body-scale);
+  line-height: var(--body-line-height);
+  font-weight: var(--font-body-weight);
+  font-style: var(--font-body-style);
+  letter-spacing: var(--body-letter-spacing);
+}
+
+.accordion-column {
+  flex: 1;
+  min-width: 300px;
+}
+
+.accordion-item {
+  border-top: 1px solid #e0e0e0;
+  padding: 20px 0;
+}
+
+.accordion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.accordion-header h3 {
+  font-family: var(--font-heading-family);
+  font-size: calc(var(--heading-scale) * 0.85);
+  margin: 0;
+  font-weight: var(--font-heading-weight);
+  font-style: var(--font-heading-style);
+  letter-spacing: var(--heading-letter-spacing);
+  line-height: var(--heading-line-height);
+  text-transform: var(--heading-text-transform, inherit);
+}
+
+.accordion-icon {
+  transition: transform 0.3s;
+}
+
+.accordion-content {
+  display: none;
+  padding-top: 15px;
+}
+
+.accordion-content p {
+  font-family: var(--font-body-family);
+  font-size: var(--body-scale);
+  line-height: var(--body-line-height);
+  font-weight: var(--font-body-weight);
+  font-style: var(--font-body-style);
+  letter-spacing: var(--body-letter-spacing);
+}
+
+@media (max-width: 768px) {
+  .text-accordion-container {
+    flex-direction: column;
+  }
+  .text-column, .accordion-column {
+    width: 100%;
+  }
+  .accordion-header h3 {
+    font-size: calc(var(--heading-scale) * 0.75);
+  }
+  .text-column h2 {
+    font-size: calc(var(--heading-scale) * 0.9);
+  }
+  .text-column p,
+  .accordion-content p {
+    font-size: calc(var(--body-scale) * 0.9);
+  }
+}

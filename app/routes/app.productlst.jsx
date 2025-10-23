@@ -22,7 +22,9 @@ import enTranslations from "@shopify/polaris/locales/en.json";
 import { authenticate, getUser } from "../shopify.server"; // Xác thực Shopify Admin
 import { getProducts } from "../models/PlatformProduct"; // API lấy danh sách sản phẩm
 import { optimizeProduct } from "../server/services/optimizeProduct"; // API tối ưu hóa sản phẩm
+import { PrismaClient } from "@prisma/client";
 
+const prisma = new PrismaClient();
 
 // ✅ Fetch danh sách sản phẩm từ database
 export const loader = async ({ request }) => {
@@ -40,6 +42,105 @@ export const loader = async ({ request }) => {
     let products = [];
     try {
       products = await getProducts(user.id);
+
+      // Fetch fresh data from Shopify for each product
+      // This ensures we always show latest title/description
+      const shopifyProductsMap = {};
+      
+      try {
+        // Build query to fetch multiple products at once
+        const productIds = products
+          .filter(p => p.platformId)
+          .map(p => {
+            const id = p.platformId.includes('gid://shopify/Product/') 
+              ? p.platformId 
+              : `gid://shopify/Product/${p.platformId}`;
+            return id;
+          });
+
+        if (productIds.length > 0) {
+          // Fetch products in batches to avoid query limits
+          const batchSize = 10;
+          for (let i = 0; i < productIds.length; i += batchSize) {
+            const batch = productIds.slice(i, i + batchSize);
+            
+            // Build dynamic query for this batch
+            const queries = batch.map((id, idx) => `
+              product${idx}: product(id: "${id}") {
+                id
+                title
+                descriptionHtml
+                featuredImage {
+                  url
+                }
+              }
+            `).join('\n');
+
+            const batchQuery = `query { ${queries} }`;
+            
+            const response = await admin.graphql(batchQuery);
+            const { data } = await response.json();
+            
+            if (data) {
+              Object.entries(data).forEach(([key, product]) => {
+                if (product) {
+                  shopifyProductsMap[product.id] = {
+                    title: product.title,
+                    descriptionHtml: product.descriptionHtml,
+                    featuredMedia: product.featuredImage?.url
+                  };
+                }
+              });
+            }
+          }
+        }
+      } catch (shopifyError) {
+        console.error("Error fetching from Shopify:", shopifyError);
+        // Continue with DB data if Shopify fetch fails
+      }
+
+      // Lấy thông tin tối ưu từ database
+      const optimizedProducts = await prisma.productsOptimized.findMany({
+        where: {
+          productId: {
+            in: products.map(product => BigInt(product.id))
+          }
+        },
+        select: {
+          productId: true,
+          isOptimized: true,
+          optimizedAt: true
+        }
+      });
+
+      // Tạo map để dễ dàng tìm kiếm
+      const optimizedMap = {};
+      optimizedProducts.forEach(item => {
+        optimizedMap[item.productId.toString()] = {
+          isOptimized: item.isOptimized,
+          optimizedAt: item.optimizedAt
+        };
+      });
+
+      // Kết hợp thông tin tối ưu và Shopify data vào danh sách sản phẩm
+      products = products.map(product => {
+        const shopifyProductId = product.platformId.includes('gid://shopify/Product/') 
+          ? product.platformId 
+          : `gid://shopify/Product/${product.platformId}`;
+        
+        const shopifyData = shopifyProductsMap[shopifyProductId];
+        
+        return {
+          ...product,
+          // ✅ Prioritize Shopify data over DB data
+          title: shopifyData?.title || product.title,
+          descriptionHtml: shopifyData?.descriptionHtml || product.descriptionHtml,
+          featuredMedia: shopifyData?.featuredMedia || product.featuredMedia,
+          isOptimized: optimizedMap[product.id]?.isOptimized || false,
+          optimizedAt: optimizedMap[product.id]?.optimizedAt || null
+        };
+      });
+
     } catch (error) {
       console.error("Error fetching products:", error);
       return json({ products: [] });
@@ -54,10 +155,20 @@ export const loader = async ({ request }) => {
       inventory: product.inventory || 0,
       descriptionHtml: product.descriptionHtml || "",
       title: product.title || "Untitled Product",
-      featuredMedia: product.featuredMedia || "https://via.placeholder.com/150"
+      featuredMedia: product.featuredMedia || "https://via.placeholder.com/150",
+      optimizedAt: product.optimizedAt ? product.optimizedAt.toISOString() : null
     }));
 
-    return json({ products: serializedProducts });
+    return json(
+      { products: serializedProducts },
+      {
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+          "Pragma": "no-cache",
+          "Expires": "0",
+        },
+      }
+    );
   } catch (error) {
     console.error("Loader error:", error);
     return json({ products: [] });
@@ -73,6 +184,7 @@ export default function ProductListPage() {
   const [searchValue, setSearchValue] = useState("");
   const [toast, setToast] = useState({ active: false, message: "" });
   const [loadingId, setLoadingId] = useState(null);
+  const [filterType, setFilterType] = useState("all"); // all, optimized, non-optimized
 
   // ✅ Trạng thái hiển thị Modal
   const [modalActive, setModalActive] = useState(false);
@@ -81,6 +193,7 @@ export default function ProductListPage() {
   const [optTitleDesc, setOptTitleDesc] = useState(true); // Checkbox 1
   const [optFeature, setOptFeature] = useState(true);     // Checkbox 2
   const [optReview, setOptReview] = useState(true);       // Checkbox 3
+  const [optImage, setOptImage] = useState(true);         // Checkbox 4
 
   // ✅ Sản phẩm đang được chọn để optimize
   const [selectedProduct, setSelectedProduct] = useState(null);
@@ -88,14 +201,26 @@ export default function ProductListPage() {
   // Add resource state for IndexTable
   const { selectedResources, allResourcesSelected, handleSelectionChange } = useIndexResourceState(products);
 
-  // ✅ Tính toán tổng số trang
-  const totalPages = Math.ceil(products.length / itemsPerPage);
+  // ✅ Lọc danh sách sản phẩm theo trang hiện tại và trạng thái optimization
+  const filteredProducts = products
+    .filter((product) => {
+      // Filter by search text
+      const matchesSearch = product.title.toLowerCase().includes(searchValue.toLowerCase());
+      
+      // Filter by optimization status
+      const matchesFilter = 
+        filterType === "all" || 
+        (filterType === "optimized" && product.isOptimized) || 
+        (filterType === "non-optimized" && !product.isOptimized);
+      
+      return matchesSearch && matchesFilter;
+    });
 
-  // ✅ Lọc danh sách sản phẩm theo trang hiện tại
-  const displayedProducts = products
-    .filter((product) =>
-      product.title.toLowerCase().includes(searchValue.toLowerCase())
-    )
+  // ✅ Tính toán tổng số trang
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+
+  // ✅ Lấy sản phẩm cho trang hiện tại
+  const displayedProducts = filteredProducts
     .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   // ✅ Điều hướng trang
@@ -129,25 +254,41 @@ export default function ProductListPage() {
   };
 
   const confirmOptimize = async () => {
-    if (!selectedProduct) return;
-
-    setModalActive(false);
-    setLoadingId(selectedProduct.id);
+    if (!selectedProduct) {
+      setToast({ active: true, message: "Please select a product" });
+      return;
+    }
 
     try {
-      let mode = "features";
-      if (optTitleDesc && optFeature && optReview) mode = "both";
-      else if (optReview && !optTitleDesc && !optFeature) mode = "reviews";
-
-      console.log("🔄 Đang gọi optimizeProduct với mode:", mode);
-      await optimizeProduct(selectedProduct, { mode });
-      setToast({ active: true, message: "Product optimized successfully!" });
-    } catch (error) {
-      console.error("❌ Optimization error:", error);
-      setToast({ active: true, message: "Error optimizing product: " + error.message });
-    } finally {
-      setLoadingId(null);
+      // Xác định mode dựa trên các options được chọn
+      const mode = optTitleDesc && optFeature && optReview ? "both" : "custom";
+      
+      // Gọi API optimize product
+      const optimizationResult = await optimizeProduct(selectedProduct, { 
+        mode,
+        optImage,
+        optTitleDesc,
+        optFeature,
+        optReview
+      });
+      
+      // Lưu ý: optimizeProduct function cần cập nhật để lưu trạng thái isOptimized
+      // Hoặc bạn có thể thêm một API call riêng ở đây để cập nhật
+      
+      setToast({ active: true, message: "Product optimized successfully" });
+      setModalActive(false);
       setSelectedProduct(null);
+      setOptTitleDesc(true);
+      setOptFeature(true);
+      setOptReview(true);
+      setOptImage(true);
+      
+      // Refresh trang sau khi tối ưu để hiển thị trạng thái mới
+      window.location.reload();
+      
+    } catch (error) {
+      console.error("Error optimizing product:", error);
+      setToast({ active: true, message: "Failed to optimize product" });
     }
   };
 
@@ -157,16 +298,40 @@ export default function ProductListPage() {
       <Frame>
         <Page title="Product List">
           <Layout>
-            {/* 🔎 Thanh tìm kiếm */}
+            {/* 🔎 Thanh tìm kiếm và bộ lọc */}
             <Layout.Section>
               <Card sectioned>
-                <TextField
-                  placeholder="Search Product"
-                  value={searchValue}
-                  onChange={setSearchValue}
-                  clearButton
-                  onClearButtonClick={() => setSearchValue("")}
-                />
+                <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
+                  <div style={{ flex: 1 }}>
+                    <TextField
+                      placeholder="Search Product"
+                      value={searchValue}
+                      onChange={setSearchValue}
+                      clearButton
+                      onClearButtonClick={() => setSearchValue("")}
+                    />
+                  </div>
+                  <div>
+                    <Button 
+                      onClick={() => setFilterType("all")} 
+                      pressed={filterType === "all"}
+                    >
+                      All
+                    </Button>
+                    <Button 
+                      onClick={() => setFilterType("optimized")} 
+                      pressed={filterType === "optimized"}
+                    >
+                      Optimized
+                    </Button>
+                    <Button 
+                      onClick={() => setFilterType("non-optimized")} 
+                      pressed={filterType === "non-optimized"}
+                    >
+                      Non-Optimized
+                    </Button>
+                  </div>
+                </div>
               </Card>
             </Layout.Section>
 
@@ -181,6 +346,7 @@ export default function ProductListPage() {
                   headings={[
                     { title: "Image" },
                     { title: "Product Name" },
+                    { title: "Status" },
                     { title: "Inventory" },
                     { title: "Actions" },
                   ]}
@@ -222,9 +388,18 @@ export default function ProductListPage() {
                         </div>
                       </IndexTable.Cell>
 
+                      {/* 🔄 Trạng thái tối ưu hóa */}
+                      <IndexTable.Cell>
+                        {product.isOptimized ? (
+                          <Badge tone="success">Optimized</Badge>
+                        ) : (
+                          <Badge>Non-Optimized</Badge>
+                        )}
+                      </IndexTable.Cell>
+
                       {/* 📦 Tồn kho */}
                       <IndexTable.Cell>
-                        <Badge status="success">{product.inventory} in stock</Badge>
+                        <Badge status="attention">{product.inventory} in stock</Badge>
                       </IndexTable.Cell>
 
                       {/* 🎯 Hành động */}
@@ -246,7 +421,7 @@ export default function ProductListPage() {
                               openOptimizeModal(product);
                             }}
                           >
-                            Optimize Product
+                            {product.isOptimized ? "Re-Optimize" : "Optimize"}
                           </Button>
                         </div>
                       </IndexTable.Cell>
@@ -258,8 +433,8 @@ export default function ProductListPage() {
               {/* 📄 Điều hướng phân trang */}
               <div style={{ display: "flex", justifyContent: "center", marginTop: "20px", gap: "10px" }}>
                 <Button disabled={currentPage === 1} onClick={goToPrevPage}>Previous</Button>
-                <Text>Page {currentPage} of {totalPages}</Text>
-                <Button disabled={currentPage === totalPages} onClick={goToNextPage}>Next</Button>
+                <Text>Page {currentPage} of {totalPages || 1}</Text>
+                <Button disabled={currentPage === totalPages || totalPages === 0} onClick={goToNextPage}>Next</Button>
               </div>
             </Layout.Section>
           </Layout>
@@ -294,11 +469,18 @@ export default function ProductListPage() {
                   onChange={(val) => setOptFeature(val)}
                 />
               </div>
-              <div>
+              <div style={{ marginBottom: 10 }}>
                 <Checkbox
                   label="Optimize Product Review (with AI)"
                   checked={optReview}
                   onChange={(val) => setOptReview(val)}
+                />
+              </div>
+              <div>
+                <Checkbox
+                  label="Optimize Product Image"
+                  checked={optImage}
+                  onChange={(val) => setOptImage(val)}
                 />
               </div>
             </Modal.Section>

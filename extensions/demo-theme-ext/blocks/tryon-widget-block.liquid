@@ -1,0 +1,242 @@
+{% comment %}
+  Virtual Try-On Widget Block
+  Hiển thị button Try-On cho phép khách hàng upload ảnh full body
+{% endcomment %}
+
+{% if block.settings.enabled %}
+  <div 
+    id="virtual-tryon-widget-{{ block.id }}" 
+    class="virtual-tryon-widget"
+    data-shop-domain="{{ shop.permanent_domain }}"
+    data-product-id="{{ product.id }}"
+    data-product-handle="{{ product.handle }}"
+    data-block-id="{{ block.id }}"
+  >
+    <!-- Button sẽ được render bởi JavaScript -->
+  </div>
+
+  <style>
+    .virtual-tryon-widget {
+      margin: 10px 0;
+    }
+    
+    .virtual-tryon-button {
+      display: inline-block;
+      width: 100%;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      color: white;
+    }
+    
+    .virtual-tryon-button:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+    
+    .virtual-tryon-button:active {
+      transform: translateY(0);
+    }
+
+    /* Try-On Popup Styles */
+    .tryon-popup-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+    
+    .tryon-popup-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .tryon-popup {
+      background: white;
+      border-radius: 12px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      position: relative;
+      transform: scale(0.9);
+      transition: transform 0.3s ease;
+    }
+    
+    .tryon-popup-overlay.active .tryon-popup {
+      transform: scale(1);
+    }
+    
+    .tryon-popup-header {
+      padding: 20px 20px 0;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .tryon-popup-close {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #666;
+    }
+    
+    .tryon-popup-body {
+      padding: 20px;
+    }
+    
+    .upload-area {
+      border: 2px dashed #ddd;
+      border-radius: 8px;
+      padding: 40px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.3s ease;
+    }
+    
+    .upload-area:hover {
+      border-color: #007cba;
+    }
+    
+    .upload-area.dragover {
+      border-color: #007cba;
+      background: #f0f8ff;
+    }
+    
+    .upload-icon {
+      font-size: 48px;
+      color: #ddd;
+      margin-bottom: 10px;
+    }
+    
+    .upload-text {
+      color: #666;
+      margin-bottom: 10px;
+    }
+    
+    .upload-button {
+      background: #007cba;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    
+    .preview-area {
+      margin-top: 20px;
+      text-align: center;
+    }
+    
+    .preview-image {
+      max-width: 100%;
+      max-height: 300px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+    }
+    
+    .processing-area {
+      text-align: center;
+      padding: 40px 20px;
+    }
+    
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #007cba;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 768px) {
+      .tryon-popup {
+        width: 95%;
+        margin: 20px;
+      }
+    }
+  </style>
+
+  <script>
+    // Configuration từ Liquid
+    window.TryOnWidgetConfig = window.TryOnWidgetConfig || {};
+    window.TryOnWidgetConfig['{{ block.id }}'] = {
+      enabled: {{ block.settings.enabled | json }},
+      buttonText: {{ block.settings.button_text | default: "👗 Virtual Try-On" | json }},
+      buttonColor: {{ block.settings.button_color | default: "#3B82F6" | json }},
+      shopDomain: {{ shop.permanent_domain | json }},
+      productId: {{ product.id | json }},
+      productHandle: {{ product.handle | json }},
+      blockId: {{ block.id | json }}
+    };
+  </script>
+
+  <!-- Load Try-On Widget Script -->
+  <script src="{{ 'tryon-widget.js' | asset_url }}" defer></script>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Virtual Try-On Widget",
+  "target": "section",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Widget Settings"
+    },
+    {
+      "type": "checkbox",
+      "id": "enabled",
+      "label": "Enable Virtual Try-On",
+      "default": true,
+      "info": "Show/hide the Try-On button on this product page"
+    },
+    {
+      "type": "text",
+      "id": "button_text",
+      "label": "Button Text",
+      "default": "👗 Virtual Try-On",
+      "info": "Text displayed on the Try-On button"
+    },
+    {
+      "type": "color",
+      "id": "button_color",
+      "label": "Button Color",
+      "default": "#3B82F6",
+      "info": "Background color of the Try-On button"
+    },
+    {
+      "type": "header",
+      "content": "Instructions"
+    },
+    {
+      "type": "paragraph",
+      "content": "This widget allows customers to upload their full body photo and see how products look on them virtually. Configure the settings in the app admin panel."
+    }
+  ]
+}
+{% endschema %}

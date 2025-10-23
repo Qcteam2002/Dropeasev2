@@ -18,6 +18,7 @@ import { json } from "@remix-run/node";
 import { authenticate } from "../shopify.server";
 import { useState, useEffect } from "react";
 import { buildDeeplinks } from "../utils/deeplinks";
+import db from "../db.server";
 
 // ✅ Loader để lấy session.shop và build deeplink
 export const loader = async ({ request }) => {
@@ -64,7 +65,22 @@ export const loader = async ({ request }) => {
     
     const deeplinks = buildDeeplinks(session.shop);
 
-    return json({ deeplinks, isPolicyActive, isPaymentActive, isStickyBarActive, isFloatVideoActive });
+    // Get Try-On widget config
+    let widgetConfig = await db.widgetConfig.findUnique({
+        where: { shopDomain: session.shop }
+    });
+    const isTryOnActive = widgetConfig?.enabled ?? false;
+
+    return json({ 
+        deeplinks, 
+        isPolicyActive, 
+        isPaymentActive, 
+        isStickyBarActive, 
+        isFloatVideoActive, 
+        isTryOnActive,
+        shopDomain: session.shop,
+        appId: process.env.SHOPIFY_APP_ID
+    });
 };
 
 // ✅ Thêm action để toggle trạng thái active
@@ -248,7 +264,7 @@ export const action = async ({ request }) => {
 
 export default function WidgetPage() {
     const navigate = useNavigate();
-    const { deeplinks, isPolicyActive, isPaymentActive, isStickyBarActive, isFloatVideoActive } = useLoaderData();
+    const { deeplinks, isPolicyActive, isPaymentActive, isStickyBarActive, isFloatVideoActive, isTryOnActive, shopDomain, appId } = useLoaderData();
     const fetcher = useFetcher();
     const [message, setMessage] = useState({ content: '', type: 'info' });
 
@@ -259,68 +275,24 @@ export default function WidgetPage() {
 
     const widgets = [
         {
-            key: "payment-icons",
-            title: "Payment Icons",
-            description:
-                "Showcase trusted payment methods like PayPal, Apple Pay, Visa, and more—right on your product pages.",
-            image:
-                "https://images.loox.io/uploads/assets/admin/product-reviews-widget.webp",
-            learnMore: "https://help.loox.io/article/646-the-loox-product-reviews-widget",
-            actions: isPaymentActive 
-                ? ["Customize", "Deactivate", "Add to theme", "Reset"] 
-                : ["Customize", "Activate", "Add to theme", "Reset"],
-            deeplink: deeplinks.paymentBlock,
-            isActive: isPaymentActive,
-        },
-        {
-            key: "policy-features",
-            title: "Policy Highlights",
-            description:
-                "Reassure shoppers and reduce hesitation by clearly displaying key policies that matter most.",
-            image: "https://images.loox.io/uploads/assets/admin/rating-widget.webp",
-            learnMore: "https://help.loox.io/article/649-the-loox-rating-widget",
-            actions: ["Customize", isPolicyActive ? "Deactivate" : "Activate", "Add to theme", "Reset"],
-            deeplink: deeplinks.policie,
-            isActive: isPolicyActive,
-        },
-        {
-            key: "product-review-widget",
-            title: "Product Review",
-            description:
-                "Build trust fast with real customer reviews shown directly on your product pages.",
-            image: "https://images.loox.io/uploads/assets/admin/pop-up-widget.webp",
-            learnMore: "https://help.loox.io/article/105-how-do-i-enable-the-popup-widget",
-            actions: ["Add to theme"],
-            deeplink: deeplinks.productReview,
-        },
-        {
             key: "gridview-widget",
             title: "Feature Highlights",
             description:
                 "Showcase key product benefits in a clean, visual layout that grabs attention and drives confidence.",
             image: "https://images.loox.io/uploads/assets/admin/pop-up-widget.webp",
             learnMore: "https://help.loox.io/article/105-how-do-i-enable-the-popup-widget",
-            actions: ["Add to theme"],
+            actions: ["Customize", "Enable Block"],
             deeplink: deeplinks.gridView,
         },
         {
-            key: "float-video",
-            title: "Video Highlights",
-            description:
-                "Bring your product to life with a floating video that showcases its features, benefits, and use in action.",
+            key: "tryon",
+            title: "Virtual Try-On Widget",
+            description: "Let customers upload their full body photo and see how products look on them virtually.",
             image: "https://images.loox.io/uploads/assets/admin/pop-up-widget.webp",
             learnMore: "https://help.loox.io/article/105-how-do-i-enable-the-popup-widget",
             actions: ["Customize", "Add to theme"],
-            isActive: isFloatVideoActive,
-        },
-        {
-            key: "sticky-bar",
-            title: "Sticky Bar",
-            description: "Show a smart product bar with variant picker and quick buy.",
-            image: "https://cdn.shopify.com/s/files/sticky-bar-preview.png",
-            actions: ["Customize", "Add to theme"],
-            deeplink: deeplinks.stickybar,
-            isActive: isStickyBarActive,
+            deeplink: `https://${shopDomain}/admin/themes/current/editor?template=product&addAppBlockId=${appId}/tryon-widget-block&target=newAppsSection`,
+            isActive: isTryOnActive,
         }
     ];
 
@@ -328,8 +300,12 @@ export default function WidgetPage() {
         console.log('🚀 Action clicked:', { label, widget });
         
         if (label === "Customize") {
-            navigate(`/app/widgets/${widget.key}/settings`);
-        } else if (label === "Add to theme" && widget.deeplink) {
+            if (widget.key === "gridview-widget") {
+                navigate(`/app/widget/gridview/settings`);
+            } else {
+                navigate(`/app/widget/${widget.key}/settings`);
+            }
+        } else if ((label === "Add to theme" || label === "Enable Block") && widget.deeplink) {
             console.log('🎨 Opening theme editor for:', widget.key);
             console.log('🔗 Deeplink:', widget.deeplink);
             
@@ -422,38 +398,6 @@ export default function WidgetPage() {
         }
     };
 
-    // Add loader to check block status
-    useEffect(() => {
-        const checkBlockStatus = async () => {
-            console.log('🔍 Checking block status...');
-            const query = `
-                query {
-                    shop {
-                        metafield(namespace: "custom", key: "payment_icons_config") {
-                            value
-                        }
-                    }
-                }
-            `;
-
-            try {
-                const response = await fetch('/api/graphql', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ query }),
-                });
-
-                const { data } = await response.json();
-                console.log('📦 Payment block status:', data?.shop?.metafield?.value);
-            } catch (error) {
-                console.error('❌ Error checking block status:', error);
-            }
-        };
-
-        checkBlockStatus();
-    }, []);
 
     return (
         <Page fullWidth>
