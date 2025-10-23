@@ -3,19 +3,16 @@ import { authenticate } from "../shopify.server";
 import prisma from "../db.server";
 
 export async function action({ request }) {
-  console.log("📥 Received webhook request");
-  
-  const { topic, shop, session } = await authenticate.webhook(request);
-  console.log(`🔍 Webhook details - Topic: ${topic}, Shop: ${shop}`);
+  // ✅ authenticate.webhook already parses the body, returns payload
+  const { topic, shop, session, payload } = await authenticate.webhook(request);
 
   if (!session) {
-    console.log("❌ No valid session found for webhook");
     return json({ success: false }, { status: 401 });
   }
 
   try {
-    const data = await request.json();
-    console.log(`📦 Webhook payload for ${topic}:`, JSON.stringify(data, null, 2));
+    // ✅ Use payload from authenticate, don't read request.json() again
+    const data = payload;
 
     switch (topic) {
       case "products/create":

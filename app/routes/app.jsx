@@ -15,7 +15,6 @@ export const loader = async ({ request }) => {
 
 export default function App() {
   const { apiKey } = useLoaderData();
-  console.log("QuanLe");
 
   return (
     <AppProvider isEmbeddedApp apiKey={apiKey}>
