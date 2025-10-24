@@ -228,6 +228,26 @@ model PlatformProduct {
 
   @@unique([userId, platformId])
   optimizedProduct ProductsOptimized?
+  optimizationSettings ProductOptimizationSettings?
+}
+
+model ProductOptimizationSettings {
+  id                  BigInt   @id @default(autoincrement())
+  productId           BigInt   @unique
+  keywords            Json?    // Array of keywords with metrics
+  persona             String?  @db.Text
+  painpoints          Json?    // Array of painpoints
+  tone                String?
+  targetMarket        String?
+  languageOutput      String?
+  optimizationType    String?
+  marketInsights      Json?    // Full market insights data
+  segmentations       Json?    // Full segmentation data
+  selectedSegment     String?  // Name of selected segment
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  
+  product             PlatformProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model ProductsOptimized {

@@ -62,139 +62,122 @@ const OptimizationSettings = ({
   const [painpointsText, setPainpointsText] = useState('');
 
   const fetcher = useFetcher();
+  const loadFetcher = useFetcher();
+  const saveFetcher = useFetcher();
 
-  // Load settings from localStorage on mount
-  useEffect(() => {
-    const savedSettings = localStorage.getItem('seo-optimization-settings');
-    if (savedSettings) {
-      const parsed = JSON.parse(savedSettings);
-      setLocalSettings(prev => ({ ...prev, ...parsed }));
-      onSettingsChange({ ...localSettings, ...parsed });
-    }
-  }, []);
+  // Track current product ID to detect changes
+  const [currentProductId, setCurrentProductId] = useState(null);
 
-  // Clear settings when product changes (except for global settings like targetMarket, languageOutput, tone)
+  // Load settings from database when product changes
   useEffect(() => {
-    if (product?.id) {
-      console.log('=== CLEARING SETTINGS FOR NEW PRODUCT ===');
-      console.log('Product ID:', product.id);
-      console.log('Previous settings:', localSettings);
+    if (product?.id && product.id !== currentProductId) {
+      console.log('🔄 Product changed, loading settings from database for product:', product.id);
       
-      const clearedSettings = {
-        keywords: [],
-        persona: '',
-        painpoints: [],
-        // Keep global settings
-        targetMarket: localSettings.targetMarket,
-        languageOutput: localSettings.languageOutput,
-        tone: localSettings.tone,
-        optimizationType: localSettings.optimizationType
-      };
-      
-      setLocalSettings(clearedSettings);
-      onSettingsChange(clearedSettings);
-      
-      console.log('Settings cleared for product:', product.id);
-      console.log('New settings:', clearedSettings);
-    }
-  }, [product?.id]);
-
-  // Load market insights and segmentation data for this product
-  useEffect(() => {
-    console.log('=== LOADING MARKET INSIGHTS & SEGMENTATION ===');
-    console.log('Product object:', product);
-    console.log('Product ID:', product?.id);
-    console.log('Product platformId:', product?.platformId);
-    
-    // Clear previous data when product changes
-    setAvailableKeywords([]);
-    setAvailablePersonas([]);
-    setAvailablePainpoints([]);
-    setAvailableSegments([]);
-    setLocalSelectedSegment('');
-    
-    if (product?.id) {
-      const productId = product.id;
-      const platformId = product.platformId;
-      
-      // Load market insights
-      const savedInsightsById = localStorage.getItem(`market-insights-${productId}`);
-      const savedInsightsByPlatformId = platformId ? localStorage.getItem(`market-insights-${platformId}`) : null;
-      const savedInsights = savedInsightsById || savedInsightsByPlatformId;
-      
-      if (savedInsights) {
-        try {
-          const insightsData = JSON.parse(savedInsights);
-          const isDataFresh = Date.now() - insightsData.timestamp < 24 * 60 * 60 * 1000;
-          
-          if (isDataFresh && (insightsData.keywords?.length > 0 || insightsData.personas?.length > 0 || insightsData.painpoints?.length > 0)) {
-            const processedKeywords = insightsData.keywords?.map(keyword => {
-              if (typeof keyword === 'string') {
-                return keyword;
-              } else if (keyword.keyword) {
-                return {
-                  keyword: keyword.keyword,
-                  type: keyword.type,
-                  metrics: keyword.metrics
-                };
-              }
-              return keyword;
-            }) || [];
-            
-            setAvailableKeywords(processedKeywords);
-            setAvailablePersonas(insightsData.personas || []);
-            setAvailablePainpoints(insightsData.painpoints || []);
-            console.log('✅ Market insights loaded from cache');
-          }
-        } catch (error) {
-          console.error('❌ Error loading cached market insights:', error);
-        }
-      }
-      
-      // Load segmentation data
-      const savedSegmentationById = localStorage.getItem(`segmentation-${productId}`);
-      const savedSegmentationByPlatformId = platformId ? localStorage.getItem(`segmentation-${platformId}`) : null;
-      const savedSegmentation = savedSegmentationById || savedSegmentationByPlatformId;
-      
-      if (savedSegmentation) {
-        try {
-          const segmentationData = JSON.parse(savedSegmentation);
-          const isDataFresh = Date.now() - segmentationData.timestamp < 24 * 60 * 60 * 1000;
-          
-          if (isDataFresh && segmentationData.segmentations?.length > 0) {
-            setAvailableSegments(segmentationData.segmentations);
-            // Load selected segment if available
-            if (segmentationData.selectedSegment) {
-              setLocalSelectedSegment(segmentationData.selectedSegment);
-              console.log('✅ Selected segment loaded from cache:', segmentationData.selectedSegment);
-            }
-            console.log('✅ Segmentation loaded from cache');
-          }
-        } catch (error) {
-          console.error('❌ Error loading cached segmentation:', error);
-        }
-      }
-    } else {
-      // Clear data when no product
+      // Clear old data first
       setAvailableKeywords([]);
       setAvailablePersonas([]);
       setAvailablePainpoints([]);
       setAvailableSegments([]);
       setLocalSelectedSegment('');
+      
+      // Update current product ID
+      setCurrentProductId(product.id);
+      
+      // Load new data from database
+      loadFetcher.load(`/api/optimization-settings/load/${product.id}`);
     }
-    console.log('=== END LOADING DATA ===');
-  }, [product?.id, product?.platformId]);
+  }, [product?.id]);
+
+  // Handle loaded settings from database
+  useEffect(() => {
+    if (loadFetcher.data?.success && loadFetcher.data?.data) {
+      const dbSettings = loadFetcher.data.data;
+      console.log('✅ Loaded settings from database:', dbSettings);
+      
+      // Update local settings
+      setLocalSettings(prev => ({
+        ...prev,
+        keywords: dbSettings.keywords || [],
+        persona: dbSettings.persona || '',
+        painpoints: dbSettings.painpoints || [],
+        tone: dbSettings.tone || prev.tone,
+        targetMarket: dbSettings.targetMarket || prev.targetMarket,
+        languageOutput: dbSettings.languageOutput || prev.languageOutput,
+        optimizationType: dbSettings.optimizationType || prev.optimizationType,
+      }));
+      
+      // Restore market insights if available
+      if (dbSettings.marketInsights) {
+        console.log('📊 Restoring market insights:', dbSettings.marketInsights);
+        setAvailableKeywords(dbSettings.marketInsights.keywords || []);
+        setAvailablePersonas(dbSettings.marketInsights.personas || []);
+        setAvailablePainpoints(dbSettings.marketInsights.painpoints || []);
+      }
+      
+      // Restore segmentations if available
+      if (dbSettings.segmentations) {
+        console.log('📊 Restoring segmentations:', dbSettings.segmentations.length, 'segments');
+        setAvailableSegments(dbSettings.segmentations);
+      }
+      
+      // Restore selected segment if available
+      if (dbSettings.selectedSegment) {
+        console.log('✅ Restoring selected segment:', dbSettings.selectedSegment);
+        setLocalSelectedSegment(dbSettings.selectedSegment);
+        // Find and notify parent of selected segment
+        const segment = dbSettings.segmentations?.find(s => s.name === dbSettings.selectedSegment);
+        if (segment && onSegmentChange) {
+          onSegmentChange(segment);
+        }
+      }
+    }
+  }, [loadFetcher.data]);
 
   const handleFieldChange = useCallback((field, value) => {
-    setLocalSettings(prev => {
-      const newSettings = { ...prev, [field]: value };
-      
-      // Auto-save to localStorage
-      localStorage.setItem('seo-optimization-settings', JSON.stringify(newSettings));
-      
-      return newSettings;
-    });
+    setLocalSettings(prev => ({
+      ...prev,
+      [field]: value
+    }));
   }, []);
+
+  // Handle save settings - defined early for use in other functions
+  const handleSaveSettings = useCallback(async () => {
+    if (!product?.id) {
+      setToast({ active: true, message: "Product ID is required" });
+      return;
+    }
+
+    setIsSaving(true);
+    
+    // Prepare settings data to save
+    const settingsData = {
+      keywords: localSettings.keywords,
+      persona: localSettings.persona,
+      painpoints: localSettings.painpoints,
+      tone: localSettings.tone,
+      targetMarket: localSettings.targetMarket,
+      languageOutput: localSettings.languageOutput,
+      optimizationType: localSettings.optimizationType,
+      marketInsights: availableKeywords.length > 0 || availablePersonas.length > 0 || availablePainpoints.length > 0 ? {
+        keywords: availableKeywords,
+        personas: availablePersonas,
+        painpoints: availablePainpoints,
+      } : null,
+      segmentations: availableSegments.length > 0 ? availableSegments : null,
+      selectedSegment: localSelectedSegment || null,
+    };
+
+    console.log('💾 Saving settings to database:', settingsData);
+
+    const formData = new FormData();
+    formData.append("productId", product.id);
+    formData.append("settings", JSON.stringify(settingsData));
+
+    saveFetcher.submit(formData, { 
+      method: "post", 
+      action: "/api/optimization-settings/save" 
+    });
+  }, [product?.id, localSettings, availableKeywords, availablePersonas, availablePainpoints, availableSegments, localSelectedSegment, saveFetcher]);
 
   // Update parent when settings change
   useEffect(() => {
@@ -255,29 +238,13 @@ const OptimizationSettings = ({
         setAvailablePersonas(data.personas || []);
         setAvailablePainpoints(data.painpoints || []);
         
-        // Save to localStorage with timestamp
-        const insightsData = {
-          keywords: processedKeywords,
-          personas: data.personas || [],
-          painpoints: data.painpoints || [],
-          timestamp: Date.now()
-        };
-        
-        const productId = product?.id;
-        const platformId = product?.platformId;
-        
-        if (productId) {
-          localStorage.setItem(`market-insights-${productId}`, JSON.stringify(insightsData));
-          console.log('Saved insights to localStorage with key:', `market-insights-${productId}`);
-        }
-        
-        if (platformId) {
-          localStorage.setItem(`market-insights-${platformId}`, JSON.stringify(insightsData));
-          console.log('Saved insights to localStorage with key:', `market-insights-${platformId}`);
-        }
-        
-        setToast({ active: true, message: "Market insights loaded successfully!" });
+        setToast({ active: true, message: "Market insights loaded successfully! Auto-saving..." });
         setIsLoadingInsights(false);
+        
+        // Auto-save to database
+        setTimeout(() => {
+          handleSaveSettings();
+        }, 500);
       }
       
       // Handle segmentation data
@@ -286,28 +253,13 @@ const OptimizationSettings = ({
         
         setAvailableSegments(data.segmentations);
         
-        // Save to localStorage with timestamp
-        const segmentationData = {
-          segmentations: data.segmentations,
-          selectedSegment: localSelectedSegment, // Save current selected segment
-          timestamp: Date.now()
-        };
-        
-        const productId = product?.id;
-        const platformId = product?.platformId;
-        
-        if (productId) {
-          localStorage.setItem(`segmentation-${productId}`, JSON.stringify(segmentationData));
-          console.log('Saved segmentation to localStorage with key:', `segmentation-${productId}`);
-        }
-        
-        if (platformId) {
-          localStorage.setItem(`segmentation-${platformId}`, JSON.stringify(segmentationData));
-          console.log('Saved segmentation to localStorage with key:', `segmentation-${platformId}`);
-        }
-        
-        setToast({ active: true, message: "Market segmentation loaded successfully!" });
+        setToast({ active: true, message: "Market segmentation loaded successfully! Auto-saving..." });
         setIsLoadingSegmentation(false);
+        
+        // Auto-save to database
+        setTimeout(() => {
+          handleSaveSettings();
+        }, 500);
       }
     } else if (fetcher.data?.error) {
       console.error('Fetcher error:', fetcher.data);
@@ -389,14 +341,17 @@ const OptimizationSettings = ({
     });
   };
 
-  const handleSaveSettings = async () => {
-    setIsSaving(true);
-    try {
-      await onSaveSettings(localSettings);
-    } finally {
+  // Handle save response (handleSaveSettings defined above as useCallback)
+  useEffect(() => {
+    if (saveFetcher.data) {
       setIsSaving(false);
+      if (saveFetcher.data.success) {
+        setToast({ active: true, message: "Settings saved successfully to database!" });
+      } else {
+        setToast({ active: true, message: saveFetcher.data.error || "Failed to save settings" });
+      }
     }
-  };
+  }, [saveFetcher.data]);
 
   const handleViewSegmentDetail = (segment) => {
     setSelectedSegmentDetail(segment);
@@ -408,36 +363,15 @@ const OptimizationSettings = ({
     setSelectedSegmentDetail(null);
   };
 
-  // Save selected segment to localStorage when it changes
+  // Auto-save when selected segment changes
   useEffect(() => {
     if (localSelectedSegment && availableSegments.length > 0 && product?.id) {
-      const productId = product.id;
-      const platformId = product.platformId;
-      
-      // Update localStorage with new selected segment
-      const savedSegmentationById = localStorage.getItem(`segmentation-${productId}`);
-      const savedSegmentationByPlatformId = platformId ? localStorage.getItem(`segmentation-${platformId}`) : null;
-      const savedSegmentation = savedSegmentationById || savedSegmentationByPlatformId;
-      
-      if (savedSegmentation) {
-        try {
-          const segmentationData = JSON.parse(savedSegmentation);
-          segmentationData.selectedSegment = localSelectedSegment;
-          
-          if (productId) {
-            localStorage.setItem(`segmentation-${productId}`, JSON.stringify(segmentationData));
-          }
-          if (platformId) {
-            localStorage.setItem(`segmentation-${platformId}`, JSON.stringify(segmentationData));
-          }
-          
-          console.log('✅ Selected segment saved to localStorage:', localSelectedSegment);
-        } catch (error) {
-          console.error('❌ Error saving selected segment:', error);
-        }
-      }
+      console.log('💾 Selected segment changed, auto-saving to database...');
+      setTimeout(() => {
+        handleSaveSettings();
+      }, 500);
     }
-  }, [localSelectedSegment, availableSegments, product?.id, product?.platformId]);
+  }, [localSelectedSegment]);
 
   // Options
   const targetMarketOptions = [
@@ -547,6 +481,19 @@ const OptimizationSettings = ({
                 Manual Configuration
               </Text>
               
+              {/* Get Market Insights Button - Moved from Audience Insight tab */}
+              {/* TODO: Uncomment this button when needed in the future */}
+              {/* <Button
+                primary
+                fullWidth
+                size="slim"
+                onClick={handleGetMarketInsights}
+                loading={isLoadingInsights}
+                disabled={!product}
+              >
+                Get Market Insight Suggestion
+              </Button> */}
+              
               {/* Keywords - TextField */}
               <TextField
                 label="Keywords"
@@ -604,28 +551,16 @@ const OptimizationSettings = ({
                 Market Insights
               </Text>
               
-              {/* Get Market Insights Button */}
-              <Button
-                primary
-                fullWidth
-                size="slim"
-                onClick={handleGetMarketInsights}
-                loading={isLoadingInsights}
-                disabled={!product}
-              >
-                Get Market Insight Suggestion
-              </Button>
-
               {/* Get Segmentation Button */}
               <Button
-                secondary
+                primary
                 fullWidth
                 size="slim"
                 onClick={handleGetSegmentation}
                 loading={isLoadingSegmentation}
                 disabled={!product}
               >
-                Get Segmentation
+                Discover Ideal Buyers
               </Button>
               
               {availableKeywords.length > 0 || availablePersonas.length > 0 || availablePainpoints.length > 0 ? (
@@ -634,17 +569,6 @@ const OptimizationSettings = ({
                     <Badge status="success">AI Insights Loaded</Badge>
                     <Text variant="bodySm" color="subdued">
                       {availableKeywords.length} keywords, {availablePersonas.length} personas, {availablePainpoints.length} pain points
-                    </Text>
-                  </InlineStack>
-                </Box>
-              ) : null}
-
-              {availableSegments.length > 0 ? (
-                <Box paddingBlockStart="200">
-                  <InlineStack gap="200" align="center">
-                    <Badge status="success">Segmentation Loaded</Badge>
-                    <Text variant="bodySm" color="subdued">
-                      {availableSegments.length} market segments available
                     </Text>
                   </InlineStack>
                 </Box>
@@ -775,7 +699,9 @@ const OptimizationSettings = ({
               {/* Market Segmentation */}
               {availableSegments.length > 0 && (
                 <BlockStack gap="300">
-                  <Text variant="bodyMd" fontWeight="semibold">Market Segments:</Text>
+                  <Text variant="bodyMd" fontWeight="semibold">
+                    Ideal Customers ({availableSegments.length} found)
+                  </Text>
             <BlockStack gap="300">
               {availableSegments.map((segment, index) => (
                 <div
@@ -792,10 +718,15 @@ const OptimizationSettings = ({
                     borderRadius: '8px',
                     backgroundColor: localSelectedSegment === segment.name ? '#f0f8ff' : '#ffffff',
                     cursor: 'pointer',
-                    transition: 'all 0.2s ease'
+                    transition: 'all 0.2s ease',
+                    minHeight: '140px',
+                    maxHeight: '180px',
+                    display: 'flex',
+                    flexDirection: 'column'
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                  {/* Header: Name + Badge */}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                     <Text variant="bodyMd" fontWeight="semibold">{segment.name}</Text>
                     <Badge 
                       status={segment.winRate >= 0.8 ? 'success' : segment.winRate >= 0.6 ? 'attention' : 'info'}
@@ -803,24 +734,27 @@ const OptimizationSettings = ({
                       {Math.round(segment.winRate * 100)}% Match
                     </Badge>
                   </div>
-                  <Text variant="bodySm" color="subdued" style={{ marginBottom: '8px' }}>
-                    <strong>Pain Point:</strong> {segment.painpoint}
-                  </Text>
-                  <Text variant="bodySm" color="subdued" style={{ marginBottom: '8px' }}>
-                    <strong>Reason:</strong> {segment.reason}
-                  </Text>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '12px' }}>
-                    {segment.keywordSuggestions?.slice(0, 3).map((keyword, keyIndex) => (
-                      <Tag key={keyIndex}>{keyword}</Tag>
-                    ))}
+                  
+                  {/* Pain Point with scroll */}
+                  <div style={{ 
+                    flex: 1, 
+                    overflowY: 'auto',
+                    marginBottom: '8px',
+                    paddingRight: '8px'
+                  }}>
+                    <Text variant="bodySm" color="subdued">
+                      <strong>Pain Point:</strong> {segment.painpoint}
+                    </Text>
                   </div>
+                  
+                  {/* View Detail Link */}
                   <div 
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
                       handleViewSegmentDetail(segment);
                     }}
-                    style={{ cursor: 'pointer', display: 'inline-block' }}
+                    style={{ cursor: 'pointer', display: 'inline-block', marginTop: 'auto' }}
                   >
                     <Text 
                       variant="bodySm" 
@@ -840,12 +774,12 @@ const OptimizationSettings = ({
 
           <InlineStack align="space-between">
             <Text variant="bodySm" color="subdued">
-              Settings auto-saved locally
+              Click Save to store settings to database
             </Text>
             <Button
               primary
               onClick={handleSaveSettings}
-              loading={isSaving}
+              loading={isSaving || saveFetcher.state === "submitting"}
               size="slim"
             >
               Save Settings

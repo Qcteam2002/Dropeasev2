@@ -3,22 +3,73 @@ import { renderToPipeableStream } from "react-dom/server";
 import { RemixServer } from "@remix-run/react";
 import { createReadableStreamFromReadable } from "@remix-run/node";
 import { isbot } from "isbot";
-import { addDocumentResponseHeaders } from "./shopify.server";
-import './queue';
 
-export const streamTimeout = 5000;
+// Suppress unnecessary warnings and logs in development
+if (process.env.NODE_ENV === "development") {
+  const originalConsoleError = console.error;
+  console.error = (...args) => {
+    // Filter out React SSR warnings
+    if (
+      typeof args[0] === "string" &&
+      (args[0].includes("useLayoutEffect") ||
+       args[0].includes("Warning: useLayoutEffect does nothing on the server"))
+    ) {
+      return;
+    }
+    originalConsoleError.apply(console, args);
+  };
 
-export default async function handleRequest(
+  const originalConsoleWarn = console.warn;
+  console.warn = (...args) => {
+    // Filter out React SSR warnings
+    if (
+      typeof args[0] === "string" &&
+      (args[0].includes("useLayoutEffect") ||
+       args[0].includes("Warning: useLayoutEffect does nothing on the server"))
+    ) {
+      return;
+    }
+    originalConsoleWarn.apply(console, args);
+  };
+
+  const originalConsoleLog = console.log;
+  console.log = (...args) => {
+    // Filter out Loader error redirects (Shopify auth redirects are normal)
+    if (
+      typeof args[0] === "string" &&
+      (args[0].includes("Loader error") ||
+       args[0].includes("Response {"))
+    ) {
+      return;
+    }
+    // Filter out Response object logs
+    if (
+      args[0] &&
+      typeof args[0] === "object" &&
+      args[0].constructor &&
+      args[0].constructor.name === "Response"
+    ) {
+      return;
+    }
+    originalConsoleLog.apply(console, args);
+  };
+}
+
+const ABORT_DELAY = 5000;
+
+export default function handleRequest(
   request,
   responseStatusCode,
   responseHeaders,
-  remixContext,
+  remixContext
 ) {
-  addDocumentResponseHeaders(request, responseHeaders);
-  const userAgent = request.headers.get("user-agent");
-  const callbackName = isbot(userAgent ?? "") ? "onAllReady" : "onShellReady";
+  const callbackName = isbot(request.headers.get("user-agent"))
+    ? "onAllReady"
+    : "onShellReady";
 
   return new Promise((resolve, reject) => {
+    let didError = false;
+
     const { pipe, abort } = renderToPipeableStream(
       <RemixServer context={remixContext} url={request.url} />,
       {
@@ -27,26 +78,27 @@ export default async function handleRequest(
           const stream = createReadableStreamFromReadable(body);
 
           responseHeaders.set("Content-Type", "text/html");
+
           resolve(
             new Response(stream, {
               headers: responseHeaders,
-              status: responseStatusCode,
-            }),
+              status: didError ? 500 : responseStatusCode,
+            })
           );
+
           pipe(body);
         },
         onShellError(error) {
           reject(error);
         },
         onError(error) {
-          responseStatusCode = 500;
+          didError = true;
+
           console.error(error);
         },
-      },
+      }
     );
 
-    // Automatically timeout the React renderer after 6 seconds, which ensures
-    // React has enough time to flush down the rejected boundary contents
-    setTimeout(abort, streamTimeout + 1000);
+    setTimeout(abort, ABORT_DELAY);
   });
 }
