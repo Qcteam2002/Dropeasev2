@@ -11,6 +11,8 @@ import {
   Badge,
   Spinner,
   Thumbnail,
+  Modal,
+  ChoiceList,
 } from '@shopify/polaris';
 
 const ImageOptimizationTab = ({ 
@@ -22,6 +24,13 @@ const ImageOptimizationTab = ({
   const [images, setImages] = useState([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedAlts, setGeneratedAlts] = useState({});
+  
+  // Modal state
+  const [modalActive, setModalActive] = useState(false);
+  const [selectedImageType, setSelectedImageType] = useState(['product_thumbnail']);
+  
+  // Generated images state
+  const [generatedImages, setGeneratedImages] = useState([]);
 
   useEffect(() => {
     // Initialize images from product data
@@ -38,68 +47,66 @@ const ImageOptimizationTab = ({
     }
   }, [product.images]);
 
-  const handleGenerateAllAlt = async () => {
-    if (!settings.primaryKeyword) {
-      alert('Please set a primary keyword in settings first');
-      return;
-    }
+  const handleCreateNewImage = () => {
+    setModalActive(true);
+  };
 
+  const handleCloseModal = () => {
+    setModalActive(false);
+    setSelectedImageType(['product_thumbnail']); // Reset to default
+  };
+
+  const handleGenerateImage = async () => {
+    console.log('🎨 Generating image with type:', selectedImageType[0]);
+    
     setIsGenerating(true);
+    
     try {
-      // Simulate API call - replace with actual API
-      const mockAlts = generateMockAltTexts();
-      setGeneratedAlts(mockAlts);
+      // Call API to generate image
+      const formData = new FormData();
+      formData.append('productId', product.id);
+      formData.append('productTitle', product.title);
+      formData.append('productDescription', product.descriptionHtml || '');
+      formData.append('imageType', selectedImageType[0]);
       
-      // Update images with generated alt texts
-      setImages(prev => prev.map(img => ({
-        ...img,
-        alt: mockAlts[img.id] || img.alt,
-        isGenerated: !!mockAlts[img.id]
-      })));
+      // Add existing images for reference
+      if (product.images && product.images.length > 0) {
+        formData.append('referenceImage', product.images[0].url);
+      }
+      
+      const response = await fetch('/api/generate-image', {
+        method: 'POST',
+        body: formData
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        console.log('✅ Image generated successfully:', result);
+        
+        // Add generated image to the list
+        const newGeneratedImage = {
+          id: `generated-${Date.now()}`,
+          url: result.data.imageUrl || 'https://via.placeholder.com/1024x1024?text=Generated+Image', // TODO: replace with actual URL
+          type: selectedImageType[0],
+          aspectRatio: result.data.aspectRatio,
+          dimensions: result.data.dimensions,
+          generatedAt: new Date().toISOString(),
+          status: result.data.imageUrl ? 'completed' : 'pending'
+        };
+        
+        setGeneratedImages(prev => [newGeneratedImage, ...prev]);
+        handleCloseModal();
+      } else {
+        console.error('❌ Image generation failed:', result.error);
+        alert(`Failed to generate image: ${result.error}`);
+      }
     } catch (error) {
-      console.error('Error generating alt texts:', error);
+      console.error('❌ Error generating image:', error);
+      alert('Failed to generate image. Please try again.');
     } finally {
       setIsGenerating(false);
     }
-  };
-
-  const generateMockAltTexts = () => {
-    const keyword = settings.primaryKeyword;
-    const tone = settings.tone;
-    const productTitle = product.title;
-    
-    const altTexts = {};
-    
-    images.forEach((img, index) => {
-      let altText = '';
-      
-      switch (tone) {
-        case 'friendly':
-          altText = `${productTitle} - ${keyword} product image ${index + 1}`;
-          break;
-        case 'professional':
-          altText = `Professional ${keyword} - ${productTitle} product view ${index + 1}`;
-          break;
-        case 'luxury':
-          altText = `Premium ${keyword} - ${productTitle} luxury product ${index + 1}`;
-          break;
-        case 'minimal':
-          altText = `${productTitle} ${keyword}`;
-          break;
-        case 'technical':
-          altText = `${productTitle} - ${keyword} technical specifications image ${index + 1}`;
-          break;
-        case 'playful':
-          altText = `Fun ${keyword} - ${productTitle} awesome product ${index + 1}`;
-          break;
-        default:
-          altText = `${productTitle} - ${keyword} image ${index + 1}`;
-      }
-      
-      altTexts[img.id] = altText;
-    });
-    
-    return altTexts;
   };
 
   const handleAltTextChange = (imageId, newAltText) => {
@@ -123,99 +130,145 @@ const ImageOptimizationTab = ({
 
   return (
     <BlockStack gap="400">
-      <InlineStack align="space-between">
+      <InlineStack align="space-between" blockAlign="center">
         <BlockStack gap="200">
           <Text variant="headingMd" as="h2">
             Image Optimization
           </Text>
           <Text variant="bodyMd" color="subdued">
-            Optimize alt text for better SEO and accessibility
+            Create AI-generated product images
           </Text>
         </BlockStack>
-        <Button
-          variant="secondary"
-          size="micro"
-          onClick={handleGenerateAllAlt}
+        <Button 
+          primary
+          onClick={handleCreateNewImage}
           loading={isGenerating}
-          disabled={!settings.keywords || settings.keywords.length === 0 || images.length === 0}
-          style={{ 
-            height: '28px', 
-            padding: '4px 8px',
-            fontSize: '12px'
-          }}
         >
-          {isGenerating ? 'Generating...' : 'Generate All Alt Text'}
+          Create New Image
         </Button>
       </InlineStack>
 
-          {images.length > 0 && (
-            <InlineStack gap="200" align="center">
-              <Text variant="bodyMd">
-                Alt text coverage: {imagesWithAlt}/{images.length} images
-              </Text>
-              <Badge 
-                status={altPercentage === 100 ? 'success' : altPercentage > 50 ? 'attention' : 'critical'}
-              >
-                {altPercentage}%
-              </Badge>
-            </InlineStack>
-          )}
+      {/* Modal for image type selection */}
+      <Modal
+        open={modalActive}
+        onClose={handleCloseModal}
+        title="Create New Product Image"
+        primaryAction={{
+          content: 'Generate',
+          onAction: handleGenerateImage,
+          loading: isGenerating
+        }}
+        secondaryActions={[
+          {
+            content: 'Cancel',
+            onAction: handleCloseModal,
+          },
+        ]}
+      >
+        <Modal.Section>
+          <BlockStack gap="400">
+            <Text variant="bodyMd">
+              Choose the type of image you want to generate:
+            </Text>
+            
+            <ChoiceList
+              title=""
+              choices={[
+                {
+                  label: 'Product Thumbnail (1:1)',
+                  value: 'product_thumbnail',
+                  helpText: 'Square image perfect for product listings and thumbnails'
+                },
+                {
+                  label: 'Lifestyle Image (4:5)',
+                  value: 'lifestyle_image',
+                  helpText: 'Portrait format ideal for lifestyle and social media posts'
+                },
+                {
+                  label: 'Hero Banner (16:9)',
+                  value: 'hero_banner',
+                  helpText: 'Wide format great for website headers and hero sections'
+                },
+              ]}
+              selected={selectedImageType}
+              onChange={(value) => setSelectedImageType(value)}
+            />
+          </BlockStack>
+        </Modal.Section>
+      </Modal>
 
-          {images.length === 0 ? (
-            <Box padding="400" background="bg-surface-secondary" borderRadius="200">
-              <Text variant="bodyMd" color="subdued" alignment="center">
-                No images found for this product
-              </Text>
-            </Box>
-          ) : (
-            <Grid columns={{ xs: 1, sm: 2, md: 3 }} gap="300">
-              {images.map((img) => (
-                <Card key={img.id} sectioned>
-                  <BlockStack gap="300">
-                    <Box position="relative">
-                      <img 
-                        src={img.src} 
-                        alt={img.alt || 'Product image'}
-                        style={{ 
-                          width: '100%', 
-                          height: '200px',
-                          objectFit: 'cover',
-                          borderRadius: '6px'
-                        }} 
-                      />
-                      {img.isGenerated && (
-                        <Box position="absolute" insetBlockStart="100" insetInlineEnd="100">
-                          <Badge status="info" size="small">
-                            AI Generated
-                          </Badge>
-                        </Box>
-                      )}
-                    </Box>
-                    
-                    <TextField
-                      label="Alt text"
-                      value={img.alt}
-                      onChange={(value) => handleAltTextChange(img.id, value)}
-                      placeholder="Describe this image for SEO and accessibility"
-                      multiline={2}
-                      helpText={`Image ${images.indexOf(img) + 1} of ${images.length}`}
+      {/* Display generated images */}
+      {generatedImages.length > 0 && (
+        <BlockStack gap="400">
+          <Text variant="headingMd">Generated Images</Text>
+          <Grid columns={{ xs: 1, sm: 2, md: 3 }} gap="400">
+            {generatedImages.map((img) => (
+              <Card key={img.id}>
+                <BlockStack gap="300">
+                  <Box position="relative">
+                    <img 
+                      src={img.url} 
+                      alt={`Generated ${img.type} image`}
+                      style={{ 
+                        width: '100%', 
+                        height: 'auto',
+                        objectFit: 'contain',
+                        borderRadius: '8px',
+                        backgroundColor: '#f6f6f7'
+                      }} 
                     />
-                  </BlockStack>
-                </Card>
-              ))}
-            </Grid>
-          )}
+                    <Box position="absolute" insetBlockStart="8" insetInlineEnd="8">
+                      <Badge status={img.status === 'completed' ? 'success' : 'info'}>
+                        {img.status === 'completed' ? 'Generated' : 'Processing'}
+                      </Badge>
+                    </Box>
+                  </Box>
+                  
+                  <Box padding="400">
+                    <BlockStack gap="200">
+                      <InlineStack align="space-between">
+                        <Text variant="bodyMd" fontWeight="semibold">
+                          {img.type === 'product_thumbnail' && 'Product Thumbnail'}
+                          {img.type === 'lifestyle_image' && 'Lifestyle Image'}
+                          {img.type === 'hero_banner' && 'Hero Banner'}
+                        </Text>
+                        <Badge>{img.aspectRatio}</Badge>
+                      </InlineStack>
+                      
+                      <Text variant="bodySm" color="subdued">
+                        {img.dimensions.width} x {img.dimensions.height} px
+                      </Text>
+                      
+                      <InlineStack gap="200">
+                        <Button size="slim" onClick={() => window.open(img.url, '_blank')}>
+                          View Full
+                        </Button>
+                        <Button size="slim" variant="primary">
+                          Use This Image
+                        </Button>
+                      </InlineStack>
+                    </BlockStack>
+                  </Box>
+                </BlockStack>
+              </Card>
+            ))}
+          </Grid>
+        </BlockStack>
+      )}
 
-          {images.length > 0 && (
-            <Button
-              primary
-              onClick={handleApplyAltText}
-              loading={fetcher?.state === 'submitting'}
-              disabled={imagesWithAlt === 0}
-            >
-              Apply All Alt Text to Shopify
-            </Button>
-          )}
+      {/* Empty state when no generated images */}
+      {generatedImages.length === 0 && (
+        <Box padding="800" background="bg-surface-secondary" borderRadius="200">
+          <BlockStack gap="200" inlineAlign="center">
+            <Text variant="bodyLg" color="subdued" alignment="center">
+              No images generated yet
+            </Text>
+            <Text variant="bodySm" color="subdued" alignment="center">
+              Click "Create New Image" to generate AI-powered product images
+            </Text>
+          </BlockStack>
+        </Box>
+      )}
     </BlockStack>
   );
 };

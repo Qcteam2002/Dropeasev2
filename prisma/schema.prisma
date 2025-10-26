@@ -257,9 +257,12 @@ model ProductsOptimized {
   optimizedDescription String    @db.LongText
   gridView             Json      // Lưu JSON gridView từ AI
   aiReviews            Json?     // ✅ Thêm trường mới để lưu review từ AI
+  optimizedThumbnail   String?   @db.Text // 🖼️ URL của thumbnail đã tối ưu
+  optimizedThumbnailVariantId String? // 🆔 ID của variant đã chọn
   isOptimized          Boolean   @default(true) // Trạng thái đã tối ưu hay chưa
   optimizedAt          DateTime  @default(now()) // Thời điểm tối ưu gần nhất
   createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @default(now()) @updatedAt
   // 🔹 Chỉ khai báo @relation bên này
   product              PlatformProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
 }

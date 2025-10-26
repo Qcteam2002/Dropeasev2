@@ -3,17 +3,21 @@ import { json } from "@remix-run/node";
 const API_BASE_URL = 'http://localhost:3001';
 
 export async function action({ request }) {
+  // Declare variables outside try block for catch block access
+  let title = "Product Title";
+  let description = "";
+  let segmentation = null;
+  
   try {
     const formData = await request.formData();
-    const title = formData.get("title");
-    const description = formData.get("description");
+    title = formData.get("title") || title;
+    description = formData.get("description") || description;
     const productId = formData.get("productId");
     const language = formData.get("language") || "en-US";
     const targetMarket = formData.get("targetMarket") || "us";
     
     // Get segmentation data
     const segmentationData = formData.get("segmentation");
-    let segmentation;
     
     try {
       segmentation = JSON.parse(segmentationData);

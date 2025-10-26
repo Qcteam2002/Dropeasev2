@@ -67,6 +67,12 @@ const OptimizationSettings = ({
 
   // Track current product ID to detect changes
   const [currentProductId, setCurrentProductId] = useState(null);
+  
+  // Track if auto-save has been triggered for current fetcher data
+  const [lastProcessedFetcherData, setLastProcessedFetcherData] = useState(null);
+  
+  // Track if we need to auto-save after state updates
+  const [needsAutoSave, setNeedsAutoSave] = useState(false);
 
   // Load settings from database when product changes
   useEffect(() => {
@@ -89,7 +95,14 @@ const OptimizationSettings = ({
   }, [product?.id]);
 
   // Handle loaded settings from database
+  // Process loaded settings from database - ONLY on initial load, NOT after fetcher updates
   useEffect(() => {
+    // Skip if we have new segmentation data being processed (from "Discover" button)
+    if (fetcher.data?.data?.segmentations) {
+      console.log('⏭️ Skipping DB load - new segmentation data is being processed');
+      return;
+    }
+    
     if (loadFetcher.data?.success && loadFetcher.data?.data) {
       const dbSettings = loadFetcher.data.data;
       console.log('✅ Loaded settings from database:', dbSettings);
@@ -131,7 +144,7 @@ const OptimizationSettings = ({
         }
       }
     }
-  }, [loadFetcher.data]);
+  }, [loadFetcher.data, fetcher.data, onSegmentChange]);
 
   const handleFieldChange = useCallback((field, value) => {
     setLocalSettings(prev => ({
@@ -211,8 +224,16 @@ const OptimizationSettings = ({
   // Handle fetcher data changes
   useEffect(() => {
     if (fetcher.data?.success) {
+      // Check if we've already processed this data
+      const dataKey = JSON.stringify(fetcher.data);
+      if (dataKey === lastProcessedFetcherData) {
+        console.log('⏭️ Skipping duplicate fetcher data processing');
+        return;
+      }
+      
       console.log('=== FETCHER DATA SUCCESS ===');
       console.log('Fetcher data:', fetcher.data);
+      setLastProcessedFetcherData(dataKey);
       
       const data = fetcher.data.data || fetcher.data;
       
@@ -249,17 +270,26 @@ const OptimizationSettings = ({
       
       // Handle segmentation data
       if (data.segmentations) {
-        console.log('Processing segmentation data:', data);
+        console.log('🆕 NEW segmentation data received - replacing old data');
+        console.log('New segments count:', data.segmentations.length);
         
+        // Replace old segments with new ones
         setAvailableSegments(data.segmentations);
         
-        setToast({ active: true, message: "Market segmentation loaded successfully! Auto-saving..." });
+        // Clear selected segment - user needs to review and select new one
+        setLocalSelectedSegment(null);
+        if (onSegmentChange) {
+          onSegmentChange(null);
+        }
+        
+        setToast({ 
+          active: true, 
+          message: `🎯 ${data.segmentations.length} NEW ideal customers discovered! Please review and select one.` 
+        });
         setIsLoadingSegmentation(false);
         
-        // Auto-save to database
-        setTimeout(() => {
-          handleSaveSettings();
-        }, 500);
+        // Flag that we need auto-save after state updates
+        setNeedsAutoSave(true);
       }
     } else if (fetcher.data?.error) {
       console.error('Fetcher error:', fetcher.data);
@@ -267,7 +297,23 @@ const OptimizationSettings = ({
       setIsLoadingInsights(false);
       setIsLoadingSegmentation(false);
     }
-  }, [fetcher.data, product?.id]);
+  }, [fetcher.data, product?.id, handleSaveSettings]);
+
+  // Auto-save when availableSegments or availableKeywords change (after API updates)
+  useEffect(() => {
+    // Only auto-save if flag is set and we're not loading
+    if (needsAutoSave && !isLoadingSegmentation && product?.id) {
+      console.log('🔄 Auto-saving updated segments to database...');
+      console.log('Current availableSegments:', availableSegments.length);
+      
+      const timer = setTimeout(() => {
+        handleSaveSettings();
+        setNeedsAutoSave(false); // Reset flag after save
+      }, 1500); // Give React time to batch state updates
+      
+      return () => clearTimeout(timer);
+    }
+  }, [needsAutoSave, availableSegments, isLoadingSegmentation, product?.id, handleSaveSettings]);
 
   // Handle text input changes (keep as text, don't convert immediately)
   const handleKeywordsTextChange = useCallback((value) => {

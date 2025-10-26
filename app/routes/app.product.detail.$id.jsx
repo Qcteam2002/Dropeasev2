@@ -28,14 +28,15 @@ import OptimizationSettings from "../components/ProductDetail/OptimizationSettin
 import ContentOptimizationTab from "../components/ProductDetail/ContentOptimizationTab";
 import ImageOptimizationTab from "../components/ProductDetail/ImageOptimizationTab";
 import FeatureHighlightTab from "../components/ProductDetail/FeatureHighlightTab";
+import ThumbnailOptimizationTab from "../components/ProductDetail/ThumbnailOptimizationTab";
 
 const prisma = new PrismaClient();
 
 export const loader = async ({ request, params }) => {
   try {
-    const { admin, session } = await authenticate.admin(request);
-    const user = await getUser(request);
-    const productId = params.id;
+  const { admin, session } = await authenticate.admin(request);
+  const user = await getUser(request);
+  const productId = params.id;
 
     if (!user || !productId) {
       throw new Response("Not Found", { status: 404 });
@@ -128,7 +129,7 @@ export const loader = async ({ request, params }) => {
     } catch (error) {
       console.error("Error fetching Shopify product:", error);
     }
-
+    
     // Combine all image sources
     let finalImages = [];
     
@@ -287,7 +288,7 @@ export const action = async ({ request, params }) => {
         
         // Also save to local database
         await prisma.productsOptimized.upsert({
-          where: { productId: BigInt(productId) },
+    where: { productId: BigInt(productId) },
           update: {
             optimizedTitle: title,
             optimizedDescription: description,
@@ -441,11 +442,12 @@ export default function ProductDetailPage() {
     { label: 'Content', value: 'content' },
     { label: 'Image', value: 'image' },
     { label: 'Feature Highlight', value: 'feature-highlight' },
+    { label: 'Thumbnail Image', value: 'thumbnail' },
   ];
 
   return (
-    <Frame>
-      <Page
+<Frame>
+        <Page
         backAction={{
           content: 'Products',
           onAction: () => navigate('/app/products'),
@@ -478,26 +480,26 @@ export default function ProductDetailPage() {
       >
         <TitleBar title={product.title} />
         
-        <style>{`
-          .product-title-truncated {
-            max-width: 250px !important;
-            overflow: hidden !important;
-            text-overflow: ellipsis !important;
-            white-space: nowrap !important;
-            display: inline-flex !important;
-            align-items: center !important;
-            height: 100% !important;
-          }
-          .product-title-truncated h1 {
-            max-width: 100% !important;
-            overflow: hidden !important;
-            text-overflow: ellipsis !important;
-            white-space: nowrap !important;
-            display: block !important;
-            margin: 0 !important;
-            line-height: 1.2 !important;
-          }
-        `}</style>
+      <style>{`
+        .product-title-truncated {
+          max-width: 250px !important;
+          overflow: hidden !important;
+          text-overflow: ellipsis !important;
+          white-space: nowrap !important;
+          display: inline-flex !important;
+          align-items: center !important;
+          height: 100% !important;
+        }
+        .product-title-truncated h1 {
+          max-width: 100% !important;
+          overflow: hidden !important;
+          text-overflow: ellipsis !important;
+          white-space: nowrap !important;
+          display: block !important;
+          margin: 0 !important;
+          line-height: 1.2 !important;
+        }
+      `}</style>
         
         <Layout>
           {/* Left Column - Settings (30%) */}
@@ -514,7 +516,7 @@ export default function ProductDetailPage() {
 
           {/* Right Column - Optimization Area (70%) */}
           <Layout.Section>
-            <Card>
+          <Card>
               <Box padding="400">
                 <BlockStack gap="400">
                   {/* Segmented Button Group for Tabs */}
@@ -523,7 +525,7 @@ export default function ProductDetailPage() {
                       <Button
                         key={option.value}
                         pressed={selectedTab === index}
-                        onClick={() => setSelectedTab(index)}
+                          onClick={() => setSelectedTab(index)}
                         variant="secondary"
                         size="large"
                       >
@@ -533,27 +535,35 @@ export default function ProductDetailPage() {
                   </ButtonGroup>
 
                   {/* Tab Content */}
-                  {selectedTab === 0 && (
+            {selectedTab === 0 && (
                     <ContentOptimizationTab
-                      product={product}
+                product={product}
                       settings={optimizationSettings}
                       onApplyContent={handleApplyContent}
-                      fetcher={fetcher}
+                fetcher={fetcher}
                       selectedSegment={selectedSegment}
-                    />
-                  )}
+              />
+            )}
 
-                  {selectedTab === 1 && (
+            {selectedTab === 1 && (
                     <ImageOptimizationTab
-                      product={product}
+                product={product}
                       settings={optimizationSettings}
                       onApplyAltText={handleApplyAltText}
+                fetcher={fetcher}
+              />
+            )}
+
+            {selectedTab === 2 && (
+                    <FeatureHighlightTab
+                      product={product}
+                      settings={optimizationSettings}
                       fetcher={fetcher}
                     />
                   )}
 
-                  {selectedTab === 2 && (
-                    <FeatureHighlightTab
+            {selectedTab === 3 && (
+                    <ThumbnailOptimizationTab
                       product={product}
                       settings={optimizationSettings}
                       fetcher={fetcher}
@@ -571,7 +581,7 @@ export default function ProductDetailPage() {
             onDismiss={() => setToast({ active: false, message: "" })}
           />
         )}
-      </Page>
-    </Frame>
+        </Page>
+      </Frame>
   );
 }
