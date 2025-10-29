@@ -749,69 +749,107 @@ const OptimizationSettings = ({
                     Ideal Customers ({availableSegments.length} found)
                   </Text>
             <BlockStack gap="300">
-              {availableSegments.map((segment, index) => (
-                <div
-                  key={index}
-                  onClick={() => {
-                    setLocalSelectedSegment(segment.name);
-                    if (onSegmentChange) {
-                      onSegmentChange(segment);
-                    }
-                  }}
-                  style={{ 
-                    padding: '16px',
-                    border: localSelectedSegment === segment.name ? '2px solid #007ace' : '1px solid #e1e3e5',
-                    borderRadius: '8px',
-                    backgroundColor: localSelectedSegment === segment.name ? '#f0f8ff' : '#ffffff',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    minHeight: '140px',
-                    maxHeight: '180px',
-                    display: 'flex',
-                    flexDirection: 'column'
-                  }}
-                >
-                  {/* Header: Name + Badge */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <Text variant="bodyMd" fontWeight="semibold">{segment.name}</Text>
-                    <Badge 
-                      status={segment.winRate >= 0.8 ? 'success' : segment.winRate >= 0.6 ? 'attention' : 'info'}
-                    >
-                      {Math.round(segment.winRate * 100)}% Match
-                    </Badge>
-                  </div>
-                  
-                  {/* Pain Point with scroll */}
-                  <div style={{ 
-                    flex: 1, 
-                    overflowY: 'auto',
-                    marginBottom: '8px',
-                    paddingRight: '8px'
-                  }}>
-                    <Text variant="bodySm" color="subdued">
-                      <strong>Pain Point:</strong> {segment.painpoint}
-                    </Text>
-                  </div>
-                  
-                  {/* View Detail Link */}
-                  <div 
+              {availableSegments.map((segment, index) => {
+                const isSelected = localSelectedSegment === segment.name;
+                
+                return (
+                  <div
+                    key={`segment-${index}-${segment.name}`}
                     onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleViewSegmentDetail(segment);
+                      // Prevent if clicking on scrollable area or View Detail
+                      const target = e.target;
+                      if (target.closest('.view-detail-link') || target.closest('.scroll-area')) {
+                        return;
+                      }
+                      
+                      console.log('🎯 Click detected on segment card');
+                      console.log('Current selected:', localSelectedSegment);
+                      console.log('Clicked segment:', segment.name);
+                      console.log('Is same?', localSelectedSegment === segment.name);
+                      
+                      // Force update even if same (to ensure state is synced)
+                      setLocalSelectedSegment(segment.name);
+                      
+                      if (onSegmentChange) {
+                        console.log('Calling onSegmentChange with:', segment.name);
+                        onSegmentChange(segment);
+                      }
                     }}
-                    style={{ cursor: 'pointer', display: 'inline-block', marginTop: 'auto' }}
+                    style={{ 
+                      padding: '16px',
+                      border: isSelected ? '2px solid #007ace' : '1px solid #e1e3e5',
+                      borderRadius: '8px',
+                      backgroundColor: isSelected ? '#f0f8ff' : '#ffffff',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      minHeight: '140px',
+                      maxHeight: '180px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      position: 'relative',
+                      userSelect: 'none'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!e.target.closest('.view-detail-link')) {
+                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.boxShadow = 'none';
+                    }}
                   >
-                    <Text 
-                      variant="bodySm" 
-                      color="link" 
-                      style={{ textDecoration: 'underline' }}
+                    {/* Header: Name + Badge */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                      <Text variant="bodyMd" fontWeight="semibold">{segment.name}</Text>
+                      <Badge 
+                        status={segment.winRate >= 0.8 ? 'success' : segment.winRate >= 0.6 ? 'attention' : 'info'}
+                      >
+                        {Math.round(segment.winRate * 100)}% Match
+                      </Badge>
+                    </div>
+                    
+                    {/* Pain Point with scroll */}
+                    <div 
+                      className="scroll-area"
+                      style={{ 
+                        flex: 1, 
+                        overflowY: 'auto',
+                        marginBottom: '8px',
+                        paddingRight: '8px'
+                      }}
                     >
-                      View Detail
-                    </Text>
+                      <Text variant="bodySm" color="subdued">
+                        <strong>Pain Point:</strong> {segment.painpoint}
+                      </Text>
+                    </div>
+                    
+                    {/* View Detail Link */}
+                    <div 
+                      className="view-detail-link"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('👁️ View detail clicked for:', segment.name);
+                        handleViewSegmentDetail(segment);
+                      }}
+                      style={{ 
+                        cursor: 'pointer', 
+                        display: 'inline-block', 
+                        marginTop: 'auto',
+                        zIndex: 10
+                      }}
+                    >
+                      <Text 
+                        variant="bodySm" 
+                        color="link" 
+                        style={{ textDecoration: 'underline' }}
+                      >
+                        View Detail
+                      </Text>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </BlockStack>
                 </BlockStack>
               )}

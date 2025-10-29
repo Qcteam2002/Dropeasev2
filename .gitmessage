@@ -1,0 +1,78 @@
+# <type>: <subject> (max 50 characters)
+
+# <body> (optional, max 72 characters per line)
+
+# <footer> (optional)
+
+# --- COMMIT MESSAGE GUIDELINES ---
+#
+# Type should be one of:
+#   feat:     A new feature
+#   fix:      A bug fix
+#   docs:     Documentation only changes
+#   style:    Code style changes (formatting, semicolons, etc)
+#   refactor: Code change that neither fixes a bug nor adds a feature
+#   perf:     Performance improvements
+#   test:     Adding or updating tests
+#   chore:    Changes to build process, dependencies, etc
+#   revert:   Reverts a previous commit
+#
+# Subject:
+#   - Use imperative mood ("add" not "added" or "adds")
+#   - Don't capitalize first letter
+#   - No period at the end
+#   - Max 50 characters
+#
+# Body (optional):
+#   - Explain WHAT and WHY (not HOW)
+#   - Wrap at 72 characters
+#   - Separate from subject with blank line
+#
+# Footer (optional):
+#   - Reference issues: "Closes #123" or "Fixes #456"
+#   - Breaking changes: "BREAKING CHANGE: description"
+#
+# Examples:
+#
+#   feat: add AI image generation API endpoint
+#
+#   Implement new endpoint for generating product images with AI.
+#   Supports 6 different styles (studio, lifestyle, infographic, etc).
+#   Uses OpenRouter API for prompt generation and image creation.
+#
+#   Closes #42
+#
+# ---
+#
+#   fix: resolve CORS issue in external API calls
+#
+#   Add proper CORS headers to handle cross-origin requests.
+#   Update API base URL configuration.
+#
+#   Fixes #58
+#
+# ---
+#
+#   docs: add comprehensive deployment guide
+#
+# --- BEFORE COMMITTING ---
+#
+# ✅ Check PRE_COMMIT_CHECKLIST.md
+# ✅ No .env files
+# ✅ No node_modules/
+# ✅ No API keys hardcoded
+# ✅ All tests passed
+# ✅ Code reviewed
+#
+# --- NEVER COMMIT ---
+#
+# ❌ .env or *.env files
+# ❌ node_modules/
+# ❌ build/ or dist/
+# ❌ *.log files
+# ❌ Database files
+# ❌ API keys or passwords
+# ❌ Backup files
+#
+
+

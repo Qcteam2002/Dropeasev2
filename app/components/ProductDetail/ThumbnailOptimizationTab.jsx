@@ -191,6 +191,7 @@ const ThumbnailOptimizationTab = ({
         onClose={() => setCreateModalActive(false)}
         product={product}
         styles={styles}
+        settings={settings}
         onSuccess={handleSuccess}
       />
 

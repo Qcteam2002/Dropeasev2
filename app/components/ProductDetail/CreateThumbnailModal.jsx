@@ -17,6 +17,7 @@ const CreateThumbnailModal = ({
   onClose, 
   product,
   styles,
+  settings,
   onSuccess 
 }) => {
   const [selectedStyle, setSelectedStyle] = useState('studio_shot');
@@ -43,36 +44,139 @@ const CreateThumbnailModal = ({
   };
 
   const handleGenerate = async () => {
-    console.log('🎨 Generating single thumbnail with style:', selectedStyle);
+    console.log('🎨 Generating thumbnail with style:', selectedStyle);
+    console.log('⚙️  Using settings:', settings);
     
     setIsGenerating(true);
     
     try {
-      const formData = new FormData();
-      formData.append('productId', product.id);
-      formData.append('productTitle', product.title);
-      formData.append('productDescription', product.descriptionHtml || '');
-      formData.append('style', selectedStyle);
-      formData.append('currentThumbnail', currentThumbnail);
-      formData.append('count', '1');
+      // Get the style key for API
+      const styleMap = {
+        'studio_shot': 'studio',
+        'lifestyle_shot': 'lifestyle',
+        'infographic': 'infographic',
+        'gif_animated': 'motion',
+        'close_up': 'closeup',
+        'ugc_style': 'ugc'
+      };
+      const selectedStyleKey = styleMap[selectedStyle] || 'studio';
       
-      const response = await fetch('/api/generate-thumbnail', {
+      console.log('📋 Selected Image Type:', {
+        id: selectedStyle,
+        apiKey: selectedStyleKey,
+        name: styles.find(s => s.id === selectedStyle)?.name || 'Unknown'
+      });
+
+      // Step 1: Generate prompts using /api/product-optimize/generate-image
+      const step1Data = {
+        productTitle: product.title,
+        productImages: [currentThumbnail],
+        productDescription: product.descriptionHtml || '',
+        language: 'en',
+        market: 'us',
+        // Add selected style for informational purposes (API will generate all 6 styles)
+        requestedStyle: selectedStyleKey
+      };
+
+      // Add data based on settings (from product detail)
+      if (settings) {
+        // Check if using segmentation
+        if (settings.useSegmentation && settings.segmentationData) {
+          step1Data.segmentation = settings.segmentationData;
+          console.log('🎯 Using segmentation data from settings');
+        } else {
+          // Use manual inputs from settings
+          if (settings.keywords && settings.keywords.length > 0) {
+            step1Data.keywords = settings.keywords;
+          }
+          if (settings.persona && settings.persona.trim()) {
+            step1Data.persona = settings.persona.trim();
+          }
+          if (settings.painpoints && settings.painpoints.length > 0) {
+            step1Data.painpoints = settings.painpoints;
+          }
+          if (settings.tone && settings.tone.trim()) {
+            step1Data.tone = settings.tone.trim();
+          }
+          if (settings.keyFeature && settings.keyFeature.trim()) {
+            step1Data.keyFeature = settings.keyFeature.trim();
+          }
+          console.log('📝 Using manual settings:', {
+            keywords: settings.keywords,
+            persona: settings.persona,
+            painpoints: settings.painpoints,
+            tone: settings.tone,
+            keyFeature: settings.keyFeature
+          });
+        }
+      }
+
+      console.log('📤 Step 1 - Generating prompts for ALL 6 styles...', step1Data);
+      
+      const step1Response = await fetch('/api/generate-image', {
         method: 'POST',
-        body: formData
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(step1Data)
       });
       
-      const result = await response.json();
+      const step1Result = await step1Response.json();
       
-      if (result.success && result.data.variants && result.data.variants.length > 0) {
-        console.log('✅ Thumbnail generated successfully:', result);
-        setGeneratedImage(result.data.variants[0]);
+      if (!step1Result.success) {
+        throw new Error(step1Result.error || 'Failed to generate prompts');
+      }
+
+      console.log('✅ Step 1 complete - All 6 style prompts generated:', step1Result.data);
+      console.log(`🎯 Will use "${selectedStyleKey}" style prompt for image generation`);
+
+      // Step 2: Generate image using the prompt for selected style
+      const prompt = step1Result.data.styles[selectedStyleKey];
+      const bestImageUrl = step1Result.data.bestImageUrl || currentThumbnail;
+
+      console.log('📤 Step 2 - Generating image with selected style...');
+      console.log('🎨 Style:', selectedStyleKey);
+      console.log('🖼️  Best Image:', bestImageUrl);
+      console.log('📝 Prompt:', prompt);
+
+      const step2Response = await fetch('/api/generate-image-result', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt,
+          originalImageUrl: bestImageUrl,
+          style: selectedStyleKey,
+          techSettings: step1Result.data.tech_settings
+        })
+      });
+      
+      const step2Result = await step2Response.json();
+      
+      if (step2Result.success && step2Result.data.generatedImage) {
+        const imageUrl = step2Result.data.generatedImage;
+        
+        // Check if image is base64 data URL or HTTP URL
+        const isBase64 = imageUrl.startsWith('data:image/');
+        const isHttpUrl = imageUrl.startsWith('http');
+        
+        console.log('✅ Image generated successfully for style:', selectedStyleKey);
+        console.log('📷 Image format:', isBase64 ? 'Base64 Data URL' : isHttpUrl ? 'HTTP URL' : 'Unknown');
+        console.log('📏 Image size:', isBase64 ? `${(imageUrl.length / 1024).toFixed(2)} KB` : 'N/A');
+        
+        if (!isBase64 && !isHttpUrl) {
+          console.warn('⚠️ Unknown image format, attempting to use anyway');
+        }
+        
+        setGeneratedImage({
+          url: imageUrl,
+          id: `generated_${Date.now()}`,
+          isBase64: isBase64,
+          style: selectedStyleKey
+        });
       } else {
-        console.error('❌ Thumbnail generation failed:', result.error);
-        alert(`Failed to generate thumbnail: ${result.error || 'Unknown error'}`);
+        throw new Error(step2Result.error || 'Failed to generate image');
       }
     } catch (error) {
-      console.error('❌ Error generating thumbnail:', error);
-      alert('Failed to generate thumbnail. Please try again.');
+      console.error('❌ Error:', error);
+      alert(`Failed to generate thumbnail: ${error.message}`);
     } finally {
       setIsGenerating(false);
     }
@@ -420,11 +524,11 @@ const CreateThumbnailModal = ({
         ]}
       >
         <div style={{ padding: '20px' }}>
-          <div style={{ display: 'flex', gap: '40px', height: '400px', width: '100%', maxWidth: '100rem', margin: '0 auto' }}>
+          <div style={{ display: 'flex', gap: '40px', minHeight: '500px', width: '100%', maxWidth: '100rem', margin: '0 auto' }}>
             {/* Left Column - Settings (28%) */}
             <div
               style={{
-                flex: '0 0 28%',
+                flex: '0 0 35%',
                 borderRight: '1px solid #e1e3e5',
                 paddingRight: '32px',
                 height: '100%',
@@ -432,19 +536,20 @@ const CreateThumbnailModal = ({
                 overflowX: 'visible'
               }}
             >
-              {/* Header */}
+              {/* Image Type Header */}
               <div style={{ marginBottom: '16px' }}>
                 <Text variant="headingSm" as="h3">
                   Image Type
                 </Text>
               </div>
 
-              {/* Cards grid */}
+              {/* Image Type Cards grid */}
               <div style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(2, 1fr)',
                 gap: '14px',
-                overflow: 'visible'
+                overflow: 'visible',
+                marginBottom: '24px'
               }}>
                 {styles.map((style) => (
                     <div
@@ -523,8 +628,8 @@ const CreateThumbnailModal = ({
                 </div>
             </div>
 
-          {/* Right Column - Output (72%) */}
-          <div className="output-column" style={{ flex: '0 0 calc(72% - 40px)', height: '100%', overflow: 'hidden' }}>
+          {/* Right Column - Output (65%) */}
+          <div className="output-column" style={{ flex: '0 0 calc(65% - 40px)', height: '100%', overflow: 'hidden' }}>
             <BlockStack gap="400">
               {/* Title + Button */}
               <InlineStack align="space-between" blockAlign="center">
@@ -577,18 +682,51 @@ const CreateThumbnailModal = ({
                         maxHeight: '100%',
                         objectFit: 'contain'
                       }}
+                      onError={(e) => {
+                        console.error('❌ Image load error for:', generatedImage.url?.substring(0, 100) + '...');
+                        console.error('Image type:', generatedImage.isBase64 ? 'Base64' : 'URL');
+                        e.target.style.display = 'none';
+                        alert('Failed to load generated image. Please check console for details.');
+                      }}
+                      onLoad={() => {
+                        console.log('✅ Image loaded successfully');
+                      }}
                     />
                   </Box>
                   
-                  <Badge tone="success" size="large">✓ Generated successfully</Badge>
+                  <InlineStack gap="200" blockAlign="center">
+                    <Badge tone="success" size="large">✓ Generated successfully</Badge>
+                    {generatedImage.isBase64 && (
+                      <Badge tone="info" size="medium">Base64 Format</Badge>
+                    )}
+                    {generatedImage.style && (
+                      <Badge tone="magic" size="medium">Style: {generatedImage.style}</Badge>
+                    )}
+                  </InlineStack>
                   
                   <InlineStack gap="200">
                     <Button onClick={handleGenerate} loading={isGenerating}>
                       Regenerate
                     </Button>
-                    <Button onClick={() => window.open(generatedImage.url, '_blank')}>
-                      View full size
-                    </Button>
+                    {generatedImage.isBase64 ? (
+                      <Button 
+                        onClick={() => {
+                          const link = document.createElement('a');
+                          link.href = generatedImage.url;
+                          link.download = `thumbnail-${generatedImage.style || 'generated'}-${Date.now()}.png`;
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                          console.log('📥 Downloaded base64 image');
+                        }}
+                      >
+                        Download Image
+                      </Button>
+                    ) : (
+                      <Button onClick={() => window.open(generatedImage.url, '_blank')}>
+                        View full size
+                      </Button>
+                    )}
                   </InlineStack>
                 </BlockStack>
               ) : (

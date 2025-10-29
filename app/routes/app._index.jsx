@@ -1,387 +1,558 @@
-import { useEffect } from "react";
-import { json } from "@remix-run/node";
-import { useFetcher, useLoaderData } from "@remix-run/react";
+import React, { useState } from "react";
 import {
   Page,
-  Layout,
-  Text,
   Card,
+  Text,
   Button,
-  BlockStack,
+  Badge,
   Box,
-  List,
-  Link,
+  BlockStack,
   InlineStack,
+  Icon,
+  ProgressBar,
+  Banner,
+  Link,
+  EmptyState,
+  Grid,
+  Layout,
 } from "@shopify/polaris";
-import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
-import { authenticate } from "../shopify.server";
-// import { firstInitQueue } from "../queues/first_init";
-// import UserServices  from "../server/services/user";
-import ShopifyProduct from "../server/services/product";
-// import {shopify, clients} from "../server/services/shopifyApi";
-// import {shopifyApi, LATEST_API_VERSION, ApiVersion} from '@shopify/shopify-api';
-import { getFirstProduct } from "../models/PlatformProduct";
-import { clientEnv } from "../config/env";
-import { SetupGuide } from "../components/SetupGuide";
-
-export const loader = async ({ request }) => {
-  const { admin, session } = await authenticate.admin(request);
-  const shopifyProductService = new ShopifyProduct(session);
-  
-  try {
-    // Re-enable product sync
-    let syncedProducts = await shopifyProductService.syncProducts();
-    
-    // Handle BigInt in synced products
-    if (syncedProducts) {
-      syncedProducts = JSON.parse(
-        JSON.stringify(syncedProducts, (key, value) =>
-          typeof value === 'bigint' ? value.toString() : value
-        )
-      );
-    }
-    console.log("Synced products:", syncedProducts);
-  } catch (error) {
-    console.error("Error syncing products:", error);
-  }
-
-  const deeplinkUrl = `https://${session.shop}/admin/themes/current/editor?template=product&addAppBlockId=${clientEnv.SHOPIFY_DEMO_THEME_EXT_ID}/star_rating&target=newAppsSection`;
-  const deeplinkUrlgridView = `https://${session.shop}/admin/themes/current/editor?template=product&addAppBlockId=${clientEnv.SHOPIFY_DEMO_THEME_EXT_ID}/gridview-block&target=newAppsSection`;
-  const deeplinkUrlproductReview = `https://${session.shop}/admin/themes/current/editor?template=product&addAppBlockId=${clientEnv.SHOPIFY_DEMO_THEME_EXT_ID}/product-review-block&target=sectionId:main-product`;
-  const deeplinkUrlpaymentBlock = `https://${session.shop}/admin/themes/current/editor?template=product&addAppBlockId=${clientEnv.SHOPIFY_DEMO_THEME_EXT_ID}/payment-block&target=sectionId:main-product`;
-  const deeplinkUrlOptimizeCoreScript = `https://${session.shop}/admin/themes/current/editor?context=apps&template=product&activateAppId=23fc9ea0-82b9-40d6-bb1c-8518cbd98660/optimize-core-script`;
-  
-  console.log("Deeplink URL:", deeplinkUrl);
-  console.log("Grid View Deeplink URL:", deeplinkUrlgridView);
-  console.log("Product Review Deeplink URL:", deeplinkUrlproductReview);
-  console.log("Embedded Deeplink URL:", deeplinkUrlOptimizeCoreScript);
-
-  let platformProduct = await getFirstProduct();
-  
-  // Convert BigInt to String in platformProduct
-  if (platformProduct) {
-    platformProduct = JSON.parse(
-      JSON.stringify(platformProduct, (key, value) =>
-        typeof value === 'bigint' ? value.toString() : value
-      )
-    );
-  }
-  
-  console.log("Platform product:", platformProduct);
-  
-  try {
-    let shopifyProduct = await shopifyProductService.updateProductShopify(platformProduct);
-    // Convert BigInt to String in shopifyProduct
-    if (shopifyProduct) {
-      shopifyProduct = JSON.parse(
-        JSON.stringify(shopifyProduct, (key, value) =>
-          typeof value === 'bigint' ? value.toString() : value
-        )
-      );
-    }
-    console.log("Product created in Shopify:", shopifyProduct);
-  } catch (error) {
-    console.error("Error:", error);
-  }
-
-  return json({
-    deeplinkUrl,
-    deeplinkUrlgridView,
-    deeplinkUrlproductReview,
-    deeplinkUrlpaymentBlock,
-    deeplinkUrlOptimizeCoreScript,
-    platformProduct
-  });
-};
-
-export const action = async ({ request }) => {};
+import {
+  ProductIcon,
+  MagicIcon,
+  StarFilledIcon,
+  ChartLineIcon,
+  ChartHorizontalIcon,
+  CheckIcon,
+  ClockIcon,
+} from "@shopify/polaris-icons";
+import { useNavigate } from "@remix-run/react";
 
 export default function HomePage() {
-  const data = useLoaderData();
-  
+  const navigate = useNavigate();
+
+  // Mock data - Replace with real data from API/loader
+  const userData = {
+    isNew: false, // true for onboarding, false for returning user
+    accountName: "My Shopify Store",
+    plan: "Free",
+    usage: {
+      productsOptimized: 3,
+      productsLimit: 10,
+      aiGenerations: 8,
+      aiGenerationsLimit: 20,
+    },
+    recentActivity: [
+      { id: 1, action: "Optimized", product: "iPhone 15 Pro Max", time: "2 hours ago" },
+      { id: 2, action: "AI Generated", product: "MacBook Air M3", time: "5 hours ago" },
+      { id: 3, action: "Optimized", product: "AirPods Pro", time: "1 day ago" },
+    ],
+    completedSteps: 2,
+    totalSteps: 4,
+  };
+
+  // Calculate percentages
+  const productsPercentage = (userData.usage.productsOptimized / userData.usage.productsLimit) * 100;
+  const aiPercentage = (userData.usage.aiGenerations / userData.usage.aiGenerationsLimit) * 100;
+  const onboardingProgress = (userData.completedSteps / userData.totalSteps) * 100;
+
+  // Getting Started Steps
+  const gettingStartedSteps = [
+    {
+      id: 1,
+      title: "Connect your store",
+      description: "Link your Shopify store to get started",
+      completed: true,
+      action: () => {},
+    },
+    {
+      id: 2,
+      title: "Optimize your first product",
+      description: "Use AI to create compelling product descriptions",
+      completed: true,
+      action: () => navigate("/app/products"),
+    },
+    {
+      id: 3,
+      title: "Discover customer segments",
+      description: "Unlock AI-powered customer insights",
+      completed: false,
+      action: () => navigate("/app/pricing"),
+    },
+    {
+      id: 4,
+      title: "Upgrade to Pro",
+      description: "Get full access to AI Segmentation",
+      completed: false,
+      action: () => navigate("/app/pricing"),
+    },
+  ];
+
+  // Render Onboarding View (New User)
+  if (userData.isNew) {
+    return (
+      <Page title="Welcome to Dropease! 🎉">
+        <BlockStack gap="500">
+          {/* Welcome Banner */}
+          <Banner tone="info">
+            <BlockStack gap="200">
+              <Text variant="headingMd" as="h2" fontWeight="semibold">
+                Your store is connected!
+              </Text>
+              <Text variant="bodyMd">
+                Let's optimize your first product and see the AI magic in action.
+              </Text>
+            </BlockStack>
+          </Banner>
+
+          {/* Quick Start Guide */}
+          <Card>
+            <BlockStack gap="500">
+              <BlockStack gap="200">
+                <Text variant="headingLg" as="h2" fontWeight="bold">
+                  Get started in 3 easy steps
+                </Text>
+                <Text variant="bodyMd" tone="subdued">
+                  Set up your store for maximum conversions
+                </Text>
+              </BlockStack>
+
+              {/* Steps */}
+              <BlockStack gap="400">
+                {/* Step 1 */}
+                <Card>
+                  <Box padding="400">
+                    <InlineStack gap="400" align="start" blockAlign="start">
+                      <div style={{ 
+                        backgroundColor: "#303030", 
+                        borderRadius: "50%", 
+                        width: "40px", 
+                        height: "40px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "white",
+                        fontWeight: "bold",
+                        fontSize: "18px",
+                        flexShrink: 0,
+                      }}>
+                        1
+                      </div>
+                      <Box width="100%">
+                        <BlockStack gap="300">
+                          <Text variant="headingMd" as="h3" fontWeight="semibold">
+                            Browse your products
+                          </Text>
+                          <Text variant="bodyMd" tone="subdued">
+                            See all your Shopify products in one place
+                          </Text>
+                          <div>
+                            <Button onClick={() => navigate("/app/products")}>
+                              View products
+                            </Button>
+                          </div>
+                        </BlockStack>
+                      </Box>
+                    </InlineStack>
+                  </Box>
+                </Card>
+
+                {/* Step 2 */}
+                <Card>
+                  <Box padding="400">
+                    <InlineStack gap="400" align="start" blockAlign="start">
+                      <div style={{ 
+                        backgroundColor: "#8C9196", 
+                        borderRadius: "50%", 
+                        width: "40px", 
+                        height: "40px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "white",
+                        fontWeight: "bold",
+                        fontSize: "18px",
+                        flexShrink: 0,
+                      }}>
+                        2
+                      </div>
+                      <Box width="100%">
+                        <BlockStack gap="200">
+                          <Text variant="headingMd" as="h3" fontWeight="semibold">
+                            Optimize with AI
+                          </Text>
+                          <Text variant="bodyMd" tone="subdued">
+                            Let AI create compelling descriptions that convert
+                          </Text>
+                        </BlockStack>
+                      </Box>
+                    </InlineStack>
+                  </Box>
+                </Card>
+
+                {/* Step 3 */}
+                <Card>
+                  <Box padding="400">
+                    <InlineStack gap="400" align="start" blockAlign="start">
+                      <div style={{ 
+                        backgroundColor: "#8C9196", 
+                        borderRadius: "50%", 
+                        width: "40px", 
+                        height: "40px",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "white",
+                        fontWeight: "bold",
+                        fontSize: "18px",
+                        flexShrink: 0,
+                      }}>
+                        3
+                      </div>
+                      <Box width="100%">
+                        <BlockStack gap="200">
+                          <Text variant="headingMd" as="h3" fontWeight="semibold">
+                            Push to Shopify
+                          </Text>
+                          <Text variant="bodyMd" tone="subdued">
+                            Sync optimized content to your store with 1-click
+                          </Text>
+                        </BlockStack>
+                      </Box>
+                    </InlineStack>
+                  </Box>
+                </Card>
+              </BlockStack>
+            </BlockStack>
+          </Card>
+
+          {/* Feature Highlights */}
+          <Layout>
+            <Layout.Section variant="oneThird">
+              <Card>
+                <Box padding="400">
+                  <BlockStack gap="300">
+                    <Icon source={MagicIcon} tone="base" />
+                    <Text variant="headingMd" as="h3" fontWeight="semibold">
+                      AI-Powered Content
+                    </Text>
+                    <Text variant="bodyMd" tone="subdued">
+                      Generate product descriptions, titles, and more with advanced AI
+                    </Text>
+                  </BlockStack>
+                </Box>
+              </Card>
+            </Layout.Section>
+
+            <Layout.Section variant="oneThird">
+              <Card>
+                <Box padding="400">
+                  <BlockStack gap="300">
+                    <Icon source={StarFilledIcon} tone="base" />
+                    <Text variant="headingMd" as="h3" fontWeight="semibold">
+                      Customer Segments
+                    </Text>
+                    <Text variant="bodyMd" tone="subdued">
+                      Discover who your customers are and optimize for them
+                    </Text>
+                  </BlockStack>
+                </Box>
+              </Card>
+            </Layout.Section>
+
+            <Layout.Section variant="oneThird">
+              <Card>
+                <Box padding="400">
+                  <BlockStack gap="300">
+                    <Icon source={ChartHorizontalIcon} tone="base" />
+                    <Text variant="headingMd" as="h3" fontWeight="semibold">
+                      Bulk Optimization
+                    </Text>
+                    <Text variant="bodyMd" tone="subdued">
+                      Optimize hundreds of products at once (Pro plan)
+                    </Text>
+                  </BlockStack>
+                </Box>
+              </Card>
+            </Layout.Section>
+          </Layout>
+        </BlockStack>
+      </Page>
+    );
+  }
+
+  // Render Dashboard View (Returning User)
   return (
-    <Page>
-      <Layout>
-        <Layout.Section>
-          <SetupGuide />
-        </Layout.Section>
-      </Layout>
+    <Page
+      title={`Welcome back, ${userData.accountName}!`}
+      subtitle="Here's what's happening with your store"
+    >
+      <BlockStack gap="500">
+        {/* Getting Started Progress */}
+        {userData.completedSteps < userData.totalSteps && (
+          <Banner>
+            <BlockStack gap="300">
+              <InlineStack align="space-between" blockAlign="center">
+                <Text variant="headingMd" as="h2" fontWeight="semibold">
+                  Complete your setup
+                </Text>
+                <Text variant="bodyMd" fontWeight="semibold">
+                  {userData.completedSteps} of {userData.totalSteps} completed
+                </Text>
+              </InlineStack>
+              <ProgressBar progress={onboardingProgress} size="small" />
+            </BlockStack>
+          </Banner>
+        )}
+
+        {/* Stats Overview */}
+        <Layout>
+          {/* Products Optimized */}
+          <Layout.Section variant="oneThird">
+            <Card>
+              <Box padding="400">
+                <BlockStack gap="400">
+                  <InlineStack align="space-between" blockAlign="center">
+                    <Icon source={ProductIcon} tone="base" />
+                    <Badge>{userData.plan}</Badge>
+                  </InlineStack>
+                  <BlockStack gap="200">
+                    <Text variant="headingSm" tone="subdued">
+                      Products optimized
+                    </Text>
+                    <Text variant="heading2xl" as="p" fontWeight="bold">
+                      {userData.usage.productsOptimized}
+                    </Text>
+                    <Text variant="bodySm" tone="subdued">
+                      of {userData.usage.productsLimit} available
+                    </Text>
+                  </BlockStack>
+                  <ProgressBar 
+                    progress={productsPercentage} 
+                    size="small"
+                  />
+                  {productsPercentage > 80 && (
+                    <Text variant="bodySm" tone="critical">
+                      Running low! <Link onClick={() => navigate("/app/pricing")}>Upgrade plan</Link>
+                    </Text>
+                  )}
+                </BlockStack>
+              </Box>
+            </Card>
+          </Layout.Section>
+
+          {/* AI Generations */}
+          <Layout.Section variant="oneThird">
+            <Card>
+              <Box padding="400">
+                <BlockStack gap="400">
+                  <InlineStack align="space-between" blockAlign="center">
+                    <Icon source={MagicIcon} tone="base" />
+                    <Badge>AI</Badge>
+                  </InlineStack>
+                  <BlockStack gap="200">
+                    <Text variant="headingSm" tone="subdued">
+                      AI generations used
+                    </Text>
+                    <Text variant="heading2xl" as="p" fontWeight="bold">
+                      {userData.usage.aiGenerations}
+                    </Text>
+                    <Text variant="bodySm" tone="subdued">
+                      of {userData.usage.aiGenerationsLimit} this month
+                    </Text>
+                  </BlockStack>
+                  <ProgressBar 
+                    progress={aiPercentage} 
+                    size="small"
+                  />
+                </BlockStack>
+              </Box>
+            </Card>
+          </Layout.Section>
+
+          {/* Quick Action Card */}
+          <Layout.Section variant="oneThird">
+            <Card>
+              <Box padding="400">
+                <BlockStack gap="400">
+                  <Icon source={StarFilledIcon} tone="base" />
+                  <BlockStack gap="200">
+                    <Text variant="headingMd" as="h3" fontWeight="semibold">
+                      Unlock AI Segmentation
+                    </Text>
+                    <Text variant="bodySm" tone="subdued">
+                      Discover your ideal customers and optimize content for them
+                    </Text>
+                  </BlockStack>
+                  <Button variant="primary" onClick={() => navigate("/app/pricing")}>
+                    Upgrade to Pro
+                  </Button>
+                </BlockStack>
+              </Box>
+            </Card>
+          </Layout.Section>
+        </Layout>
+
+        {/* Getting Started Checklist */}
+        {userData.completedSteps < userData.totalSteps && (
+          <Card>
+            <Box padding="500">
+              <BlockStack gap="400">
+                <Text variant="headingLg" as="h2" fontWeight="bold">
+                  Getting started checklist
+                </Text>
+                <BlockStack gap="300">
+                  {gettingStartedSteps.map((step) => (
+                    <InlineStack key={step.id} gap="400" align="space-between" blockAlign="center">
+                      <InlineStack gap="300" blockAlign="center">
+                        <div style={{
+                          width: "24px",
+                          height: "24px",
+                          borderRadius: "50%",
+                          backgroundColor: step.completed ? "#303030" : "#E3E5E7",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          flexShrink: 0,
+                        }}>
+                          {step.completed && (
+                            <Icon source={CheckIcon} tone="base" />
+                          )}
+                        </div>
+                        <BlockStack gap="050">
+                          <Text variant="bodyMd" fontWeight={step.completed ? "regular" : "semibold"}>
+                            {step.title}
+                          </Text>
+                          <Text variant="bodySm" tone="subdued">
+                            {step.description}
+                          </Text>
+                        </BlockStack>
+                      </InlineStack>
+                      {!step.completed && (
+                        <Button size="slim" onClick={step.action}>
+                          Start
+                        </Button>
+                      )}
+                    </InlineStack>
+                  ))}
+                </BlockStack>
+              </BlockStack>
+            </Box>
+          </Card>
+        )}
+
+        {/* Two Column Layout */}
+        <Layout>
+          {/* Recent Activity */}
+          <Layout.Section variant="twoThirds">
+            <Card>
+              <Box padding="500">
+                <BlockStack gap="400">
+                  <InlineStack align="space-between" blockAlign="center">
+                    <Text variant="headingMd" as="h2" fontWeight="bold">
+                      Recent activity
+                    </Text>
+                    <Button variant="plain" onClick={() => navigate("/app/products")}>
+                      View all
+                    </Button>
+                  </InlineStack>
+
+                  {userData.recentActivity.length > 0 ? (
+                    <BlockStack gap="300">
+                      {userData.recentActivity.map((activity) => (
+                        <InlineStack key={activity.id} gap="300" align="start" blockAlign="start">
+                          <Icon source={activity.action === "Optimized" ? ProductIcon : MagicIcon} tone="base" />
+                          <Box width="100%">
+                            <BlockStack gap="100">
+                              <Text variant="bodyMd" fontWeight="medium">
+                                {activity.action} "{activity.product}"
+                              </Text>
+                              <InlineStack gap="100" blockAlign="center">
+                                <Icon source={ClockIcon} tone="subdued" />
+                                <Text variant="bodySm" tone="subdued">
+                                  {activity.time}
+                                </Text>
+                              </InlineStack>
+                            </BlockStack>
+                          </Box>
+                        </InlineStack>
+                      ))}
+                    </BlockStack>
+                  ) : (
+                    <EmptyState
+                      heading="No activity yet"
+                      image="https://cdn.shopify.com/s/files/1/0262/4071/2726/files/emptystate-files.png"
+                    >
+                      <Text variant="bodyMd" tone="subdued">
+                        Start optimizing products to see your activity here
+                      </Text>
+                    </EmptyState>
+                  )}
+                </BlockStack>
+              </Box>
+            </Card>
+          </Layout.Section>
+
+          {/* Quick Actions */}
+          <Layout.Section variant="oneThird">
+            <Card>
+              <Box padding="500">
+                <BlockStack gap="400">
+                  <Text variant="headingMd" as="h2" fontWeight="bold">
+                    Quick actions
+                  </Text>
+                  <BlockStack gap="300">
+                    <Button 
+                      icon={ProductIcon}
+                      fullWidth 
+                      textAlign="start"
+                      onClick={() => navigate("/app/products")}
+                    >
+                      Optimize products
+                    </Button>
+                    <Button 
+                      icon={StarFilledIcon}
+                      fullWidth 
+                      textAlign="start"
+                      onClick={() => navigate("/app/pricing")}
+                    >
+                      Discover segments
+                    </Button>
+                    <Button 
+                      icon={ChartLineIcon}
+                      fullWidth 
+                      textAlign="start"
+                      onClick={() => navigate("/app/pricing")}
+                    >
+                      View analytics
+                    </Button>
+                  </BlockStack>
+                </BlockStack>
+              </Box>
+            </Card>
+          </Layout.Section>
+        </Layout>
+
+        {/* Upgrade Prompt (if on Free plan) */}
+        {userData.plan === "Free" && (
+          <Card>
+            <Box padding="500">
+              <InlineStack align="space-between" blockAlign="center">
+                <BlockStack gap="200">
+                  <Text variant="headingMd" as="h2" fontWeight="bold">
+                    Ready to unlock full potential?
+                  </Text>
+                  <Text variant="bodyMd" tone="subdued">
+                    Upgrade to Pro and get AI Customer Segmentation, 500 AI generations/month, and priority support
+                  </Text>
+                </BlockStack>
+                <Button variant="primary" size="large" onClick={() => navigate("/app/pricing")}>
+                  View plans
+                </Button>
+              </InlineStack>
+            </Box>
+          </Card>
+        )}
+      </BlockStack>
     </Page>
   );
 }
-
-
-// import { useEffect } from "react";
-// import { json } from "@remix-run/node";
-// import { useFetcher } from "@remix-run/react";
-// import {
-//   Page,
-//   Layout,
-//   Text,
-//   Card,
-//   Button,
-//   BlockStack,
-//   Box,
-//   List,
-//   Link,
-//   InlineStack,
-// } from "@shopify/polaris";
-// import { TitleBar, useAppBridge } from "@shopify/app-bridge-react";
-// import { authenticate } from "../shopify.server";
-// import { firstInitQueue } from "../queues/first_init";
-// import UserServices  from "../.server/services/user";
-// import ShopifyProduct  from "../.server/services/product";
-
-
-// export const loader = async ({ request }) => {
-//   const { admin,session } = await authenticate.admin(request);
-
-//   const shopifyProductService = new ShopifyProduct(admin,session);
-//   await shopifyProductService.syncProducts();
-
-//   return null;
-// };
-
-// export const action = async ({ request }) => {
-// };
-
-// export default function Index() {
-//   const fetcher = useFetcher();
-//   const shopify = useAppBridge();
-//   const isLoading =
-//     ["loading", "submitting"].includes(fetcher.state) &&
-//     fetcher.formMethod === "POST";
-//   const productId = fetcher.data?.product?.id.replace(
-//     "gid://shopify/Product/",
-//     "",
-//   );
-
-//   useEffect(() => {
-//     if (productId) {
-//       shopify.toast.show("Product created");
-//     }
-//   }, [productId, shopify]);
-//   const generateProduct = () => fetcher.submit({}, { method: "POST" });
-
-//   return (
-//     <Page>
-//       <TitleBar title="Remix app template">
-//         <button variant="primary" onClick={generateProduct}>
-//           Generate a product
-//         </button>
-//       </TitleBar>
-//       <BlockStack gap="500">
-//         <Layout>
-//           <Layout.Section>
-//             <Card>
-//               <BlockStack gap="500">
-//                 <BlockStack gap="200">
-//                   <Text as="h2" variant="headingMd">
-//                     Congrats on creating a new Shopify app 🎉
-//                   </Text>
-//                   <Text variant="bodyMd" as="p">
-//                     This embedded app template uses{" "}
-//                     <Link
-//                       url="https://shopify.dev/docs/apps/tools/app-bridge"
-//                       target="_blank"
-//                       removeUnderline
-//                     >
-//                       App Bridge
-//                     </Link>{" "}
-//                     interface examples like an{" "}
-//                     <Link url="/app/additional" removeUnderline>
-//                       additional page in the app nav
-//                     </Link>
-//                     , as well as an{" "}
-//                     <Link
-//                       url="https://shopify.dev/docs/api/admin-graphql"
-//                       target="_blank"
-//                       removeUnderline
-//                     >
-//                       Admin GraphQL
-//                     </Link>{" "}
-//                     mutation demo, to provide a starting point for app
-//                     development.
-//                   </Text>
-//                 </BlockStack>
-//                 <BlockStack gap="200">
-//                   <Text as="h3" variant="headingMd">
-//                     Get started with products
-//                   </Text>
-//                   <Text as="p" variant="bodyMd">
-//                     Generate a product with GraphQL and get the JSON output for
-//                     that product. Learn more about the{" "}
-//                     <Link
-//                       url="https://shopify.dev/docs/api/admin-graphql/latest/mutations/productCreate"
-//                       target="_blank"
-//                       removeUnderline
-//                     >
-//                       productCreate
-//                     </Link>{" "}
-//                     mutation in our API references.
-//                   </Text>
-//                 </BlockStack>
-//                 <InlineStack gap="300">
-//                   <Button loading={isLoading} onClick={generateProduct}>
-//                     Generate a product
-//                   </Button>
-//                   {fetcher.data?.product && (
-//                     <Button
-//                       url={`shopify:admin/products/${productId}`}
-//                       target="_blank"
-//                       variant="plain"
-//                     >
-//                       View product
-//                     </Button>
-//                   )}
-//                 </InlineStack>
-//                 {fetcher.data?.product && (
-//                   <>
-//                     <Text as="h3" variant="headingMd">
-//                       {" "}
-//                       productCreate mutation
-//                     </Text>
-//                     <Box
-//                       padding="400"
-//                       background="bg-surface-active"
-//                       borderWidth="025"
-//                       borderRadius="200"
-//                       borderColor="border"
-//                       overflowX="scroll"
-//                     >
-//                       <pre style={{ margin: 0 }}>
-//                         <code>
-//                           {JSON.stringify(fetcher.data.product, null, 2)}
-//                         </code>
-//                       </pre>
-//                     </Box>
-//                     <Text as="h3" variant="headingMd">
-//                       {" "}
-//                       productVariantsBulkUpdate mutation
-//                     </Text>
-//                     <Box
-//                       padding="400"
-//                       background="bg-surface-active"
-//                       borderWidth="025"
-//                       borderRadius="200"
-//                       borderColor="border"
-//                       overflowX="scroll"
-//                     >
-//                       <pre style={{ margin: 0 }}>
-//                         <code>
-//                           {JSON.stringify(fetcher.data.variant, null, 2)}
-//                         </code>
-//                       </pre>
-//                     </Box>
-//                   </>
-//                 )}
-//               </BlockStack>
-//             </Card>
-//           </Layout.Section>
-//           <Layout.Section variant="oneThird">
-//             <BlockStack gap="500">
-//               <Card>
-//                 <BlockStack gap="200">
-//                   <Text as="h2" variant="headingMd">
-//                     App template specs
-//                   </Text>
-//                   <BlockStack gap="200">
-//                     <InlineStack align="space-between">
-//                       <Text as="span" variant="bodyMd">
-//                         Framework
-//                       </Text>
-//                       <Link
-//                         url="https://remix.run"
-//                         target="_blank"
-//                         removeUnderline
-//                       >
-//                         Remix
-//                       </Link>
-//                     </InlineStack>
-//                     <InlineStack align="space-between">
-//                       <Text as="span" variant="bodyMd">
-//                         Database
-//                       </Text>
-//                       <Link
-//                         url="https://www.prisma.io/"
-//                         target="_blank"
-//                         removeUnderline
-//                       >
-//                         Prisma
-//                       </Link>
-//                     </InlineStack>
-//                     <InlineStack align="space-between">
-//                       <Text as="span" variant="bodyMd">
-//                         Interface
-//                       </Text>
-//                       <span>
-//                         <Link
-//                           url="https://polaris.shopify.com"
-//                           target="_blank"
-//                           removeUnderline
-//                         >
-//                           Polaris
-//                         </Link>
-//                         {", "}
-//                         <Link
-//                           url="https://shopify.dev/docs/apps/tools/app-bridge"
-//                           target="_blank"
-//                           removeUnderline
-//                         >
-//                           App Bridge
-//                         </Link>
-//                       </span>
-//                     </InlineStack>
-//                     <InlineStack align="space-between">
-//                       <Text as="span" variant="bodyMd">
-//                         API
-//                       </Text>
-//                       <Link
-//                         url="https://shopify.dev/docs/api/admin-graphql"
-//                         target="_blank"
-//                         removeUnderline
-//                       >
-//                         GraphQL API
-//                       </Link>
-//                     </InlineStack>
-//                   </BlockStack>
-//                 </BlockStack>
-//               </Card>
-//               <Card>
-//                 <BlockStack gap="200">
-//                   <Text as="h2" variant="headingMd">
-//                     Next steps
-//                   </Text>
-//                   <List>
-//                     <List.Item>
-//                       Build an{" "}
-//                       <Link
-//                         url="https://shopify.dev/docs/apps/getting-started/build-app-example"
-//                         target="_blank"
-//                         removeUnderline
-//                       >
-//                         {" "}
-//                         example app
-//                       </Link>{" "}
-//                       to get started
-//                     </List.Item>
-//                     <List.Item>
-//                       Explore Shopify's API with{" "}
-//                       <Link
-//                         url="https://shopify.dev/docs/apps/tools/graphiql-admin-api"
-//                         target="_blank"
-//                         removeUnderline
-//                       >
-//                         GraphiQL
-//                       </Link>
-//                     </List.Item>
-//                   </List>
-//                 </BlockStack>
-//               </Card>
-//             </BlockStack>
-//           </Layout.Section>
-//         </Layout>
-//       </BlockStack>
-//     </Page>
-//   );
-// }

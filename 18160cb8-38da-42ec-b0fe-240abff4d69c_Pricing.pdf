@@ -1,0 +1,77 @@
+Chắc chắn rồi! Dựa trên tài liệu kỹ thuật chi tiết bạn cung cấp, đây là một cấu trúc pricing 4 tầng được thiết kế để tối đa hóa việc người dùng nâng cấp (upgrade).
+
+Mục tiêu chính là:
+*   **Gói Free:** Đủ hấp dẫn để người dùng trải nghiệm giá trị cốt lõi (tạo nội dung AI).
+*   **Gói Starter ($9):** Giải quyết "nỗi đau" đầu tiên là giới hạn về số lượng.
+*   **Gói Pro ($19.9):** Mở khóa tính năng "thay đổi cuộc chơi" là **AI Segmentation**. Đây là mồi câu chính.
+*   **Gói Business ($49.9):** Giải quyết vấn đề về **quy mô và hiệu suất** với tối ưu hóa hàng loạt.
+
+Dưới đây là cấu trúc chi tiết bạn có thể dùng.
+
+---
+
+## 📈 Cấu Trúc Bảng Giá (Pricing Tiers) cho Dropease
+
+### Bảng Giá Chi Tiết
+
+| Tính Năng                                       | Free                                 | Starter                                | Pro                        <span style="color:#00FFFF; background-color:#1C1C1F; padding: 2px 6px; border-radius: 4px; font-size: 0.8em;">Phổ biến nhất</span> | Business                                   |
+| ----------------------------------------------- | ------------------------------------ | -------------------------------------- | -------------------------------------------------- | ------------------------------------------ |
+| **Giá**                                         | **$0** / tháng                        | **$9** / tháng                          | **$19.9** / tháng                                 | **$49.9** / tháng                         |
+| *Đối tượng*                                     | Dành cho người mới, muốn dùng thử    | Dành cho cửa hàng nhỏ, dropshippers   | Dành cho cửa hàng đang phát triển, cần insight     | Dành cho cửa hàng lớn, agency              |
+|                                                 |                                      |                                        |                                                    |                                            |
+| **Giới Hạn Cơ Bản**                              |                                      |                                        |                                                    |                                            |
+| Số sản phẩm được quản lý                         | 10 sản phẩm                          | 50 sản phẩm                            | 250 sản phẩm                                       | 1,000 sản phẩm                             |
+| Lượt tạo nội dung bằng AI / tháng                | 20 lượt                              | 100 lượt                               | 500 lượt                                           | **Không giới hạn**                          |
+| Lượt khám phá phân khúc / tháng                  | 10 lượt                              | 50 lượt                                | 200 lượt                                           | **Không giới hạn**                          |
+|                                                 |                                      |                                        |                                                    |                                            |
+| **Tính Năng Cốt Lõi (AI Insight)**                |                                      |                                        |                                                    |                                            |
+| Cài đặt tối ưu hóa thủ công                      | ✅                                     | ✅                                     | ✅                                                 | ✅                                         |
+| 🧠 **Khám Phá Phân Khúc Khách Hàng (AI Segmentation)** | ❌                                     | Xem trước (Chỉ thấy tên segment)       | ✅ **Toàn quyền truy cập**                          | ✅ **Toàn quyền truy cập**                  |
+| Xem chi tiết & chọn 1 trong 3 segment            | ❌                                     | ❌                                     | ✅                                                 | ✅                                         |
+| Lưu trữ & quản lý các segment đã khám phá         | ❌                                     | ❌                                     | ✅                                                 | ✅                                         |
+|                                                 |                                      |                                        |                                                    |                                            |
+| **Tối Ưu Hóa & Đồng Bộ**                          |                                      |                                        |                                                    |                                            |
+| Tạo tiêu đề & mô tả từ **cài đặt thủ công**      | ✅                                     | ✅                                     | ✅                                                 | ✅                                         |
+| Tạo tiêu đề & mô tả từ **phân khúc khách hàng**    | ❌                                     | ❌                                     | ✅                                                 | ✅                                         |
+| 🚀 **Tối Ưu Hóa Hàng Loạt (Bulk Optimization)**    | ❌                                     | ❌                                     | ❌                                                 | ✅                                         |
+| Đồng bộ nội dung lên Shopify (1-click push)       | ✅                                     | ✅                                     | ✅                                                 | ✅                                         |
+| Đồng bộ tự động qua Webhook                     | ✅                                     | ✅                                     | ✅                                                 | ✅                                         |
+|                                                 |                                      |                                        |                                                    |                                            |
+| **Hỗ Trợ & Nâng Cao**                           |                                      |                                        |                                                    |                                            |
+| Hỗ trợ qua Email                                 | Hỗ trợ cộng đồng                      | Tiêu chuẩn (phản hồi trong 48h)        | **Ưu tiên** (phản hồi trong 24h)                   | **Ưu tiên cao nhất** (Live chat)           |
+| Truy cập tính năng A/B testing (Sắp ra mắt)      | ❌                                     | ❌                                     | ✅                                                 | ✅                                         |
+| Truy cập Analytics Dashboard (Sắp ra mắt)       | ❌                                     | ❌                                     | ❌                                                 | ✅                                         |
+|                                                 |                                      |                                        |                                                    |                                            |
+| **Hành Động**                                   | <button>Bắt đầu Miễn phí</button>     | <button>Nâng cấp Ngay</button>          | <button style="background:linear-gradient(90deg, #8B5CF6, #00FFFF); color:white;">Chọn Gói Pro</button> | <button>Liên hệ Sales</button>             |
+
+---
+
+### Phân Tích Logic Nâng Cấp (Upgrade Funnel)
+
+Đây là cách cấu trúc này "ép" người dùng phải nâng cấp một cách tự nhiên.
+
+#### 1. Từ `Free` lên `Starter` ($0 → $9)
+
+*   **Trải nghiệm:** Người dùng gói `Free` có thể thấy được sức mạnh của việc tạo nội dung tự động cho 10 sản phẩm. Họ thấy nó nhanh và hiệu quả.
+*   **Nỗi đau (Pain Point):**
+    1.  **Hết sản phẩm:** "Tôi muốn tối ưu hóa sản phẩm thứ 11, nhưng không thể."
+    2.  **Hết lượt tạo:** "Tôi muốn thử lại vài lần cho hay hơn, nhưng đã hết 20 lượt tạo."
+*   **Giải pháp ($9):** Gói `Starter` tăng gấp 5 lần giới hạn. Với một chi phí nhỏ, người dùng giải quyết ngay được nỗi đau về số lượng, cho phép họ áp dụng app cho một phần đáng kể cửa hàng của mình.
+
+#### 2. Từ `Starter` lên `Pro` ($9 → $19.9) - **Bước nhảy giá trị lớn nhất**
+
+*   **Trải nghiệm:** Người dùng `Starter` đã quen với việc tạo nội dung nhanh. Tuy nhiên, họ vẫn đang "đoán" xem khách hàng của mình là ai thông qua việc tự điền cài đặt thủ công.
+*   **Nỗi đau (Pain Point):**
+    1.  **Tò mò bị chặn lại:** Tính năng "Khám Phá Phân Khúc Khách Hàng" cực kỳ hấp dẫn. Ở gói `Starter`, họ có thể bấm vào và app sẽ trả về **tên của 3 phân khúc** (ví dụ: "The Urban Minimalist", "The Luxury Gifter") nhưng không thể xem chi tiết hay sử dụng chúng. Điều này tạo ra một sự tò mò và cảm giác "bỏ lỡ" cực lớn.
+    2.  **Chất lượng nội dung:** Họ nhận ra rằng nội dung tạo ra từ cài đặt thủ công không "trúng" bằng nội dung được tối ưu cho một đối tượng cụ thể. Họ muốn câu trả lời cho câu hỏi: "Tôi nên viết cho ai?"
+*   **Giải pháp ($19.9):** Gói `Pro` là câu trả lời. Nó mở khóa hoàn toàn tính năng **AI Segmentation**. Đây không chỉ là một bản nâng cấp về số lượng, mà là một bước nhảy vọt về **chất lượng và chiến lược**. Người dùng trả tiền để từ "người đoán mò" trở thành "người ra quyết định dựa trên dữ liệu AI". Đây là giá trị cốt lõi mạnh nhất của app.
+
+#### 3. Từ `Pro` lên `Business` ($19.9 → $49.9)
+
+*   **Trải nghiệm:** Người dùng `Pro` cực kỳ yêu thích tính năng khám phá phân khúc. Họ đã tìm ra persona "vàng" cho dòng sản phẩm của mình.
+*   **Nỗi đau (Pain Point):**
+    1.  **Sự lặp lại tốn thời gian:** "Tôi đã có persona 'The Luxury Gifter' và muốn áp dụng nó cho 100 sản phẩm trang sức của mình. Tôi phải vào từng sản phẩm, chọn persona, rồi bấm tạo nội dung. Quá mất thời gian!"
+    2.  **Giới hạn về quy mô:** Khi cửa hàng có trên 250 sản phẩm, họ bắt đầu cảm thấy giới hạn.
+*   **Giải pháp ($49.9):** Gói `Business` giải quyết nỗi đau về **quy mô và hiệu suất**. Tính năng **Tối Ưu Hóa Hàng Loạt (Bulk Optimization)** là lý do chính để nâng cấp. Thay vì 100 lần click, họ chỉ cần vài lần click để tối ưu cả danh mục. Kèm theo đó là không giới hạn lượt sử dụng và hỗ trợ cao cấp, phù hợp với các doanh nghiệp nghiêm túc coi đây là một công cụ vận hành cốt lõi.
+
+Bằng cách cấu trúc các tính năng theo "phễu" giá trị này, bạn tạo ra một hành trình tự nhiên, nơi mỗi lần nâng cấp đều giải quyết một "nỗi đau" rõ ràng mà người dùng gặp phải ở gói cước trước đó.
