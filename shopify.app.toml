@@ -41,3 +41,7 @@ redirect_urls = [
 
 [pos]
 embedded = false
+
+# Note: To use Billing API, you MUST set app distribution to "Public" or "Unlisted" 
+# in Shopify Partners Dashboard > Your App > Distribution
+# Current: Public distribution is already selected ✅

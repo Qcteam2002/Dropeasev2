@@ -37,6 +37,10 @@ const shopify = shopifyApp({
       deliveryMethod: DeliveryMethod.Http,
       callbackUrl: "/webhooks/app/uninstalled",
     },
+    APP_SUBSCRIPTIONS_UPDATE: {
+      deliveryMethod: DeliveryMethod.Http,
+      callbackUrl: "/webhooks/billing",
+    },
   },
   hooks: {
     afterAuth: async ({ session, admin }) => {

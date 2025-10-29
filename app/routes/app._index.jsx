@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { redirect } from "@remix-run/node";
 import {
   Page,
   Card,
@@ -26,6 +27,25 @@ import {
   ClockIcon,
 } from "@shopify/polaris-icons";
 import { useNavigate } from "@remix-run/react";
+
+// Redirect to pricing page if charge_id is present (billing callback)
+export const loader = async ({ request }) => {
+  const url = new URL(request.url);
+  const chargeId = url.searchParams.get("charge_id");
+  
+  if (chargeId) {
+    console.log("🔄 Homepage detected charge_id - redirecting to pricing");
+    console.log("📊 charge_id:", chargeId);
+    
+    // Preserve all query params when redirecting
+    const pricingUrl = `/app/pricing${url.search}`;
+    console.log("🎯 Redirecting to:", pricingUrl);
+    
+    return redirect(pricingUrl);
+  }
+  
+  return null;
+};
 
 export default function HomePage() {
   const navigate = useNavigate();
